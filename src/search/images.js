@@ -52,7 +52,7 @@ export default async function searchImages(query, page = 0) {
 
 		return {
 			more_results_available:
-				simplified.body?.response?.query?.more_results_available ?? false,
+				simplified.body?.response?.query?.more_results_available,
 			results: imageResults.map((r) => ({
 				title: r.title,
 				url: r.url,

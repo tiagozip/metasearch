@@ -611,14 +611,14 @@
 					? "show less"
 					: "show more";
 			};
-      box.append(showMore);
+			box.append(showMore);
 
 			setTimeout(async () => {
-			console.log(questionEl.scrollHeight)
-			if (questionEl.scrollHeight < 480) {
-				showMore.remove();
-				questionEl.classList.add("expanded");
-			}
+				console.log(questionEl.scrollHeight);
+				if (questionEl.scrollHeight < 480) {
+					showMore.remove();
+					questionEl.classList.add("expanded");
+				}
 				if (!questionEl.querySelectorAll("pre code").length) return;
 
 				const { highlight } = await import(
@@ -966,12 +966,36 @@
 				playPauseBtn.className = "rich-timer-btn";
 				const resetBtn = document.createElement("button");
 				resetBtn.className = "rich-timer-btn";
-				resetBtn.textContent = "Reset";
+				resetBtn.textContent = "reset";
+
+				let doNotify;
+
+				const notifBtn = document.createElement("button");
+				notifBtn.className = "rich-timer-btn";
+				notifBtn.classList.add("rich-timer-notify");
+				notifBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-bell"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" /><path d="M9 17v1a3 3 0 0 0 6 0v-1" /></svg> <span>enable notifications</span>`;
+				let notificationsEnabled = false;
+				notifBtn.onclick = () => {
+					if (notificationsEnabled) return;
+					if (!("Notification" in window)) {
+						return;
+					}
+					playTick();
+
+					Notification.requestPermission().then((permission) => {
+						if (permission === "granted") {
+							notificationsEnabled = true;
+							notifBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-bell-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M11.5 17h-7.5a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3c.016 .129 .037 .256 .065 .382" /><path d="M9 17v1a3 3 0 0 0 2.502 2.959" /><path d="M15 19l2 2l4 -4" /></svg> <span>notifications enabled!</span>`;
+							notifBtn.disabled = true;
+							doNotify = true;
+						}
+					});
+				};
 
 				const formatTime = (secs) => {
 					const h = Math.floor(secs / 3600);
 					const m = Math.floor((secs % 3600) / 60);
-					const s = secs % 60;
+					const s = Math.round(secs % 60);
 					if (h > 0)
 						return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 					return `${m}:${s.toString().padStart(2, "0")}`;
@@ -979,7 +1003,8 @@
 
 				const updateDisplay = () => {
 					display.textContent = formatTime(remaining);
-					const pct = remaining / totalSeconds;
+					document.title = `${formatTime(remaining)} - timer`;
+					const pct = (remaining / totalSeconds) * 0.98;
 					const offset = circumference * (1 - pct);
 					progressCircle.style.strokeDashoffset = offset;
 					if (remaining <= 0) {
@@ -989,29 +1014,110 @@
 					}
 				};
 
+				const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+				const playTick = ({
+					freq = 2000,
+					duration = 0.015,
+					volume = 0.12,
+				} = {}) => {
+					const now = ctx.currentTime;
+
+					const osc = ctx.createOscillator();
+					const gain = ctx.createGain();
+
+					osc.type = "sine";
+					osc.frequency.value = freq;
+
+					gain.gain.setValueAtTime(volume, now);
+					gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+					osc.connect(gain);
+					gain.connect(ctx.destination);
+
+					osc.start(now);
+					osc.stop(now + duration);
+				};
+
+				const bell = ({ freq = 880, duration = 2, volume = 0.2 } = {}) => {
+					const now = ctx.currentTime;
+
+					const master = ctx.createGain();
+					master.gain.value = 1;
+
+					const env = ctx.createGain();
+					env.gain.setValueAtTime(0, now);
+					env.gain.linearRampToValueAtTime(volume * 0.25, now + 0.03);
+					env.gain.linearRampToValueAtTime(volume * 0.6, now + 0.12);
+					env.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+					const filter = ctx.createBiquadFilter();
+					filter.type = "lowpass";
+					filter.frequency.setValueAtTime(4000, now);
+					filter.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+
+					env.connect(filter);
+					filter.connect(master);
+					master.connect(ctx.destination);
+
+					const partials = [
+						[1, 1],
+						[2.7, 0.4],
+						[5.4, 0.2],
+						[8.9, 0.1],
+					];
+
+					for (const [ratio, level] of partials) {
+						const osc = ctx.createOscillator();
+						const g = ctx.createGain();
+
+						osc.type = "sine";
+						osc.frequency.value = freq * ratio;
+						g.gain.value = level;
+
+						osc.connect(g);
+						g.connect(env);
+
+						osc.start(now);
+						osc.stop(now + duration);
+					}
+				};
+
 				const tick = () => {
-					if (remaining > 0) {
-						remaining--;
+					if (Math.round(remaining) > 0) {
+						remaining -= 0.1;
 						updateDisplay();
 					} else {
 						clearInterval(intervalId);
 						isRunning = false;
 						playPauseBtn.textContent = "start";
 						section.classList.add("timer-done");
+						bell();
+
+						progressCircle.style.strokeDashoffset = circumference * (1 - 1);
+
+						if (doNotify) {
+							new Notification("🔔 timer finished!", {
+								body: `your ${formatTime(totalSeconds)} timer has completed.`,
+								icon: "",
+							});
+						}
 					}
 				};
 
 				const start = () => {
-					if (remaining <= 0) return;
+					if (Math.round(remaining) <= 0) return;
 					isRunning = true;
 					playPauseBtn.textContent = "pause";
-					intervalId = setInterval(tick, 1000);
+					intervalId = setInterval(tick, 100);
+					playTick();
 				};
 
 				const pause = () => {
 					isRunning = false;
 					playPauseBtn.textContent = "resume";
 					clearInterval(intervalId);
+					playTick();
 				};
 
 				const reset = () => {
@@ -1020,14 +1126,16 @@
 					remaining = totalSeconds;
 					section.classList.remove("timer-done");
 					playPauseBtn.textContent = "start";
+
 					updateDisplay();
+					playTick();
 				};
 
 				playPauseBtn.textContent = isRunning ? "pause" : "start";
 				playPauseBtn.onclick = () => (isRunning ? pause() : start());
 				resetBtn.onclick = reset;
 
-				controls.append(playPauseBtn, resetBtn);
+				controls.append(playPauseBtn, resetBtn, notifBtn);
 				updateDisplay();
 
 				if (isRunning) start();

@@ -149,7 +149,7 @@
 
 		isLoading = true;
 		const loadingEl = document.getElementById("loading-indicator");
-		if (loadingEl) loadingEl.style.display = "flex";
+		loadingEl.style.display = "flex";
 
 		try {
 			const res = await fetch("/p", {
@@ -175,7 +175,7 @@
 
 			if (newData.error || !newData.results?.length) {
 				hasMoreResults = false;
-				if (loadingEl) loadingEl.style.display = "none";
+				loadingEl.style.display = "none";
 				if (!newData.results?.length) {
 					const endEl = document.createElement("div");
 					endEl.className = "end-of-results";
@@ -189,7 +189,7 @@
 			hasMoreResults =
 				newData.more_results_available !== false && newData.results.length > 0;
 		} catch (err) {
-			console.error("Failed to load more news:", err);
+			console.error("failed to load more news:", err);
 		} finally {
 			isLoading = false;
 			if (document.getElementById("loading-indicator")) {
@@ -198,7 +198,7 @@
 		}
 	};
 
-	const data = __results_template__;
+  const data = __results_template__;
 	hasMoreResults = data.more_results_available !== false;
 
 	if (data.captchaHtml) {
