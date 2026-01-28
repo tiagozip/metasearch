@@ -7,11 +7,11 @@ const secret = new TextEncoder().encode(Bun.randomUUIDv7());
 
 const POW_QUERIES = 100;
 const POW_EXPIRY_MS = 2 * 24 * 60 * 60 * 1000;
-const CHALLENGE_EXPIRY_MS = 5 * 60 * 1000;
+const CHALLENGE_EXPIRY_MS = 4 * 60 * 1000;
 const CHALLENGES_COUNT = 20;
 
-const ARGON2_MEMORY = Math.round(4 * 1024);
-const ARGON2_TIME = 1;
+const ARGON2_MEMORY = 6 * 1024;
+const ARGON2_TIME = 2;
 const ARGON2_HASH_LENGTH = 16;
 
 const db = SQL("sqlite://.data/ratelimit.sqlite");
@@ -29,16 +29,13 @@ const db = SQL("sqlite://.data/ratelimit.sqlite");
 	await db`CREATE INDEX IF NOT EXISTS idx_pow_tokens_expires ON pow_tokens(expires_at)`;
 
 	await db`
-		CREATE TABLE IF NOT EXISTS challenge_seeds (
-			seed_id TEXT PRIMARY KEY,
-			seed TEXT NOT NULL,
-			prefix TEXT NOT NULL,
-			created_at INTEGER NOT NULL,
+		CREATE TABLE IF NOT EXISTS challenge_blocklist (
+			signature TEXT PRIMARY KEY,
 			expires_at INTEGER NOT NULL
 		)
 	`;
 
-	await db`CREATE INDEX IF NOT EXISTS idx_challenge_seeds_expires ON challenge_seeds(expires_at)`;
+	await db`CREATE INDEX IF NOT EXISTS idx_challenge_blocklist_expires ON challenge_blocklist(expires_at)`;
 })();
 
 export const signRedirect = async (url) => {
@@ -63,17 +60,17 @@ export const signPass = async (pass) => {
 
 export const validatePass = async (jwt) => {
 	const { payload } = await jwtVerify(jwt, secret);
-	return  payload.pass;
+	return payload.pass;
 };
 
 const cleanupOldTokens = async () => {
 	const now = Date.now();
 	await db`DELETE FROM pow_tokens WHERE expires_at < ${now}`;
-	await db`DELETE FROM challenge_seeds WHERE expires_at < ${now}`;
+	await db`DELETE FROM challenge_blocklist WHERE expires_at < ${now}`;
 };
 
 setInterval(cleanupOldTokens, 5 * 60 * 1000);
-await cleanupOldTokens();
+setTimeout(cleanupOldTokens, 1000);
 
 const getValidToken = async (token) => {
 	if (!token) return null;
@@ -97,42 +94,52 @@ const decrementToken = async (token) => {
 	`;
 };
 
-const createChallengeSeed = async () => {
-	const seedId = Bun.randomUUIDv7();
+const createChallenge = async () => {
 	const seed = Bun.randomUUIDv7();
 	const prefix = crypto.getRandomValues(new Uint8Array(1))[0].toString(16)[0];
 
-	const now = Date.now();
-	const expiresAt = now + CHALLENGE_EXPIRY_MS;
+	const challengeJwt = await new SignJWT({
+		seed,
+		prefix,
+	})
+		.setProtectedHeader({ alg: `HS256` })
+		.setIssuedAt()
+		.setExpirationTime(`${Math.floor(CHALLENGE_EXPIRY_MS / 1000)}s`)
+		.sign(secret);
 
-	await db`
-		INSERT INTO challenge_seeds (seed_id, seed, prefix, created_at, expires_at)
-		VALUES (${seedId}, ${seed}, ${prefix}, ${now}, ${expiresAt})
-	`;
-
-	return { seedId, seed, prefix };
+	return { challengeJwt, seed, prefix };
 };
 
-const verifySolution = async (seedId, solution) => {
-	const now = Date.now();
+const verifySolution = async (challengeJwt, solution) => {
+	let payload;
+	try {
+		const verified = await jwtVerify(challengeJwt, secret);
+		payload = verified.payload;
+	} catch (error) {
+		return { valid: false, error: "Challenge expired or invalid" };
+	}
 
-	const result = await db`
-		SELECT * FROM challenge_seeds
-		WHERE seed_id = ${seedId}
-		AND expires_at > ${now}
+	const parts = challengeJwt.split('.');
+	const signature = parts[2].replace(/=/g, '');
+
+	const now = Date.now();
+	const existing = await db`
+		SELECT * FROM challenge_blocklist
+		WHERE signature = ${signature}
 	`;
 
-	const challenge = result[0];
-
-	if (!challenge) {
-		return { valid: false, error: "Challenge expired or invalid" };
+	if (existing.length > 0) {
+		return { valid: false, error: "Challenge already used" };
 	}
 
 	for (let i = 0; i < solution.length; i++) {
 		const nonce = solution[i];
-		const input = `${challenge.seed}:${i}:${nonce}`;
+		const input = `${payload.seed}:${i}:${nonce}`;
+		if (typeof nonce !== 'number' || !Number.isInteger(nonce) || nonce < 0) {
+			return { valid: false, error: "Invalid nonce format" };
+		}
 
-		const saltInput = `${challenge.seed}:${i}`;
+		const saltInput = `${payload.seed}:${i}`;
 		const saltHash = await crypto.subtle.digest(
 			"SHA-256",
 			new TextEncoder().encode(saltInput),
@@ -152,7 +159,7 @@ const verifySolution = async (seedId, solution) => {
 
 			const hashHex = Buffer.from(hash).toString("hex");
 
-			if (!hashHex.startsWith(challenge.prefix)) {
+			if (!hashHex.startsWith(payload.prefix)) {
 				return { valid: false, error: `Invalid solution for challenge ${i}` };
 			}
 		} catch (error) {
@@ -161,14 +168,18 @@ const verifySolution = async (seedId, solution) => {
 		}
 	}
 
-	await db`DELETE FROM challenge_seeds WHERE seed_id = ${seedId}`;
+	const expiresAt = now + CHALLENGE_EXPIRY_MS;
+	await db`
+		INSERT INTO challenge_blocklist (signature, expires_at)
+		VALUES (${signature}, ${expiresAt})
+	`;
 
 	const token = Bun.randomUUIDv7();
-	const expiresAt = now + POW_EXPIRY_MS;
+	const tokenExpiresAt = now + POW_EXPIRY_MS;
 
 	await db`
 		INSERT INTO pow_tokens (token, created_at, expires_at, queries_remaining)
-		VALUES (${token}, ${now}, ${expiresAt}, ${POW_QUERIES})
+		VALUES (${token}, ${now}, ${tokenExpiresAt}, ${POW_QUERIES})
 	`;
 
 	return { valid: true, token };
@@ -211,13 +222,13 @@ export const rateLimitElysia = new Elysia({ prefix: "/challenge" })
 			return redirect(qredirect || "/");
 		}
 
-		const challengeSeed = await createChallengeSeed();
+		const challenge = await createChallenge();
 
 		const html = await Bun.file("./public/challenge.html").text();
 		const injectedHtml = html
-			.replaceAll("%%seedId%%", challengeSeed.seedId)
-			.replaceAll("%%seed%%", challengeSeed.seed)
-			.replace("%%prefix%%", challengeSeed.prefix)
+			.replaceAll("%%seedId%%", challenge.challengeJwt)
+			.replaceAll("%%seed%%", challenge.seed)
+			.replace("%%prefix%%", challenge.prefix)
 			.replaceAll("__jobs__", CHALLENGES_COUNT.toString())
 			.replace("__mem__", ARGON2_MEMORY.toString())
 			.replace("__time__", ARGON2_TIME.toString())
@@ -233,15 +244,15 @@ export const rateLimitElysia = new Elysia({ prefix: "/challenge" })
 			return { error: "CSRF header missing" };
 		}
 
-		const [seedId, solution, doCookie] = body;
+		const [challengeJwt, solution, doCookie] = body;
 
 		if (
-			!seedId ||
+			!challengeJwt ||
 			!Array.isArray(solution) ||
 			solution.length !== CHALLENGES_COUNT
 		) {
 			set.status = 400;
-			return { error: `expected seedId and ${CHALLENGES_COUNT} solutions` };
+			return { error: `expected challengeJwt and ${CHALLENGES_COUNT} solutions` };
 		}
 
 		const result = await verifySolution(seedId, solution);
@@ -251,16 +262,16 @@ export const rateLimitElysia = new Elysia({ prefix: "/challenge" })
 			return { error: result.error };
 		}
 
-    if (doCookie) {
-      cookie.galileo_pass.set({
-			  value: result.token,
-			  maxAge: POW_EXPIRY_MS / 1000,
-			  path: "/",
-			  httpOnly: true,
-			  sameSite: "lax",
-      });
-      return { success: true };
-    }
+		if (doCookie) {
+			cookie.galileo_pass.set({
+				value: result.token,
+				maxAge: POW_EXPIRY_MS / 1000,
+				path: "/",
+				httpOnly: true,
+				sameSite: "lax",
+			});
+			return { success: true };
+		}
 
 		return { success: true, pass: await signPass(result.token) };
 	});
