@@ -77,6 +77,10 @@ new Elysia()
 			.replaceAll(
 				"&pass",
 				query.pass ? `&pass=${encodeURIComponent(query.pass)}` : "",
+			)
+			.replaceAll(
+			  `<input type="hidden" name="pass">`,
+				query.pass ? `<input type="hidden" name="pass" value="${encodeURIComponent(query.pass)}">` : "",
 			);
 
 		if (headers["accept-encoding"]?.includes?.("gzip")) {
