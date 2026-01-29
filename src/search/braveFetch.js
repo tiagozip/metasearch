@@ -38,7 +38,8 @@ const braveFetch = async (url, options = {}) => {
 			"sec-fetch-user": "?1",
 			"sec-gpc": "1",
 			"accept-language": "en-US,en;q=0.9",
-			"cache-control": "max-age=0",
+      "cache-control": "max-age=0",
+			proxy: process.env.CYCLETLS_PROXY || undefined
 		},
 		method.toLowerCase(),
 	);

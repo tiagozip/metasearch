@@ -358,7 +358,7 @@ aside {
 		text-decoration: underline;
 	}
 
-	&:focus:not(:active) {
+	&:focus:not(:active, :hover) {
 		outline: 2px solid #89b4fa;
 		border-radius: 4px;
 		outline-offset: 3px;
