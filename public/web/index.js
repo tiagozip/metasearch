@@ -182,7 +182,8 @@
 					iframe.style.cssText = `width:100%;aspect-ratio:16/9;border-radius:6px;border:1px solid rgb(49, 50, 68);background-color:black;`;
 					iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}`;
 					iframe.allow = "encrypted-media";
-					iframe.loading = "lazy";
+          iframe.loading = "lazy";
+          iframe.referrerpolicy = "strict-origin-when-cross-origin";
 
 					iframe.allowFullscreen = true;
 					document.querySelector("#results-all").append(iframe);
