@@ -1972,7 +1972,6 @@ aside {
 .sidebar-videos-list {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
 }
 
 .video-compact {
