@@ -27,3 +27,7 @@ we implement most of brave's rich answer features, including calculator, color p
 if you'd like to self-host your own instance, you can either run the js directly with pm2 or use docker.
 
 a prebuilt docker image will be published soon. as for hosting the javascript, cloning the repo, installing modules and running `bun run start` should be enough.
+
+### license
+
+all code is licensed under aGPL-v3.0. see [LICENSE](./LICENSE) for more details.

@@ -181,8 +181,8 @@
 					const iframe = document.createElement("iframe");
 					iframe.style.cssText = `width:100%;aspect-ratio:16/9;border-radius:6px;border:1px solid rgb(49, 50, 68);background-color:black;`;
 					iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}`;
-          iframe.allow = "encrypted-media";
-          iframe.loading = "lazy";
+					iframe.allow = "encrypted-media";
+					iframe.loading = "lazy";
 
 					iframe.allowFullscreen = true;
 					document.querySelector("#results-all").append(iframe);
@@ -1909,8 +1909,8 @@
 
 		if (event.key === "/") {
 			input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
-      event.preventDefault();
+			input.setSelectionRange(input.value.length, input.value.length);
+			event.preventDefault();
 		}
 
 		if (event.key === "w") {
