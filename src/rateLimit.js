@@ -48,21 +48,6 @@ export const signRedirect = async (url) => {
 		.sign(secret);
 };
 
-export const signPass = async (pass) => {
-	return await new SignJWT({
-		pass,
-	})
-		.setProtectedHeader({ alg: `HS256` })
-		.setIssuedAt()
-		.setExpirationTime("12h")
-		.sign(secret);
-};
-
-export const validatePass = async (jwt) => {
-	const { payload } = await jwtVerify(jwt, secret);
-	return payload.pass;
-};
-
 const cleanupOldTokens = async () => {
 	const now = Date.now();
 	await db`DELETE FROM pow_tokens WHERE expires_at < ${now}`;
@@ -116,15 +101,15 @@ const verifySolution = async (challengeJwt, solution) => {
 		const verified = await jwtVerify(challengeJwt, secret);
 		payload = verified.payload;
 	} catch (error) {
-		return { valid: false, error: "Challenge expired or invalid" };
+		return { valid: false, error: "challenge expired or invalid" };
 	}
 
-	const parts = challengeJwt.split('.');
+	const parts = challengeJwt.split(".");
 	const signatureB64url = parts[2];
 
-  const signatureB64 = signatureB64url.replace(/-/g, '+').replace(/_/g, '/');
-	const signatureBytes = Buffer.from(signatureB64, 'base64');
-	const signatureHex = signatureBytes.toString('hex');
+	const signatureB64 = signatureB64url.replace(/-/g, "+").replace(/_/g, "/");
+	const signatureBytes = Buffer.from(signatureB64, "base64");
+	const signatureHex = signatureBytes.toString("hex");
 
 	const now = Date.now();
 	const existing = await db`
@@ -136,20 +121,7 @@ const verifySolution = async (challengeJwt, solution) => {
 		return { valid: false, error: "Challenge already used" };
 	}
 
-	const selectionKey = await crypto.subtle.importKey(
-		"raw",
-		secret,
-		{ name: "HMAC", hash: "SHA-256" },
-		false,
-		["sign"]
-	);
-	const selectionSeed = await crypto.subtle.sign(
-		"HMAC",
-		selectionKey,
-		new TextEncoder().encode(`verify:${signatureHex}`)
-	);
-	const selectionBytes = new Uint8Array(selectionSeed);
-
+	const selectionBytes = crypto.getRandomValues(new Uint8Array(32));
 	const numToVerify = 14 + (selectionBytes[0] % 3);
 
 	const indices = Array.from({ length: solution.length }, (_, i) => i);
@@ -161,7 +133,7 @@ const verifySolution = async (challengeJwt, solution) => {
 
 	for (let i = 0; i < solution.length; i++) {
 		const nonce = solution[i];
-		if (typeof nonce !== 'number' || !Number.isInteger(nonce) || nonce < 0) {
+		if (typeof nonce !== "number" || !Number.isInteger(nonce) || nonce < 0) {
 			return { valid: false, error: "Invalid nonce format" };
 		}
 	}
@@ -205,7 +177,9 @@ const verifySolution = async (challengeJwt, solution) => {
 		VALUES (${signatureHex}, ${expiresAt})
 	`;
 
-	const token = Bun.randomUUIDv7();
+	const token = [...crypto.getRandomValues(new Uint8Array(8))]
+		.map((b) => b.toString(16).padStart(2, "0"))
+		.join("");
 	const tokenExpiresAt = now + POW_EXPIRY_MS;
 
 	await db`
@@ -283,7 +257,9 @@ export const rateLimitElysia = new Elysia({ prefix: "/challenge" })
 			solution.length !== CHALLENGES_COUNT
 		) {
 			set.status = 400;
-			return { error: `expected challengeJwt and ${CHALLENGES_COUNT} solutions` };
+			return {
+				error: `expected challengeJwt and ${CHALLENGES_COUNT} solutions`,
+			};
 		}
 
 		const result = await verifySolution(challengeJwt, solution);
@@ -304,5 +280,5 @@ export const rateLimitElysia = new Elysia({ prefix: "/challenge" })
 			return { success: true };
 		}
 
-		return { success: true, pass: await signPass(result.token) };
+		return { success: true, pass: result.token };
 	});

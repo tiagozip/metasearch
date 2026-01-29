@@ -1,17 +1,11 @@
 import { Elysia, t } from "elysia";
-import { jwtVerify, SignJWT } from "jose";
 import bang from "./bangs.js";
-import {
-	rateLimitElysia,
-	recordAndCheck,
-	signPass,
-	signRedirect,
-	validatePass,
-} from "./rateLimit.js";
+import { rateLimitElysia, recordAndCheck, signRedirect } from "./rateLimit.js";
 import { captchaElysia } from "./search/captcha.js";
 import searchImages from "./search/images.js";
 import searchMixed from "./search/mixed.js";
 import searchNews from "./search/news.js";
+import { jwtVerify, SignJWT } from "jose";
 import * as templates from "./templates.js";
 
 const secret = new TextEncoder().encode(Bun.randomUUIDv7());
@@ -41,14 +35,7 @@ new Elysia()
 			return await Bun.file("./public/index.html").text();
 		}
 
-    let passQueryUsed;
-		let powToken = cookie?.galileo_pass?.value;
-		if (query.pass) {
-			try {
-        powToken = await validatePass(query.pass);
-        passQueryUsed = true;
-			} catch {}
-		}
+		const powToken = query.pass || cookie?.galileo_pass?.value;
 		const rateCheck = await recordAndCheck(powToken);
 
 		if (!rateCheck.allowed) {
@@ -87,7 +74,10 @@ new Elysia()
 					.replaceAll('"', "&quot;"),
 			)
 			.replaceAll("%%inputValueEncoded%%", encodeURIComponent(q))
-      .replaceAll("&pass", passQueryUsed ? `&pass=${encodeURIComponent(query.pass)}` : "");
+			.replaceAll(
+				"&pass",
+				query.pass ? `&pass=${encodeURIComponent(query.pass)}` : "",
+			);
 
 		if (headers["accept-encoding"]?.includes?.("gzip")) {
 			set.headers["Content-Encoding"] = "gzip";
@@ -139,9 +129,9 @@ new Elysia()
 		if (headers["accept-encoding"]?.includes?.("gzip")) {
 			set.headers["Content-Encoding"] = "gzip";
 			return Bun.gzipSync(js);
-    }
+		}
 
-    return js;
+		return js;
 	})
 	.post(
 		"/p",

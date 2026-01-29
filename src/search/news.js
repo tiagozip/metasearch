@@ -44,7 +44,7 @@ export default async function searchNews(query, page = 0) {
 			.trim()
 			.replace(/,$/, "");
 
-  const exprAst = parseExpressionAt(script, 0, { ecmaVersion: 2020 });
+	const exprAst = parseExpressionAt(script, 0, { ecmaVersion: 2020 });
 
 	try {
 		const simplified = simplify(exprAst.elements[1]).data;

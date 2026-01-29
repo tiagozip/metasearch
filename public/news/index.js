@@ -48,7 +48,9 @@
 			faviconImg.className = "news-result-favicon";
 			faviconImg.alt = "";
 			faviconImg.loading = "lazy";
-      faviconImg.onerror = () => { faviconImg.style.display = "none" };
+			faviconImg.onerror = () => {
+				faviconImg.style.display = "none";
+			};
 			header.append(faviconImg);
 		}
 
@@ -198,7 +200,7 @@
 		}
 	};
 
-  const data = __results_template__;
+	const data = __results_template__;
 	hasMoreResults = data.more_results_available !== false;
 
 	if (data.captchaHtml) {

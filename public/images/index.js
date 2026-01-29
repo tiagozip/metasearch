@@ -137,14 +137,44 @@
 	};
 
 	const initBlocklist = async () => {
-		const hideAiSlop = localStorage.getItem("config:hide_slop") === "true";
-		if (!hideAiSlop) {
-			aiBlocklist = null;
-			return;
-		}
+		try {
+			const hideAiSlop = localStorage.getItem("config:hide_slop") === "true";
+			if (!hideAiSlop) {
+				aiBlocklist = null;
+				return;
+			}
 
-		const blocklistText = await fetchBlocklist();
-		aiBlocklist = parseBlocklist(blocklistText);
+			let blocklistText;
+
+			try {
+				const cachedList = localStorage.getItem("slop:cache");
+				const cachedTimestamp = localStorage.getItem("slop:ts");
+
+				if (cachedList && cachedTimestamp) {
+					const age = Date.now() - parseInt(cachedTimestamp, 10);
+					if (age < 24 * 60 * 60 * 1000) {
+						return cachedList;
+					}
+				}
+
+				blocklistText = await (
+					await fetch(
+						"https://cdn.jsdelivr.net/gh/laylavish/uBlockOrigin-HUGE-AI-Blocklist@main/list_uBlacklist.txt",
+					)
+				).text();
+
+				localStorage.setItem("slop:cache", text);
+				localStorage.setItem("slop:ts", Date.now().toString());
+			} catch {
+				blocklistText = localStorage.getItem("slop:cache") || "";
+			}
+
+			aiBlocklist = parseBlocklist(blocklistText);
+		} catch {
+			// firefox with cookies disabled errors out instead
+			// of returning null. we have this catch to prevent
+			// the whole page from erroring out in that case
+		}
 	};
 
 	const createDetailPanel = (img) => {
@@ -423,7 +453,7 @@
 		grid.append(frag);
 	};
 
-  const loadMoreImages = async () => {
+	const loadMoreImages = async () => {
 		if (isLoading || !hasMoreResults || !currentQuery) return;
 		isLoading = true;
 		const loadingEl = document.getElementById("loading-indicator");
@@ -453,7 +483,7 @@
 
 			if (newData.error || !newData.results?.length) {
 				hasMoreResults = false;
-			  loadingEl.style.display = "none";
+				loadingEl.style.display = "none";
 				if (!newData.results?.length) {
 					const endEl = document.createElement("div");
 					endEl.className = "end-of-results";
@@ -463,7 +493,7 @@
 				return;
 			}
 
-      appendImages(newData.results);
+			appendImages(newData.results);
 			hasMoreResults =
 				newData.more_results_available !== false && newData.results.length > 0;
 		} catch (err) {
@@ -492,7 +522,11 @@
 	const optionsPopup = document.querySelector("#options-popup");
 	const hideAiSlopCheckbox = document.querySelector("#hide-ai-slop");
 
-	const savedSetting = localStorage.getItem("config:hide_slop") === "true";
+	let savedSetting;
+	try {
+		savedSetting = localStorage.getItem("config:hide_slop") === "true";
+	} catch {}
+
 	hideAiSlopCheckbox.checked = savedSetting;
 
 	optionsBtn?.addEventListener("click", (e) => {
@@ -527,21 +561,21 @@
 	(async () => {
 		await initBlocklist();
 
-    const data = __results_template__;
-    hasMoreResults = data.more_results_available !== false;
+		const data = __results_template__;
+		hasMoreResults = data.more_results_available !== false;
 
 		if (data.captchaHtml) {
 			solveCaptcha(data.captchaHtml).then(() => {
 				location.reload();
 			});
 			return;
-    }
-		
+		}
+
 		renderImages(data.results);
 
 		const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
+			(entries) => {
+				if (entries[0].isIntersecting) {
 					loadMoreImages();
 				}
 			},

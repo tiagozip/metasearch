@@ -621,9 +621,7 @@
 				}
 				if (!questionEl.querySelectorAll("pre code").length) return;
 
-				const { highlight } = await import(
-					"/s/sugar-high.js"
-				);
+				const { highlight } = await import("/s/sugar-high.js");
 				questionEl.querySelectorAll("pre code").forEach((block) => {
 					const code = block.textContent || "";
 					block.innerHTML = highlight(code);

@@ -1,24 +1,24 @@
 export const solveCaptcha = (captcha) => {
-  return new Promise((resolve) => {
-    document.body.innerHTML = `<div class="captcha-loader"><h1>brave is checking if you're human, please wait…</h1><div class="progress-bar"><div class="progress"></div></div></div>`;
+	return new Promise((resolve) => {
+		document.body.innerHTML = `<div class="captcha-loader"><h1>brave is checking if you're human, please wait…</h1><div class="progress-bar"><div class="progress"></div></div></div>`;
 
-    const frame = document.createElement("iframe");
-    frame.style.width = "10px";
-    frame.style.height = "10px";
-    frame.style.position = "fixed";
-    frame.style.top = "-7px";
-    frame.style.left = "-7px";
-    frame.style.opacity = ".01";
+		const frame = document.createElement("iframe");
+		frame.style.width = "10px";
+		frame.style.height = "10px";
+		frame.style.position = "fixed";
+		frame.style.top = "-7px";
+		frame.style.left = "-7px";
+		frame.style.opacity = ".01";
 
-    const flowId = captcha.flowId;
-    let solving = false;
+		const flowId = captcha.flowId;
+		let solving = false;
 
-    const blob = new Blob(
-      [
-        `${captcha.raw.replace(
-          `"."`,
-          `"https://search.brave.com/search"`
-        )}<script>let foundButton;
+		const blob = new Blob(
+			[
+				`${captcha.raw.replace(
+					`"."`,
+					`"https://search.brave.com/search"`,
+				)}<script>let foundButton;
 
     setInterval(function () {
       const button = document.querySelector("#pow-captcha-top button.button.type--hero");
@@ -62,72 +62,77 @@ window.fetch = async (...args) => {
   }
   return await originalFetch(...args);
 };</script>`,
-      ],
-      { type: "text/html" }
-    );
-    frame.src = URL.createObjectURL(blob);
+			],
+			{ type: "text/html" },
+		);
+		frame.src = URL.createObjectURL(blob);
 
-    let revoked = false;
+		let revoked = false;
 
-    frame.addEventListener("load", async () => {
-      if (solving) {
-        console.log("ended!")
-        URL.revokeObjectURL(frame.src);
-        solving = false
-        frame.remove();
-        await fetch(`/p/pow/end/${flowId}`, { method: "POST" });
+		frame.addEventListener("load", async () => {
+			if (solving) {
+				console.log("ended!");
+				URL.revokeObjectURL(frame.src);
+				solving = false;
+				frame.remove();
+				await fetch(`/p/pow/end/${flowId}`, { method: "POST" });
 
-        setTimeout(() => { resolve() }, 500)
-      }
-    });
+				setTimeout(() => {
+					resolve();
+				}, 500);
+			}
+		});
 
-    window.addEventListener("message", async (event) => {
-      if (event.data.type === "POW_FRAME_MESSAGE") {
-        if (event.data.data === "SOLVING" && !revoked) {
-          revoked = true;
-          solving = true;
-          console.log("solving")
-        }
+		window.addEventListener("message", async (event) => {
+			if (event.data.type === "POW_FRAME_MESSAGE") {
+				if (event.data.data === "SOLVING" && !revoked) {
+					revoked = true;
+					solving = true;
+					console.log("solving");
+				}
 
-        if (event.data.data === "GET_KEYS") {
-          const keys = await (await fetch(`/p/pow/keys/${flowId}`)).json();
-          frame.contentWindow.postMessage({ type: "KEYS_RESPONSE", keys }, "*");
-        }
+				if (event.data.data === "GET_KEYS") {
+					const keys = await (await fetch(`/p/pow/keys/${flowId}`)).json();
+					frame.contentWindow.postMessage({ type: "KEYS_RESPONSE", keys }, "*");
+				}
 
-        if (event.data.data.startsWith("PROGRESS:")) {
-          document.querySelector(".progress").style.width = `${
-            event.data.data.split(":")[1]
-          }%`;
-        }
+				if (event.data.data.startsWith("PROGRESS:")) {
+					document.querySelector(".progress").style.width = `${
+						event.data.data.split(":")[1]
+					}%`;
+				}
 
-        if (event.data.data.startsWith("POW:")) {
-          const body = event.data.data.slice(4);
-          document.querySelector(".progress").style.width = "100%";
+				if (event.data.data.startsWith("POW:")) {
+					const body = event.data.data.slice(4);
+					document.querySelector(".progress").style.width = "100%";
 
-          const resp = await fetch("/p/pow", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Galileo-Flow": flowId,
-            },
-            body,
-          });
+					const resp = await fetch("/p/pow", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"X-Galileo-Flow": flowId,
+						},
+						body,
+					});
 
-          const result = await resp.json().catch(() => ({}));
-          frame.contentWindow.postMessage({ type: "POW_RESPONSE", result, status: resp.status }, "*");
+					const result = await resp.json().catch(() => ({}));
+					frame.contentWindow.postMessage(
+						{ type: "POW_RESPONSE", result, status: resp.status },
+						"*",
+					);
 
-          if (!resp.ok) {
-            document.querySelector("p").remove();
-            document.querySelector(".progress").style.backgroundColor = "#ff5c5c";
-            document.querySelector(
-              "h1"
-            ).innerHTML = `an error occured. <br>please try again`;
-          }
-        }
-      }
-    });
+					if (!resp.ok) {
+						document.querySelector("p").remove();
+						document.querySelector(".progress").style.backgroundColor =
+							"#ff5c5c";
+						document.querySelector("h1").innerHTML =
+							`an error occured. <br>please try again`;
+					}
+				}
+			}
+		});
 
-    document.body.appendChild(frame);
-    return;
-  });
-}
+		document.body.appendChild(frame);
+		return;
+	});
+};

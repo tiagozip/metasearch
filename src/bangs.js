@@ -8,12 +8,17 @@ let bangs = {};
 	try {
 		bangs = await Bun.file(`${BANGS_CACHE_FOLDER}/bangs.json`).json();
 	} catch {
-    mkdirSync(BANGS_CACHE_FOLDER, { recursive: true });
+		mkdirSync(BANGS_CACHE_FOLDER, { recursive: true });
 
-    const text = await (await fetch("https://files.helium.computer/bangs.json")).text();
-    const json = JSON.parse(text.replace(/^\/\/.*$/gm, "")
-    .replace(/,(\s*])/g, "$1")
-    .replace(/,(\s*})/g, "$1"));
+		const text = await (
+			await fetch("https://files.helium.computer/bangs.json")
+		).text();
+		const json = JSON.parse(
+			text
+				.replace(/^\/\/.*$/gm, "")
+				.replace(/,(\s*])/g, "$1")
+				.replace(/,(\s*})/g, "$1"),
+		);
 
 		json.forEach((bang) => {
 			bang.ts.forEach((ts) => {

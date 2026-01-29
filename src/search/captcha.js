@@ -95,7 +95,7 @@ export const isCaptchaPage = (html) => {
 };
 
 export const captchaElysia = new Elysia({
-  prefix: "/p/pow"
+	prefix: "/p/pow",
 })
 	.get("/keys/:flowId", async ({ set, params }) => {
 		const result = await getTokenKeys(params.flowId);
