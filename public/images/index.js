@@ -226,6 +226,11 @@
 		previewImg.src = `https://external-content.duckduckgo.com/iu/?u=${encodeURIComponent(img.properties.url)}`;
 		previewImg.style.aspectRatio = `${width}/${height}`;
 		previewImg.alt = img.title;
+
+		previewImg.style.backgroundImage = `url("${img.thumbnail}")`;
+		previewImg.style.backgroundSize = "contain";
+		previewImg.style.backgroundRepeat = "no-repeat";
+		previewImg.style.backgroundPosition = "center center";
 		preview.append(previewImg);
 
 		const info = document.createElement("div");
