@@ -3,7 +3,8 @@ import { SQL } from "bun";
 
 const db = SQL("sqlite://.data/ratelimit.sqlite");
 
-await db`
+(async () => {
+  await db`
   CREATE TABLE IF NOT EXISTS cap_challenges (
     token TEXT PRIMARY KEY,
     data TEXT NOT NULL,
@@ -11,16 +12,17 @@ await db`
   )
 `;
 
-await db`CREATE INDEX IF NOT EXISTS idx_cap_challenges_expires ON cap_challenges(expires)`;
+  await db`CREATE INDEX IF NOT EXISTS idx_cap_challenges_expires ON cap_challenges(expires)`;
 
-await db`
+  await db`
   CREATE TABLE IF NOT EXISTS cap_tokens (
     key TEXT PRIMARY KEY,
     expires INTEGER NOT NULL
   )
 `;
 
-await db`CREATE INDEX IF NOT EXISTS idx_cap_tokens_expires ON cap_tokens(expires)`;
+  await db`CREATE INDEX IF NOT EXISTS idx_cap_tokens_expires ON cap_tokens(expires)`;
+})();
 
 const cap = new Cap({
   noFSState: true,
