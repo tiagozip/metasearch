@@ -400,4 +400,3 @@ const SugarHigh = {
   TokenMap: new Map(TokenTypes.map((e, t) => [e, t])),
 };
 export { highlight, tokenize, generate, SugarHigh };
-//# sourceMappingURL=/sm/5327ef91bfc88be0796d8ad77dd3b267035b1b49f03e990b93fb3fab450652ea.map

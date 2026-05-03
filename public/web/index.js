@@ -16,6 +16,189 @@
     return "#";
   };
 
+  const analyzeImage = (pick) =>
+    new Promise((resolve) => {
+      const im = new Image();
+      im.crossOrigin = "anonymous";
+      im.onerror = () => resolve({ ...pick, broken: true });
+      im.onload = () => {
+        const nw = im.naturalWidth, nh = im.naturalHeight;
+        if (!nw || !nh) return resolve({ ...pick, broken: true });
+
+        try {
+          const SCAN = 200;
+          const sx = Math.min(SCAN / nw, SCAN / nh, 1);
+          const sw = Math.max(1, Math.round(nw * sx));
+          const sh = Math.max(1, Math.round(nh * sx));
+          const c = document.createElement("canvas");
+          c.width = sw;
+          c.height = sh;
+          const ctx = c.getContext("2d");
+          ctx.drawImage(im, 0, 0, sw, sh);
+          const { data } = ctx.getImageData(0, 0, sw, sh);
+
+          let oMinX = sw, oMaxX = -1, oMinY = sh, oMaxY = -1;
+          let cMinX = sw, cMaxX = -1, cMinY = sh, cMaxY = -1;
+          let opaque = 0, dark = 0;
+          for (let y = 0; y < sh; y++) {
+            for (let x = 0; x < sw; x++) {
+              const i = (y * sw + x) * 4;
+              const a = data[i + 3];
+              if (a < 64) continue;
+              opaque++;
+              if (x < oMinX) oMinX = x;
+              if (x > oMaxX) oMaxX = x;
+              if (y < oMinY) oMinY = y;
+              if (y > oMaxY) oMaxY = y;
+              const r = data[i], g = data[i + 1], b = data[i + 2];
+              const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+              if (lum < 70) dark++;
+              if (r < 235 || g < 235 || b < 235) {
+                if (x < cMinX) cMinX = x;
+                if (x > cMaxX) cMaxX = x;
+                if (y < cMinY) cMinY = y;
+                if (y > cMaxY) cMaxY = y;
+              }
+            }
+          }
+
+          if (oMaxX < 0) return resolve({ ...pick, broken: true });
+
+          const opaqueArea = (oMaxX - oMinX + 1) * (oMaxY - oMinY + 1);
+          const opaqueFillsImage = opaqueArea > sw * sh * 0.85;
+          const hasContent = cMaxX >= 0;
+          const contentArea = hasContent
+            ? (cMaxX - cMinX + 1) * (cMaxY - cMinY + 1)
+            : opaqueArea;
+          const hasWhiteBg =
+            opaqueFillsImage &&
+            hasContent &&
+            contentArea < opaqueArea * 0.7;
+
+          const cropBbox = hasWhiteBg
+            ? { L: cMinX, R: cMaxX, T: cMinY, B: cMaxY }
+            : { L: oMinX, R: oMaxX, T: oMinY, B: oMaxY };
+
+          const transMarginX = oMinX + (sw - 1 - oMaxX);
+          const transMarginY = oMinY + (sh - 1 - oMaxY);
+          const hasTransMargin = transMarginX > sw * 0.05 || transMarginY > sh * 0.05;
+          const shouldCrop = hasTransMargin || hasWhiteBg;
+
+          const darkRatio = opaque ? dark / opaque : 0;
+          const needsBackdrop = pick.contain && darkRatio > 0.6;
+
+          resolve({
+            ...pick,
+            broken: false,
+            hasWhiteBg,
+            needsBackdrop,
+            crop: shouldCrop
+              ? {
+                  L: cropBbox.L,
+                  T: cropBbox.T,
+                  W: cropBbox.R - cropBbox.L + 1,
+                  H: cropBbox.B - cropBbox.T + 1,
+                  imgW: sw,
+                  imgH: sh,
+                }
+              : null,
+          });
+        } catch {
+          resolve({ ...pick, broken: false, hasWhiteBg: false, needsBackdrop: false, crop: null });
+        }
+      };
+      im.src = pick.src;
+    });
+
+  const renderInfoboxImagesAsync = async (rawImages, box, header) => {
+    const picks = pickInfoboxImages(rawImages);
+    if (!picks.length) return;
+
+    const analyzed = await Promise.all(picks.map(analyzeImage));
+    const valid = analyzed.filter((a) => !a.broken);
+    if (!valid.length) return;
+
+    const noWhiteBg = valid.filter((a) => !a.hasWhiteBg);
+    const final = noWhiteBg.length ? noWhiteBg : valid;
+    if (!final.length) return;
+
+    const allLogos = final.every((a) => a.contain);
+    const useGallery = !allLogos && final.length >= 3;
+    const display = useGallery ? final.slice(0, 5) : final.slice(0, 2);
+
+    const container = document.createElement("div");
+    container.className = useGallery
+      ? "infobox-gallery"
+      : `infobox-header-right count-${display.length}`;
+
+    for (const a of display) {
+      const wrap = document.createElement("div");
+      wrap.className = useGallery ? "infobox-gallery-item" : "infobox-img-wrap";
+      if (a.needsBackdrop) wrap.classList.add("needs-backdrop");
+
+      const img = document.createElement("img");
+      img.crossOrigin = "anonymous";
+      img.src = a.src;
+      img.className = `infobox-img${a.contain ? " contain" : ""}`;
+      img.alt = "";
+      img.loading = "lazy";
+      img.onerror = () => wrap.remove();
+
+      if (a.crop) {
+        wrap.classList.add("cropped");
+        const ratio = Math.max(a.crop.W, a.crop.H);
+        const w = (a.crop.imgW / ratio) * 100;
+        const h = (a.crop.imgH / ratio) * 100;
+        const x = (0.5 - (a.crop.L + a.crop.W / 2) / ratio) * 100;
+        const y = (0.5 - (a.crop.T + a.crop.H / 2) / ratio) * 100;
+        img.style.setProperty("--w", `${w.toFixed(2)}%`);
+        img.style.setProperty("--h", `${h.toFixed(2)}%`);
+        img.style.setProperty("--x", `${x.toFixed(2)}%`);
+        img.style.setProperty("--y", `${y.toFixed(2)}%`);
+      }
+
+      wrap.append(img);
+      container.append(wrap);
+    }
+
+    if (useGallery) {
+      box.prepend(container);
+    } else {
+      header.append(container);
+    }
+  };
+
+  const pickInfoboxImages = (raw) => {
+    if (!raw?.length) return [];
+
+    const all = raw
+      .map((img) => {
+        let src = img?.src || img?.original || (typeof img === "string" ? img : "");
+        if (src?.startsWith?.("//")) src = `https:${src}`;
+        if (!src) return null;
+        const safe = safeUrl(src);
+        if (safe === "#") return null;
+        return { src: safe, isLogo: !!img?.logo };
+      })
+      .filter(Boolean);
+
+    const seen = new Set();
+    const unique = all.filter((i) => {
+      if (seen.has(i.src)) return false;
+      seen.add(i.src);
+      return true;
+    });
+
+    const photos = unique.filter((i) => !i.isLogo);
+    const pool = photos.length ? photos : unique;
+    const onlyLogos = !photos.length;
+
+    return pool.slice(0, 5).map((i) => ({
+      src: i.src,
+      contain: onlyLogos && i.isLogo,
+    }));
+  };
+
   const renderWebResult = (r) => {
     const favicon = r.meta_url?.favicon || r.profile?.img || "";
     const siteName = r.profile?.name || r.meta_url?.hostname || "";
@@ -547,16 +730,6 @@
     const longDesc = info.long_desc || "";
     const profiles = info.profiles || [];
 
-    const thumbs = info.images
-      ? info.images
-          .slice(0, 3)
-          .map((img) => {
-            let src = img?.src || img?.original || img || "";
-            if (src?.startsWith?.("//")) src = `https:${src}`;
-            return src ? safeUrl(src) : "";
-          })
-          .filter(Boolean)
-      : [];
 
     const box = document.createElement("div");
     box.className = "infobox";
@@ -605,20 +778,7 @@
 
     header.append(headerLeft);
 
-    if (thumbs.length) {
-      const headerRight = document.createElement("div");
-      headerRight.className = "infobox-header-right";
-      for (const src of thumbs) {
-        const img = document.createElement("img");
-        img.src = src;
-        img.className = "infobox-img";
-        img.alt = "";
-        img.loading = "lazy";
-        img.onerror = () => img.remove();
-        headerRight.append(img);
-      }
-      header.append(headerRight);
-    }
+    renderInfoboxImagesAsync(info.images, box, header);
 
     box.append(header);
 

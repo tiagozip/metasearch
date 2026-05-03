@@ -759,17 +759,121 @@ aside {
   }
 }
 
-.infobox-img {
+.infobox-img-wrap {
   width: 80px;
   height: 80px;
-  object-fit: cover;
   border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
 
   @media (max-width: 600px) {
     width: 60px;
     height: 60px;
   }
 }
+
+.infobox-header-right.count-1 .infobox-img-wrap {
+  width: 160px;
+  height: 160px;
+
+  @media (max-width: 600px) {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+.infobox-header-right.count-2 .infobox-img-wrap {
+  width: 110px;
+  height: 110px;
+
+  @media (max-width: 600px) {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+.infobox-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.infobox-header-right.count-1 .infobox-img {
+  object-fit: contain;
+}
+
+.infobox-img.contain {
+  object-fit: contain;
+}
+
+.infobox-img-wrap.cropped .infobox-img {
+  position: absolute;
+  width: var(--w);
+  height: var(--h);
+  left: var(--x);
+  top: var(--y);
+  object-fit: fill;
+}
+
+.infobox-img-wrap.needs-backdrop {
+  background: #e6e9f0;
+}
+
+.infobox-img-wrap.needs-backdrop:not(.cropped) .infobox-img {
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.infobox-gallery {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: #cdd6f433 transparent;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.infobox-gallery::-webkit-scrollbar {
+  height: 6px;
+}
+.infobox-gallery::-webkit-scrollbar-thumb {
+  background: #cdd6f433;
+  border-radius: 3px;
+}
+
+.infobox-gallery-item {
+  flex: 0 0 calc(50% - 4px);
+  aspect-ratio: 4 / 3;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  scroll-snap-align: start;
+}
+
+.infobox-gallery-item .infobox-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.infobox-gallery-item.cropped .infobox-img {
+  position: absolute;
+  width: var(--w);
+  height: var(--h);
+  left: var(--x);
+  top: var(--y);
+  object-fit: fill;
+}
+
+.infobox-gallery-item.needs-backdrop {
+  background: #e6e9f0;
+}
+
 
 .infobox-title {
   font-size: 1.4rem;
