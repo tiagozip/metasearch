@@ -383,7 +383,7 @@
           const videoId = videoIdMatch[1];
           const iframe = document.createElement("iframe");
           iframe.style.cssText = `width:100%;aspect-ratio:16/9;border-radius:6px;border:1px solid rgb(49, 50, 68);background-color:black;`;
-          iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}`;
+          iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1`;
           iframe.allow = "encrypted-media";
           iframe.loading = "lazy";
           iframe.referrerpolicy = "strict-origin-when-cross-origin";
@@ -392,6 +392,44 @@
           document.querySelector("#results-all").append(iframe);
 
           article.classList.add("youtube-featured");
+
+          iframe.addEventListener("load", () => {
+            const handshake = JSON.stringify({ event: "listening", id: videoId, channel: "widget" });
+            const subscribe = JSON.stringify({ event: "command", func: "addEventListener", args: ["onError"], id: videoId, channel: "widget" });
+            iframe.contentWindow?.postMessage(handshake, "*");
+            iframe.contentWindow?.postMessage(subscribe, "*");
+          });
+
+          const onErrorMessage = (e) => {
+            if (e.source !== iframe.contentWindow) return;
+            let data;
+            try { data = typeof e.data === "string" ? JSON.parse(e.data) : e.data; } catch { return; }
+            if (data?.event !== "onError") return;
+            if (![100, 101, 150, 153].includes(data.info)) return;
+
+            window.removeEventListener("message", onErrorMessage);
+
+            const fallback = document.createElement("a");
+            fallback.href = `https://www.youtube.com/watch?v=${videoId}`;
+            fallback.target = "_blank";
+            fallback.rel = "noopener";
+            fallback.style.cssText = `position:relative;display:block;width:100%;aspect-ratio:16/9;border-radius:6px;border:1px solid rgb(49, 50, 68);background:#000 center/cover no-repeat;overflow:hidden;`;
+            fallback.innerHTML = `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;"><div style="width:68px;height:48px;background:rgba(0,0,0,0.65);border-radius:14%;display:flex;align-items:center;justify-content:center;transition:background 0.15s;"><svg fill="#fff" height="60%" viewBox="0 0 24 24" width="60%"><path d="M21.58 7.19c-.23-.86-.91-1.54-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.81.42c-.86.23-1.54.91-1.77 1.77C2 8.75 2 12 2 12s0 3.25.42 4.81c.23.86.91 1.54 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.81-.42c.86-.23 1.54-.91 1.77-1.77C22 15.25 22 12 22 12s0-3.25-.42-4.81zM10 15V9l5.2 3-5.2 3z"></path></svg></div></div>`;
+
+            const probe = new Image();
+            probe.onload = () => {
+              fallback.style.backgroundImage = probe.naturalWidth > 120
+                ? `url(${probe.src})`
+                : `url(https://i.ytimg.com/vi/${videoId}/hqdefault.jpg)`;
+            };
+            probe.onerror = () => {
+              fallback.style.backgroundImage = `url(https://i.ytimg.com/vi/${videoId}/hqdefault.jpg)`;
+            };
+            probe.src = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+
+            iframe.replaceWith(fallback);
+          };
+          window.addEventListener("message", onErrorMessage);
         }
       }
 
