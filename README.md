@@ -1,6 +1,20 @@
+
+<p align="center">
+  <img src="/public/assets/teto_big.webp" width="100" height="100" alt="Teto">
+  <br>
+
+  <p align="center">
+    search the web without AI slop. pretty, fast, privacy-friendly metasearch engine.
+    <br>
+    <strong><a href="#installation">start searching! »</a></strong>
+  </p>
+</p>
+
+<br>
+
 ![demo](./public/assets/demo.png)
 
-## modern, fast, privacy-first metasearch engine
+<br>
 
 [search.tiago.zip](https://search.tiago.zip) is a lightweight yet powerful metasearch engine focused on user privacy and performance. it sources data from brave search and solves challenges to provide comprehensive answers without tracking or storing user data.
 
@@ -12,7 +26,7 @@ we do not log any type of data and your searches are never stored or analyzed.
 
 ### bangs, rich answers, snippets
 
-similar to duckduckgo, you can use !bangs to search other sites directly. instant answers for calculations, weather, crypto prices, and more are available right on the results page.
+similar to duckduckgo, you can use !bangs to search other sites directly. instant answers for calculations, weather, crypto prices, and more are available right on the results page. we also show previews for lyrics, youtube views, and more.
 
 ### fast and better dx
 

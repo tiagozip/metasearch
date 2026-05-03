@@ -1900,6 +1900,135 @@
     return details;
   };
 
+  const renderGenius = (el, d, url) => {
+    el.classList.remove("rich-genius-loading");
+    el.replaceChildren();
+
+    const header = document.createElement("div");
+    header.className = "rich-genius-header";
+
+    if (d.image) {
+      const img = document.createElement("img");
+      img.src = d.image;
+      img.className = "rich-genius-art";
+      img.alt = "";
+      img.loading = "lazy";
+      img.referrerPolicy = "no-referrer";
+      img.onerror = () => img.remove();
+      header.append(img);
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "rich-genius-meta";
+
+    const eyebrow = document.createElement("div");
+    eyebrow.className = "rich-genius-eyebrow";
+    eyebrow.textContent = "lyrics · genius";
+    meta.append(eyebrow);
+
+    const titleEl = document.createElement("a");
+    titleEl.className = "rich-genius-title";
+    titleEl.textContent = d.title || "lyrics";
+    titleEl.href = url;
+    meta.append(titleEl);
+
+    if (d.artist) {
+      const a = document.createElement("div");
+      a.className = "rich-genius-artist";
+      a.textContent = d.artist;
+      meta.append(a);
+    }
+
+    header.append(meta);
+    el.append(header);
+
+    const wrap = document.createElement("div");
+    wrap.className = "rich-genius-lyrics-wrap rich-genius-collapsed";
+
+    const lyricsEl = document.createElement("div");
+    lyricsEl.className = "rich-genius-lyrics";
+
+    let buffer = [];
+    const flushStanza = () => {
+      if (!buffer.length) return;
+      const p = document.createElement("p");
+      p.className = "rich-genius-stanza";
+      p.textContent = buffer.join("\n");
+      lyricsEl.append(p);
+      buffer = [];
+    };
+
+    for (const line of d.lyrics.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        flushStanza();
+      } else if (/^\[.+\]$/.test(trimmed)) {
+        flushStanza();
+        const h = document.createElement("div");
+        h.className = "rich-genius-section";
+        h.textContent = trimmed.slice(1, -1);
+        lyricsEl.append(h);
+      } else {
+        buffer.push(line);
+      }
+    }
+    flushStanza();
+
+    wrap.append(lyricsEl);
+    el.append(wrap);
+
+    requestAnimationFrame(() => {
+      if (lyricsEl.scrollHeight <= wrap.clientHeight + 5) {
+        wrap.classList.remove("rich-genius-collapsed");
+        return;
+      }
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "rich-genius-toggle";
+      toggle.textContent = "show full lyrics";
+      toggle.onclick = () => {
+        const collapsed = wrap.classList.toggle("rich-genius-collapsed");
+        toggle.textContent = collapsed ? "show full lyrics" : "show less";
+      };
+      el.append(toggle);
+    });
+  };
+
+  const showGeniusInstantAnswer = () => {
+    const firstResult = data.results?.web?.results?.[0];
+    if (!firstResult?.url) return;
+
+    let host, path;
+    try {
+      const u = new URL(firstResult.url);
+      host = u.hostname.replace(/^www\./, "");
+      path = u.pathname.replace(/\/$/, "");
+    } catch {
+      return;
+    }
+
+    if (host !== "genius.com") return;
+    if (!/^\/[A-Za-z0-9_%-]+-lyrics$/.test(path)) return;
+
+    const placeholder = document.createElement("section");
+    placeholder.className = "rich-result rich-genius rich-genius-loading";
+
+    const spinner = document.createElement("div");
+    spinner.className = "rich-genius-spinner";
+    spinner.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3a9 9 0 1 0 9 9"/></svg><span>loading lyrics from genius…</span>`;
+    placeholder.append(spinner);
+
+    document.getElementById("results-all").prepend(placeholder);
+
+    fetch(`/g?u=${encodeURIComponent(firstResult.url)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => {
+        if (d?.lyrics) renderGenius(placeholder, d, firstResult.url);
+        else placeholder.remove();
+      })
+      .catch(() => placeholder.remove());
+  };
+
   const renderAllTab = () => {
     const results = data.results;
     const mixed = results.mixed || [];
@@ -2040,6 +2169,7 @@
   } else {
     document.getElementById("results-all").append(renderAllTab());
     document.getElementById("sidebar").append(renderSidebar());
+    showGeniusInstantAnswer();
   }
 
   let pk = "__results_pk__";

@@ -95,6 +95,155 @@ export default new Elysia({ adapter: CloudflareAdapter })
     const colo = request.cf?.colo;
     return { colo };
   })
+  .get("/g", async ({ query, set }) => {
+    const u = query?.u;
+    if (!u) {
+      set.status = 400;
+      return { error: "missing url" };
+    }
+
+    let parsed;
+    try {
+      parsed = new URL(u);
+    } catch {
+      set.status = 400;
+      return { error: "bad url" };
+    }
+
+    const host = parsed.hostname.replace(/^www\./, "");
+    const path = parsed.pathname.replace(/\/$/, "");
+    if (host !== "genius.com" || !/^\/[A-Za-z0-9_%-]+-lyrics$/.test(path)) {
+      set.status = 400;
+      return { error: "not a genius lyrics url" };
+    }
+
+    set.headers["cache-control"] = "public, max-age=86400";
+
+    let resp;
+    try {
+      resp = await fetch(`https://genius.com${path}`, {
+        headers: {
+          "user-agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          accept: "text/html,application/xhtml+xml,application/xml;q=0.9",
+          "accept-language": "en-US,en;q=0.9",
+        },
+        cf: { cacheTtl: 86400, cacheEverything: true },
+      });
+    } catch {
+      set.status = 502;
+      return { error: "fetch failed" };
+    }
+
+    if (!resp.ok) {
+      set.status = 502;
+      return { error: "fetch failed", status: resp.status };
+    }
+
+    const state = {
+      ogTitle: "",
+      ogImage: "",
+      docTitle: "",
+      sections: [],
+      idx: -1,
+      skipDepth: 0,
+    };
+
+    const rewriter = new HTMLRewriter()
+      .on('meta[property="og:title"]', {
+        element(el) {
+          state.ogTitle = el.getAttribute("content") || "";
+        },
+      })
+      .on('meta[property="og:image"]', {
+        element(el) {
+          state.ogImage = el.getAttribute("content") || state.ogImage;
+        },
+      })
+      .on("title", {
+        text(t) {
+          state.docTitle += t.text;
+        },
+      })
+      .on('[data-lyrics-container="true"]', {
+        element(el) {
+          state.sections.push("");
+          state.idx = state.sections.length - 1;
+          el.onEndTag(() => {
+            state.idx = -1;
+          });
+        },
+        text(t) {
+          if (state.idx >= 0 && state.skipDepth === 0)
+            state.sections[state.idx] += t.text;
+        },
+      })
+      .on('[data-lyrics-container="true"] br', {
+        element() {
+          if (state.idx >= 0 && state.skipDepth === 0)
+            state.sections[state.idx] += "\n";
+        },
+      })
+      .on('[data-lyrics-container="true"] [data-exclude-from-selection="true"]', {
+        element(el) {
+          state.skipDepth++;
+          el.onEndTag(() => {
+            state.skipDepth--;
+          });
+        },
+      });
+
+    await rewriter.transform(resp).text();
+
+    const namedEntities = {
+      amp: "&",
+      lt: "<",
+      gt: ">",
+      quot: '"',
+      apos: "'",
+      nbsp: " ",
+    };
+    const decode = (s) =>
+      s.replace(/&(#x[\da-f]+|#\d+|[a-z]+);/gi, (m, ref) => {
+        if (ref[0] === "#") {
+          const cp =
+            ref[1] === "x" || ref[1] === "X"
+              ? parseInt(ref.slice(2), 16)
+              : parseInt(ref.slice(1), 10);
+          return Number.isFinite(cp) ? String.fromCodePoint(cp) : m;
+        }
+        return namedEntities[ref.toLowerCase()] ?? m;
+      });
+
+    const lyrics = decode(state.sections.join("\n\n"))
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
+    let title = "";
+    let artist = "";
+    const cleaned = decode(state.docTitle)
+      .replace(/\s*\|\s*Genius.*$/i, "")
+      .replace(/\s*Lyrics?\s*$/i, "")
+      .trim();
+    for (const s of [decode(state.ogTitle), cleaned]) {
+      if (!s) continue;
+      const m = s.match(/^(.+?)\s+[–—-]\s+(.+)$/);
+      if (m) {
+        artist = m[1].trim();
+        title = m[2].replace(/\s*Lyrics?\s*$/i, "").trim();
+        break;
+      }
+    }
+    if (!title) title = state.ogTitle || cleaned;
+
+    if (!lyrics) {
+      set.status = 404;
+      return { error: "no lyrics" };
+    }
+
+    return { title, artist, image: state.ogImage, lyrics };
+  })
   .get("/p/:q", async ({ set, params }) => {
     const { payload } = await jwtVerify(params?.q || "", getSecret());
 
