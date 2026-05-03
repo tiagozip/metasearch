@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>search!</title>
     <meta name="theme-color" content="#89B4FA" />
-    <meta property="og:color" content="#89B4FA">
-    <link rel="icon" href="/s/teto.png">
+    <meta property="og:color" content="#89B4FA" />
+    <link rel="icon" href="/s/teto.png" />
     <style>
       * {
         box-sizing: border-box;
@@ -75,7 +75,21 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        margin-top: 20vh;
+        margin-top: 12vh;
+
+        .teto {
+          margin-bottom: 2em;
+          cursor: pointer;
+          user-select: none;
+          transition: transform .2s;
+
+          &:hover {
+            transform: scale(1.1)
+          }
+          &:active {
+            transform: scale(0.9)
+          }
+        }
 
         form {
           width: 100%;
@@ -161,7 +175,7 @@
             font-weight: 500;
           }
         }
-        
+
         .cf-logo {
           width: 18px;
         }
@@ -209,7 +223,7 @@
       rel="search"
       type="application/opensearchdescription+xml"
     />
-    
+
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="title" content="search.tiago.zip: fast, beautiful metasearch engine" />
     <meta
@@ -219,38 +233,23 @@
 
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://search.tiago.zip/" />
-    <meta
-      property="og:title"
-      content="search.tiago.zip: fast, beautiful metasearch engine"
-    />
+    <meta property="og:title" content="search.tiago.zip: fast, beautiful metasearch engine" />
     <meta
       property="og:description"
       content="fast, modern, privacy-friendly metasearch engine powered by cloudflare workers"
     />
-    <meta
-      property="og:image"
-      content="https://search.tiago.zip/s/og.png"
-    />
+    <meta property="og:image" content="https://search.tiago.zip/s/og.png" />
 
     <meta name="twitter:url" content="https://search.tiago.zip/" />
-    <meta
-      name="twitter:image:alt"
-      content="screenshot of search.tiago.zip"
-    />
+    <meta name="twitter:image:alt" content="screenshot of search.tiago.zip" />
     <meta name="twitter:site" content="@0xtiago_" />
     <meta name="twitter:creator" content="@0xtiago_" />
-    <meta
-      name="twitter:title"
-      content="search.tiago.zip: fast, beautiful metasearch engine"
-    />
+    <meta name="twitter:title" content="search.tiago.zip: fast, beautiful metasearch engine" />
     <meta
       name="twitter:description"
       content="fast, modern, privacy-friendly metasearch engine powered by cloudflare workers"
     />
-    <meta
-      name="twitter:image"
-      content="https://search.tiago.zip/s/og.png"
-    />
+    <meta name="twitter:image" content="https://search.tiago.zip/s/og.png" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
@@ -258,6 +257,7 @@
   </head>
   <body>
     <header>
+      <img src="/s/teto_big.webp" style="width: 110px; height: 110px;" alt="teto" class="teto" />
       <form action="/">
         <div class="search-container">
           <div class="search-bar">
@@ -283,23 +283,15 @@
       </form>
       <div class="links">
         <a href="https://github.com/tiagozip/metasearch" target="_blank"><b>self-host!</b></a> ·
-        <a href="/about" target="_blank">about</a> ·
-        <a href="/bangs" target="_blank">bangs</a> ·
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="-1 0 68 30"
-          fill="none"
-          class="cf-logo"
-        >
+        <a href="/about" target="_blank">about</a> · <a href="/bangs" target="_blank">bangs</a> ·
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 0 68 30" fill="none" class="cf-logo">
           <path
             fill="currentColor"
             d="M52.688 13.028c-.22 0-.437.008-.654.015a.3.3 0 0 0-.102.024.37.37 0 0 0-.236.255l-.93 3.249c-.401 1.397-.252 2.687.422 3.634.618.876 1.646 1.39 2.894 1.45l5.045.306a.45.45 0 0 1 .435.41.5.5 0 0 1-.025.223.64.64 0 0 1-.547.426l-5.242.306c-2.848.132-5.912 2.456-6.987 5.29l-.378 1a.28.28 0 0 0 .248.382h18.054a.48.48 0 0 0 .464-.35c.32-1.153.482-2.344.48-3.54 0-7.22-5.79-13.072-12.933-13.072M44.807 29.578l.334-1.175c.402-1.397.253-2.687-.42-3.634-.62-.876-1.647-1.39-2.896-1.45l-23.665-.306a.47.47 0 0 1-.374-.199.5.5 0 0 1-.052-.434.64.64 0 0 1 .552-.426l23.886-.306c2.836-.131 5.9-2.456 6.975-5.29l1.362-3.6a.9.9 0 0 0 .04-.477C48.997 5.259 42.789 0 35.367 0c-6.842 0-12.647 4.462-14.73 10.665a6.92 6.92 0 0 0-4.911-1.374c-3.28.33-5.92 3.002-6.246 6.318a7.2 7.2 0 0 0 .18 2.472C4.3 18.241 0 22.679 0 28.133q0 .74.106 1.453a.46.46 0 0 0 .457.402h43.704a.57.57 0 0 0 .54-.418"
           ></path>
         </svg>
 
-        <span
-          >%%colo%%</span
-        >
+        <span>%%colo%%</span>
       </div>
     </header>
 
@@ -307,6 +299,94 @@
       document.querySelector("input.searchinput").addEventListener("input", () => {
         document.title = document.querySelector("input").value || "search!";
       });
+
+      (() => {
+        const teto = document.querySelector(".teto");
+        if (!teto) return;
+
+        const canvas = document.createElement("canvas");
+        canvas.style.cssText =
+          "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999";
+        document.body.appendChild(canvas);
+
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        img.src = "/s/teto.png";
+
+        const dpr = window.devicePixelRatio || 1;
+        const resize = () => {
+          canvas.width = window.innerWidth * dpr;
+          canvas.height = window.innerHeight * dpr;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        };
+        resize();
+        window.addEventListener("resize", resize);
+
+        const particles = [];
+        let raf = 0;
+        let last = 0;
+
+        const tick = (now) => {
+          const dt = last ? Math.min((now - last) / 1000, 0.05) : 0;
+          last = now;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.vy += 1400 * dt;
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.rotation += p.spin * dt;
+            p.life -= dt;
+
+            if (p.life <= 0 || p.y > window.innerHeight + 200) {
+              particles.splice(i, 1);
+              continue;
+            }
+
+            const alpha = Math.min(1, p.life / 0.6);
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+            ctx.drawImage(img, -p.size / 2, -p.size / 2, p.size, p.size);
+            ctx.restore();
+          }
+
+          if (particles.length) {
+            raf = requestAnimationFrame(tick);
+          } else {
+            raf = 0;
+            last = 0;
+          }
+        };
+
+        const spawn = (e) => {
+          const rect = teto.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const count = window.innerWidth < 600 ? 18 : 32;
+
+          for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 300 + Math.random() * 600;
+            particles.push({
+              x: cx + (Math.random() - 0.5) * 20,
+              y: cy + (Math.random() - 0.5) * 20,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed - 400,
+              rotation: Math.random() * Math.PI * 2,
+              spin: (Math.random() - 0.5) * 12,
+              size: 30 + Math.random() * 40,
+              life: 1.8 + Math.random() * 0.8,
+            });
+          }
+
+          if (!raf) raf = requestAnimationFrame(tick);
+        };
+
+        teto.addEventListener("click", spawn);
+      })();
     </script>
   </body>
 
