@@ -4,7 +4,7 @@
   <br>
 
   <p align="center">
-    search the web without AI slop. pretty, fast, privacy-friendly metasearch engine.
+    search the web without AI slop. pretty, fast,<br> privacy-friendly metasearch engine.
     <br>
     <strong><a href="#installation">start searching! »</a></strong>
   </p>
