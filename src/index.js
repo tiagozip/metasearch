@@ -3,6 +3,7 @@ import { Elysia, t } from "elysia";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { jwtVerify, SignJWT } from "jose";
 import bang from "./bangs.js";
+import { coloCity } from "./colos.js";
 import searchImages from "./search/images.js";
 import * as maps from "./search/maps.js";
 import searchMixed from "./search/mixed.js";
@@ -45,7 +46,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         new Request("https://assets/index.html"),
       );
       const html = await resp.text();
-      return html.replace("%%colo%%", request.cf?.colo || "unknown");
+      return html.replace("%%colo%%", coloCity(request.cf?.colo));
     }
 
     if (q) {
