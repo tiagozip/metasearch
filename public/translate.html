@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script
+      defer
+      data-domain="search.tiago.zip"
+      src="https://palantir.estrogen.delivery/Pn7xQk2.js"
+    ></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>translate / search.tiago.zip</title>
+    <meta name="theme-color" content="#1F1E2E" />
+    <meta property="og:color" content="#89B4FA" />
+    <link rel="icon" href="/s/teto.png" />
+
+    <meta name="color-scheme" content="dark" />
+    <meta http-equiv="x-ua-compatible" content="IE=edge,chrome=1" />
+    <meta name="robots" content="index,follow" />
+
+    <meta
+      name="description"
+      content="translate text between 100+ languages. fast, pretty, privacy-friendly."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://search.tiago.zip/translate" />
+    <meta
+      property="og:description"
+      content="translate text between 100+ languages. fast, pretty, privacy-friendly."
+    />
+    <meta name="twitter:url" content="https://search.tiago.zip/translate" />
+    <meta name="twitter:site" content="@tiagozip_" />
+    <meta name="twitter:creator" content="@tiagozip_" />
+    <link rel="preload" href="/s/inter-var-v4.woff2" as="font" type="font/woff2" crossorigin />
+
+    <style>
+      * {
+        box-sizing: border-box;
+        min-width: 0;
+        text-underline-offset: 3px;
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+      }
+
+      :root {
+        color-scheme: dark;
+        font-family:
+          InterVar,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Oxygen,
+          Ubuntu,
+          Cantarell,
+          "Open Sans",
+          "Helvetica Neue",
+          sans-serif;
+        --text: #cdd6f4;
+        --bg: #1f1e2e;
+        --surface0: #313244;
+        --surface1: #45475a;
+        --subtext: #a6adc8;
+        --blue: #89b4fa;
+        --muted: #7f849c;
+        --green: #a6e3a1;
+        --red: #f38ba8;
+        --mauve: #cba6f7;
+        --yellow: #f9e2af;
+      }
+
+      @font-face {
+        font-family: "InterVar";
+        font-display: swap;
+        src: url("/s/inter-var-v4.woff2");
+      }
+
+      html {
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-size-adjust: 100%;
+        scrollbar-width: thin;
+        scrollbar-color: hsla(255 0 255 / 15%) var(--bg);
+        background-color: var(--bg);
+        scrollbar-gutter: stable;
+        overflow-x: hidden;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        color: var(--text);
+      }
+
+      .top {
+        max-width: 1000px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.95rem;
+
+        @media (max-width: 800px) {
+          padding: 14px 12px;
+        }
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .brand img {
+        border-radius: 5px;
+      }
+
+      .brand:hover {
+        color: var(--blue);
+      }
+
+      .crumb {
+        color: var(--muted);
+      }
+
+      .app {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 10px 18px 40px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
+        @media (max-width: 800px) {
+          padding: 6px 12px 32px;
+        }
+      }
+
+      .card {
+        border: 1px solid var(--surface0);
+        border-radius: 14px;
+      }
+
+      .langbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--surface0);
+        flex-wrap: wrap;
+      }
+
+      .lang-slot {
+        flex: 1;
+        display: flex;
+        min-width: 0;
+      }
+
+      .lang-slot:last-child {
+        justify-content: flex-end;
+      }
+
+      .swap {
+        background: none;
+        border: 1px solid var(--surface0);
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        color: var(--subtext);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition:
+          color 0.15s,
+          background 0.15s,
+          transform 0.2s;
+      }
+
+      .swap:hover {
+        color: var(--text);
+        background: var(--surface0);
+      }
+
+      .swap:active {
+        transform: rotate(180deg);
+      }
+
+      .swap:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+
+      .lp {
+        position: relative;
+      }
+
+      .lp-btn {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        background: var(--surface0);
+        border: 1px solid transparent;
+        border-radius: 9px;
+        color: var(--text);
+        padding: 9px 14px;
+        font-family: inherit;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: background 0.15s;
+        max-width: 100%;
+      }
+
+      .lp-btn:hover {
+        background: var(--surface1);
+      }
+
+      .lp-label {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+      }
+
+      .lp-flag {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+
+      .lp-globe {
+        display: inline-flex;
+        color: var(--blue);
+        flex-shrink: 0;
+      }
+
+      .lp-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .lp-hint {
+        color: var(--subtext);
+        font-size: 0.8em;
+      }
+
+      .lp-chevron {
+        display: inline-flex;
+        color: var(--subtext);
+        transition: transform 0.15s;
+      }
+
+      .lp.open .lp-chevron {
+        transform: rotate(180deg);
+      }
+
+      .lp-pop {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        z-index: 30;
+        width: min(300px, calc(100vw - 40px));
+        background: var(--bg);
+        border: 1px solid var(--surface1);
+        border-radius: 10px;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+        display: none;
+        overflow: hidden;
+      }
+
+      .lang-slot:last-child .lp-pop {
+        left: auto;
+        right: 0;
+      }
+
+      .lp.open .lp-pop {
+        display: block;
+      }
+
+      .lp-search {
+        width: 100%;
+        border: none;
+        border-bottom: 1px solid var(--surface1);
+        background: transparent;
+        color: var(--text);
+        padding: 11px 13px;
+        font-family: inherit;
+        font-size: 0.92rem;
+        outline: none;
+
+        &::placeholder {
+          color: var(--text);
+          opacity: 0.5;
+        }
+      }
+
+      .lp-list {
+        position: relative;
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 6px;
+        display: flex;
+        flex-direction: column;
+        scrollbar-width: thin;
+      }
+
+      .lp-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        background: none;
+        border: none;
+        border-radius: 7px;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 0.92rem;
+        cursor: pointer;
+        text-align: left;
+        flex-shrink: 0;
+      }
+
+      .lp-item:hover,
+      .lp-item.active {
+        background: var(--surface0);
+      }
+
+      .lp-item.sel .lp-name {
+        color: var(--blue);
+        font-weight: 600;
+      }
+
+      .lp-item[hidden] {
+        display: none;
+      }
+
+      .duo {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+
+        @media (max-width: 700px) {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .pane {
+        display: flex;
+        flex-direction: column;
+        min-height: 240px;
+        position: relative;
+      }
+
+      .pane:first-child {
+        border-right: 1px solid var(--surface0);
+
+        @media (max-width: 700px) {
+          border-right: none;
+          border-bottom: 1px solid var(--surface0);
+          min-height: 170px;
+        }
+      }
+
+      .pane textarea {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        resize: none;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 1.15rem;
+        line-height: 1.55;
+        padding: 16px;
+        min-height: 0;
+        field-sizing: initial;
+      }
+
+      .out-text {
+        font-size: 1.15rem;
+        line-height: 1.55;
+        padding: 16px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        overflow-y: auto;
+        max-height: 480px;
+        scrollbar-width: thin;
+      }
+
+      .out-text .placeholder {
+        color: var(--muted);
+      }
+
+      .out-text.err {
+        color: var(--red);
+      }
+
+      .pane-foot {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        min-height: 44px;
+        margin-top: auto;
+      }
+
+      .count {
+        margin-left: auto;
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .status {
+        color: var(--subtext);
+        font-size: 0.85rem;
+        margin-right: auto;
+        padding-left: 4px;
+      }
+
+      .iconbtn {
+        background: none;
+        border: none;
+        color: var(--subtext);
+        cursor: pointer;
+        padding: 7px;
+        border-radius: 7px;
+        display: inline-flex;
+        transition:
+          color 0.15s,
+          background 0.15s;
+      }
+
+      .iconbtn:hover {
+        color: var(--text);
+        background: var(--surface0);
+      }
+
+      .iconbtn.done {
+        color: var(--green);
+      }
+
+      .iconbtn.speaking {
+        color: var(--blue);
+      }
+
+      .iconbtn:disabled {
+        opacity: 0.35;
+        cursor: default;
+        background: none;
+      }
+
+      .push {
+        margin-left: auto;
+      }
+
+      .translit {
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+        padding: 0 16px 10px;
+      }
+
+      .translit:empty,
+      .alts:empty,
+      .dym:empty {
+        display: none;
+      }
+
+      .dym {
+        padding: 0 16px 12px;
+        color: var(--subtext);
+        font-size: 0.9rem;
+      }
+
+      .dym-btn {
+        background: none;
+        border: none;
+        color: var(--yellow);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: inherit;
+        padding: 0;
+        text-decoration: underline;
+      }
+
+      .alts {
+        border-top: 1px dashed var(--surface1);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .alts-label {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .alt {
+        background: var(--surface0);
+        border: 1px solid transparent;
+        border-radius: 100px;
+        color: var(--text);
+        padding: 6px 14px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.15s;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .alt:hover {
+        background: var(--surface1);
+      }
+
+      @media (max-width: 700px) {
+        .lp-hint {
+          display: none;
+        }
+      }
+
+      .dict {
+        border-top: 1px dashed var(--surface1);
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 0.95rem;
+      }
+
+      .dict:empty {
+        display: none;
+      }
+
+      .dict-head .dict-word {
+        font-weight: 600;
+        font-size: 1.05rem;
+      }
+
+      .dict-head .dict-ipa {
+        color: var(--subtext);
+        margin-left: 10px;
+      }
+
+      .dict-meaning {
+        color: var(--subtext);
+        line-height: 1.5;
+      }
+
+      .dict-pos {
+        color: var(--mauve);
+        font-style: italic;
+        margin-right: 8px;
+      }
+
+      .dict-note {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="/">
+        <img src="/s/teto.png" alt="" width="22" height="22" />
+        <span>search.tiago.zip</span>
+      </a>
+      <span class="crumb">/ translate</span>
+    </header>
+
+    <main class="app">
+      <section class="card">
+        <div class="langbar">
+          <div class="lang-slot" id="src-slot"></div>
+          <button id="swap" class="swap" title="swap languages" aria-label="swap languages">
+            <svg
+              viewBox="0 0 24 24"
+              width="17"
+              height="17"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 7H3M6 4l-3 3l3 3M3 17h18M18 14l3 3l-3 3" />
+            </svg>
+          </button>
+          <div class="lang-slot" id="tgt-slot"></div>
+        </div>
+
+        <div class="duo">
+          <div class="pane">
+            <textarea
+              id="src-text"
+              dir="auto"
+              placeholder="enter text…"
+              maxlength="5000"
+              autofocus
+            ></textarea>
+            <div id="src-translit" class="translit" dir="auto"></div>
+            <div id="dym" class="dym"></div>
+            <div class="pane-foot">
+              <button
+                id="speak-src"
+                class="iconbtn"
+                title="listen"
+                aria-label="listen to source text"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="17"
+                  height="17"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M15 8a5 5 0 0 1 0 8M17.7 5a9 9 0 0 1 0 14M6 15H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h2l3.5-4.5A.8.8 0 0 1 11 5v14a.8.8 0 0 1-1.5.5z"
+                  />
+                </svg>
+              </button>
+              <span class="count" id="count">0 / 5000</span>
+              <button id="clear" class="iconbtn" title="clear" aria-label="clear text">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="17"
+                  height="17"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="pane">
+            <div id="out-text" class="out-text" dir="auto" aria-live="polite">
+              <span class="placeholder">translation</span>
+            </div>
+            <div id="out-translit" class="translit" dir="auto"></div>
+            <div class="pane-foot">
+              <button
+                id="speak-out"
+                class="iconbtn"
+                title="listen"
+                aria-label="listen to translation"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="17"
+                  height="17"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M15 8a5 5 0 0 1 0 8M17.7 5a9 9 0 0 1 0 14M6 15H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h2l3.5-4.5A.8.8 0 0 1 11 5v14a.8.8 0 0 1-1.5.5z"
+                  />
+                </svg>
+              </button>
+              <span id="status" class="status"></span>
+              <button
+                id="copy"
+                class="iconbtn push"
+                title="copy translation"
+                aria-label="copy translation"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="17"
+                  height="17"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z"
+                  />
+                  <path
+                    d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="alts" class="alts"></div>
+        <div id="dict" class="dict"></div>
+      </section>
+    </main>
+
+    <script type="module" src="/s/translate.js"></script>
+  </body>
+  <script defer data-domain="search.tiago.zip" src="https://a.tiago.zip/js/script.js"></script>
+</html>

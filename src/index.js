@@ -9,6 +9,12 @@ import * as maps from "./search/maps.js";
 import searchMixed from "./search/mixed.js";
 import searchNews from "./search/news.js";
 import * as templates from "./templates.js";
+import {
+  enrichTranslation,
+  isValidLang,
+  translateBatch,
+  transliterate,
+} from "./translate.js";
 
 const getSecret = () => new TextEncoder().encode(env.JWT_SECRET);
 
@@ -134,6 +140,169 @@ export default new Elysia({ adapter: CloudflareAdapter })
     }
 
     return { query, type, page, ...data };
+  })
+  .get("/translate", async ({ set }) => {
+    set.headers["cache-control"] = "public, max-age=3600";
+    const resp = await env.ASSETS.fetch(
+      new Request("https://assets/translate.html"),
+    );
+    return new Response(resp.body, resp);
+  })
+  .post("/translate", async ({ body, set }) => {
+    set.headers["content-type"] = "application/json";
+    set.headers["cache-control"] = "no-store";
+
+    let payload = body;
+    if (typeof payload === "string") {
+      try {
+        payload = JSON.parse(payload);
+      } catch {
+        set.status = 400;
+        return { error: "request body must be valid JSON" };
+      }
+    }
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      set.status = 400;
+      return { error: "request body must be a JSON object" };
+    }
+
+    const { targetLang, sourceLang } = payload;
+    if (!isValidLang(targetLang)) {
+      set.status = 400;
+      return { error: "missing or invalid targetLang" };
+    }
+    if (sourceLang != null && !isValidLang(sourceLang, true)) {
+      set.status = 400;
+      return { error: "invalid sourceLang" };
+    }
+
+    const text = payload.text;
+    if (typeof text !== "string" || !text.trim()) {
+      set.status = 400;
+      return { error: "missing required field: text" };
+    }
+    if (text.length > 5000) {
+      set.status = 413;
+      return { error: "text too long (max 5000 chars)" };
+    }
+
+    const [main, extras] = await Promise.allSettled([
+      translateBatch([text], sourceLang, targetLang),
+      text.length <= 1500
+        ? enrichTranslation(text, sourceLang, targetLang)
+        : Promise.reject(new Error("skipped")),
+    ]);
+
+    if (main.status === "rejected") {
+      set.status = 502;
+      return {
+        error: "translation failed",
+        detail: String(main.reason?.message || main.reason),
+      };
+    }
+
+    const translatedText = main.value.texts[0] ?? "";
+    const e = extras.status === "fulfilled" ? extras.value : null;
+    const alternatives = [
+      ...new Set(
+        (e?.alternatives || []).filter(
+          (a) => a.trim() && a.trim() !== translatedText.trim(),
+        ),
+      ),
+    ].slice(0, 3);
+
+    let translit = e?.transliteration || "";
+    if (translit && e.gtxTranslation !== translatedText.trim())
+      translit = await transliterate(translatedText, targetLang).catch(
+        () => "",
+      );
+
+    return {
+      translatedText,
+      detectedLang: main.value.detected[0] || e?.detected || sourceLang || null,
+      ...(translit && { transliteration: translit }),
+      ...(e?.srcTransliteration && {
+        srcTransliteration: e.srcTransliteration,
+      }),
+      ...(alternatives.length && { alternatives }),
+      ...(e?.didYouMean && { didYouMean: e.didYouMean }),
+    };
+  })
+  .get("/tts", async ({ query, set }) => {
+    const text = (query?.q || "").trim();
+    const lang = query?.tl || "";
+    if (!text || text.length > 200) {
+      set.status = 400;
+      return { error: "q is required (max 200 chars)" };
+    }
+    if (!isValidLang(lang)) {
+      set.status = 400;
+      return { error: "invalid tl" };
+    }
+
+    let resp;
+    try {
+      resp = await fetch(
+        `https://translate.googleapis.com/translate_tts?client=gtx&tl=${encodeURIComponent(lang)}&q=${encodeURIComponent(text)}`,
+        { cf: { cacheTtl: 86400, cacheEverything: true } },
+      );
+    } catch {
+      set.status = 502;
+      return { error: "tts fetch failed" };
+    }
+    if (!resp.ok) {
+      set.status = 502;
+      return { error: "tts failed", status: resp.status };
+    }
+    return new Response(resp.body, {
+      headers: {
+        "content-type": "audio/mpeg",
+        "cache-control": "public, max-age=86400",
+      },
+    });
+  })
+  .get("/dict/:word", async ({ set, params }) => {
+    const word = decodeURIComponent(params.word || "").trim();
+    if (!/^[a-z'’ -]{1,40}$/i.test(word)) {
+      set.status = 400;
+      return { error: "invalid word" };
+    }
+
+    set.headers["content-type"] = "application/json";
+    set.headers["cache-control"] = "public, max-age=86400";
+
+    let resp;
+    try {
+      resp = await fetch(
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.toLowerCase())}`,
+        { cf: { cacheTtl: 86400, cacheEverything: true } },
+      );
+    } catch {
+      set.status = 502;
+      return { error: "dictionary fetch failed" };
+    }
+
+    if (!resp.ok) {
+      set.status = 404;
+      return { error: "no definition found" };
+    }
+    return new Response(resp.body, {
+      headers: {
+        "content-type": "application/json",
+        "cache-control": "public, max-age=86400",
+      },
+    });
+  })
+  .get("/s/flags/:file", async ({ set, params }) => {
+    if (!/^[a-z-]{2,8}\.svg$/.test(params.file)) {
+      set.status = 404;
+      return "no";
+    }
+    set.headers["cache-control"] = "public, max-age=5184000";
+    const resp = await env.ASSETS.fetch(
+      new Request(`https://assets/assets/flags/${params.file}`),
+    );
+    return new Response(resp.body, resp);
   })
   .get("/", async ({ query, set, redirect, request }) => {
     const q = query?.q?.replaceAll?.("\n", " ")?.trim();

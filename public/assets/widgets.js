@@ -1,3 +1,12 @@
+import {
+  browserTargetLang,
+  codeForName,
+  langByCode,
+  makeLangPicker,
+  requestTranslation,
+  speakButton,
+} from "./langs.js";
+
 const h = (tag, props, ...kids) => {
   const el = document.createElement(tag);
   if (props)
@@ -4781,6 +4790,399 @@ reg({
   },
 });
 
+const SWAP = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7H3M6 4l-3 3l3 3M3 17h18M18 14l3 3l-3 3"/></svg>`;
+
+const langBase = (c) =>
+  String(c || "")
+    .split("-")[0]
+    .toLowerCase();
+
+const headLang = (str) => {
+  const w = str.trim().split(" ");
+  for (let n = Math.min(3, w.length); n >= 1; n--) {
+    const code = codeForName(
+      w
+        .slice(0, n)
+        .join(" ")
+        .replace(/[:,]+$/, ""),
+    );
+    if (code)
+      return {
+        code,
+        rest: w
+          .slice(n)
+          .join(" ")
+          .replace(/^[:,]\s*/, ""),
+      };
+  }
+  return null;
+};
+
+const tailLang = (str, seps) => {
+  const w = str.trim().split(" ");
+  for (let n = Math.min(3, w.length - 2); n >= 1; n--) {
+    const code = codeForName(w.slice(-n).join(" "));
+    if (code && seps.includes(w[w.length - n - 1]?.toLowerCase()))
+      return { text: w.slice(0, -(n + 1)).join(" "), tl: code };
+  }
+  return null;
+};
+
+const parseTranslateQuery = (q) => {
+  const t = q
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[?!.]+$/, "");
+  if (/^(?:google )?translat(?:e|or|ion)$/i.test(t)) return { text: "" };
+
+  let m = t.match(/^how do (?:you|i|we) say (.+)$/i);
+  if (m) return tailLang(m[1], ["in"]);
+
+  m = t.match(/^([a-z]+(?: [a-z]+)?) (?:to|into) (.+)$/i);
+  if (m) {
+    const sl = codeForName(m[1]);
+    if (sl) {
+      const head = headLang(m[2]);
+      if (head) return { sl, tl: head.code, text: head.rest };
+    }
+  }
+
+  m = t.match(/^translate (.+)$/i);
+  if (m) {
+    const rest = m[1];
+    const mm = rest.match(/^(?:from ([a-z]+(?: [a-z]+)?) )?(?:to|into) (.+)$/i);
+    if (mm && (!mm[1] || codeForName(mm[1]))) {
+      const head = headLang(mm[2]);
+      if (head)
+        return {
+          sl: mm[1] ? codeForName(mm[1]) : "auto",
+          tl: head.code,
+          text: head.rest,
+        };
+    }
+    return tailLang(rest, ["to", "into", "in"]) || { text: rest };
+  }
+
+  return tailLang(t, ["in"]);
+};
+
+const CLEAR = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
+
+reg({
+  id: "translate",
+  match: parseTranslateQuery,
+  build: ({ text = "", sl = "auto", tl = null }) => {
+    const src = h(
+      "textarea",
+      {
+        class: "w-tr-src",
+        dir: "auto",
+        maxlength: "5000",
+        placeholder: "enter text…",
+      },
+      text,
+    );
+    const out = h("div", {
+      class: "w-tr-out",
+      dir: "auto",
+      "aria-live": "polite",
+    });
+    const srcTl = h("div", { class: "w-tr-translit", dir: "auto" });
+    const outTl = h("div", { class: "w-tr-translit", dir: "auto" });
+    const alts = h("div", { class: "w-tr-alts" });
+    const dym = h("div", { class: "w-tr-dym" });
+    const status = h("span", { class: "w-tr-status" });
+    const count = h("span", { class: "w-tr-count" });
+    const dict = h("div", { class: "w-tr-dict" });
+    const link = h(
+      "a",
+      { class: "w-tr-link", href: "/translate" },
+      "full translator ↗",
+    );
+
+    const setOut = (value) => {
+      if (value == null)
+        out.replaceChildren(h("span", { class: "w-tr-ph" }, "translation"));
+      else out.textContent = value;
+    };
+    const syncCount = () => {
+      count.textContent = `${src.value.length} / 5000`;
+    };
+    const clearExtras = () => {
+      srcTl.textContent = "";
+      outTl.textContent = "";
+      alts.replaceChildren();
+      dym.replaceChildren();
+      dict.replaceChildren();
+    };
+
+    const slP = makeLangPicker({
+      value: sl || "auto",
+      detect: true,
+      onChange: () => go(0),
+    });
+    const tlP = makeLangPicker({
+      value: tl || browserTargetLang(),
+      onChange: () => go(0),
+    });
+
+    const swap = h("button", {
+      class: "w-tr-swap",
+      title: "swap languages",
+      "aria-label": "swap languages",
+      html: SWAP,
+    });
+    const syncSwap = () => {
+      swap.disabled = slP.value === "auto" && !slP.detected;
+    };
+
+    let ctrl, timer;
+    let flipped = false;
+
+    const syncLink = () => {
+      link.href = `/translate?sl=${encodeURIComponent(slP.value)}&tl=${encodeURIComponent(tlP.value)}&text=${encodeURIComponent(src.value.slice(0, 2000))}`;
+    };
+
+    const single = (s) =>
+      /^\p{L}[\p{L}'’-]*$/u.test(s.trim()) && s.trim().length <= 30;
+
+    const renderDict = async (word) => {
+      try {
+        const res = await fetch(`/dict/${encodeURIComponent(word)}`);
+        if (!res.ok) return;
+        const entries = await res.json();
+        const e0 = entries?.[0];
+        if (!e0?.meanings?.length || !dict.isConnected) return;
+        dict.replaceChildren(
+          h(
+            "div",
+            { class: "w-tr-dict-head" },
+            h("span", { class: "w-tr-dict-word" }, e0.word),
+            e0.phonetic && h("span", { class: "w-tr-dict-ipa" }, e0.phonetic),
+          ),
+          ...e0.meanings
+            .slice(0, 2)
+            .map((m) =>
+              h(
+                "div",
+                { class: "w-tr-dict-meaning" },
+                h("span", { class: "w-tr-dict-pos" }, m.partOfSpeech),
+                m.definitions?.[0]?.definition || "",
+              ),
+            ),
+        );
+      } catch {}
+    };
+
+    const renderExtras = (data) => {
+      outTl.textContent = data.transliteration || "";
+      srcTl.textContent = data.srcTransliteration || "";
+      alts.replaceChildren();
+      if (data.alternatives?.length) {
+        alts.append(h("span", { class: "w-tr-alts-label" }, "alternatives"));
+        for (const a of data.alternatives)
+          alts.append(
+            h("button", {
+              class: "w-tr-alt",
+              dir: "auto",
+              html: "",
+              onclick: () => {
+                setOut(a);
+                outTl.textContent = "";
+              },
+            }),
+          );
+        for (const [i, a] of data.alternatives.entries())
+          alts.children[i + 1].textContent = a;
+      }
+      dym.replaceChildren();
+      if (data.didYouMean) {
+        const fix = h("button", { class: "w-tr-dym-btn" }, data.didYouMean);
+        fix.onclick = () => {
+          src.value = data.didYouMean;
+          syncCount();
+          run();
+        };
+        dym.append("did you mean: ", fix);
+      }
+    };
+
+    const run = async () => {
+      ctrl?.abort();
+      const value = src.value.trim();
+      clearExtras();
+      syncLink();
+      if (!value) {
+        setOut(null);
+        out.classList.remove("err");
+        status.textContent = "";
+        slP.setDetected(null);
+        syncSwap();
+        return;
+      }
+      ctrl = new AbortController();
+      status.textContent = "translating…";
+      try {
+        const data = await requestTranslation(
+          {
+            text: value,
+            targetLang: tlP.value,
+            ...(slP.value !== "auto" && { sourceLang: slP.value }),
+          },
+          ctrl.signal,
+        );
+        const det = data.detectedLang;
+        if (
+          !flipped &&
+          !tl &&
+          slP.value === "auto" &&
+          det &&
+          langBase(langByCode(det)?.code) === langBase(tlP.value)
+        ) {
+          const alt =
+            langBase(browserTargetLang()) !== langBase(det)
+              ? browserTargetLang()
+              : langBase(det) !== "en"
+                ? "en"
+                : null;
+          if (alt) {
+            flipped = true;
+            tlP.value = alt;
+            run();
+            return;
+          }
+        }
+        setOut(data.translatedText);
+        out.classList.remove("err");
+        status.textContent = "";
+        if (slP.value === "auto") slP.setDetected(det);
+        syncSwap();
+        syncLink();
+        renderExtras(data);
+        let word = null;
+        if (langBase(tlP.value) === "en" && single(data.translatedText))
+          word = data.translatedText;
+        else if (
+          langBase(slP.value === "auto" ? det : slP.value) === "en" &&
+          single(value)
+        )
+          word = value;
+        if (word) renderDict(word.toLowerCase());
+      } catch (e) {
+        if (e.name === "AbortError") return;
+        setOut(e.message || "translation failed");
+        out.classList.add("err");
+        status.textContent = "";
+      }
+    };
+
+    const go = (delay = 500) => {
+      clearTimeout(timer);
+      timer = setTimeout(run, delay);
+    };
+
+    src.oninput = () => {
+      syncCount();
+      go();
+    };
+
+    swap.onclick = () => {
+      const from = slP.value === "auto" ? slP.detected : slP.value;
+      if (!from) return;
+      const to = tlP.value;
+      slP.value = to;
+      tlP.value = from;
+      if (!out.classList.contains("err") && !out.querySelector(".w-tr-ph"))
+        src.value = out.textContent.slice(0, 5000);
+      syncCount();
+      run();
+    };
+
+    const clear = h("button", {
+      class: "w-copy",
+      title: "clear",
+      "aria-label": "clear text",
+      html: CLEAR,
+    });
+    clear.onclick = () => {
+      src.value = "";
+      syncCount();
+      src.focus();
+      run();
+    };
+
+    setOut(null);
+    syncCount();
+    syncSwap();
+    syncLink();
+    if (text) run();
+
+    return h(
+      "section",
+      { class: "rich-result w w-tr-card" },
+      h(
+        "div",
+        { class: "w-tr-head" },
+        h("div", { class: "w-title" }, "translate"),
+        link,
+      ),
+      h(
+        "div",
+        { class: "w-tr" },
+        h(
+          "div",
+          { class: "w-tr-bar" },
+          h("div", { class: "w-tr-slot" }, slP.el),
+          swap,
+          h("div", { class: "w-tr-slot" }, tlP.el),
+        ),
+        h(
+          "div",
+          { class: "w-tr-duo" },
+          h(
+            "div",
+            { class: "w-tr-pane" },
+            src,
+            srcTl,
+            dym,
+            h(
+              "div",
+              { class: "w-tr-pane-foot" },
+              speakButton(
+                () => src.value,
+                () => (slP.value === "auto" ? slP.detected : slP.value),
+                "w-copy",
+              ),
+              count,
+              clear,
+            ),
+          ),
+          h(
+            "div",
+            { class: "w-tr-pane" },
+            out,
+            outTl,
+            h(
+              "div",
+              { class: "w-tr-pane-foot" },
+              speakButton(
+                () => (out.querySelector(".w-tr-ph") ? "" : out.textContent),
+                () => tlP.value,
+                "w-copy",
+              ),
+              status,
+              copyBtn(() =>
+                out.querySelector(".w-tr-ph") ? "" : out.textContent,
+              ),
+            ),
+          ),
+        ),
+        alts,
+        dict,
+      ),
+    );
+  },
+});
 // ─── engine ──────────────────────────────────────────────────────────────────
 
 export function renderLocalWidgets(query) {

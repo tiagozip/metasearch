@@ -36,4 +36,4 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .data
 .wrangler
 
-.claude
+.claude.dev.vars

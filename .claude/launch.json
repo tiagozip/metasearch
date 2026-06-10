@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "widget-preview",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "scripts/widget-preview.js"],
+      "port": 5599
+    },
+    {
+      "name": "metasearch",
+      "runtimeExecutable": "wrangler",
+      "runtimeArgs": ["dev", "--port", "8788"],
+      "port": 8788
+    }
+  ]
+}

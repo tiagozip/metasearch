@@ -78,6 +78,8 @@ const QUERIES = [
   "leetspeak elite hacker",
   "subnet 192.168.1.0/24",
   "sleep calculator",
+  "translate good morning to japanese",
+  "hello in french",
 ];
 
 const page = `<!doctype html><html lang="en"><head><meta charset="utf-8">
