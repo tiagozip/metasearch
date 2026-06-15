@@ -32,6 +32,7 @@
   };
 
   let detailMode = readCookie("pref_images_detail") === "sidebar" ? "sidebar" : "bar";
+  let transparentOnly = false;
 
   let allImages = [];
   let selectedIndex = -1;
@@ -388,6 +389,65 @@
     }
   };
 
+  const transparencyCanvas = document.createElement("canvas");
+  transparencyCanvas.width = 48;
+  transparencyCanvas.height = 48;
+  const transparencyCtx = transparencyCanvas.getContext("2d", { willReadFrequently: true });
+
+  const detectTransparent = (imgEl) => {
+    try {
+      transparencyCtx.clearRect(0, 0, 48, 48);
+      transparencyCtx.drawImage(imgEl, 0, 0, 48, 48);
+      const { data } = transparencyCtx.getImageData(0, 0, 48, 48);
+      let transparent = 0;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] < 250) transparent++;
+      }
+      return transparent / (data.length / 4) > 0.01;
+    } catch {
+      return null;
+    }
+  };
+
+  const applyTransparentFilter = (link, imgEl, img) => {
+    if (imgEl.complete && !imgEl.naturalWidth) return;
+
+    if (!transparentOnly) {
+      if (link.dataset.transHidden) {
+        delete link.dataset.transHidden;
+        link.style.display = "";
+      }
+      return;
+    }
+
+    if (!imgEl.complete) {
+      link.dataset.transHidden = "1";
+      link.style.display = "none";
+      return;
+    }
+
+    if (img._transparent === undefined) img._transparent = detectTransparent(imgEl);
+
+    if (img._transparent === true) {
+      if (link.dataset.transHidden) {
+        delete link.dataset.transHidden;
+        link.style.display = "";
+      }
+    } else {
+      link.dataset.transHidden = "1";
+      link.style.display = "none";
+    }
+  };
+
+  const reapplyTransparentFilter = () => {
+    const grid = document.getElementById("images-grid");
+    for (const link of grid.querySelectorAll(".image-item")) {
+      const img = allImages[parseInt(link.dataset.imageIndex, 10)];
+      const imgEl = link.querySelector("img");
+      if (img && imgEl) applyTransparentFilter(link, imgEl, img);
+    }
+  };
+
   const renderImageResult = (img, index) => {
     if (shouldBlockImage(img)) {
       return null;
@@ -410,16 +470,20 @@
     imageWrapper.className = "image-wrapper";
 
     const imgEl = document.createElement("img");
-    imgEl.src = thumbUrl;
     imgEl.alt = title;
     imgEl.loading = "lazy";
     imgEl.style.opacity = "0";
+    if (thumbUrl.startsWith("https://imgs.search.brave.com/")) {
+      imgEl.crossOrigin = "anonymous";
+    }
     imgEl.onload = () => {
       imgEl.style.opacity = "1";
+      applyTransparentFilter(link, imgEl, img);
     };
     imgEl.onerror = () => {
       link.style.display = "none";
     };
+    imgEl.src = thumbUrl;
 
     if (width && height) {
       const aspectRatio = width / height;
@@ -573,14 +637,17 @@
   const optionsPopup = document.querySelector("#options-popup");
   const hideAiSlopCheckbox = document.querySelector("#hide-ai-slop");
   const detailsSidebarCheckbox = document.querySelector("#details-sidebar");
+  const transparentOnlyCheckbox = document.querySelector("#transparent-only");
 
   let savedSetting;
   try {
     savedSetting = localStorage.getItem("config:hide_slop") === "true";
+    transparentOnly = localStorage.getItem("config:transparent_only") === "true";
   } catch {}
 
   hideAiSlopCheckbox.checked = savedSetting;
   if (detailsSidebarCheckbox) detailsSidebarCheckbox.checked = detailMode === "sidebar";
+  if (transparentOnlyCheckbox) transparentOnlyCheckbox.checked = transparentOnly;
 
   optionsBtn?.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -609,6 +676,14 @@
     const grid = document.getElementById("images-grid");
     grid.innerHTML = "";
     renderImages(allImages);
+  });
+
+  transparentOnlyCheckbox?.addEventListener("change", (e) => {
+    transparentOnly = e.target.checked;
+    try {
+      localStorage.setItem("config:transparent_only", transparentOnly.toString());
+    } catch {}
+    reapplyTransparentFilter();
   });
 
   detailsSidebarCheckbox?.addEventListener("change", (e) => {
