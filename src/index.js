@@ -384,7 +384,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
 
     const qSafe = q || "";
     const pageTitle = qSafe
-      ? qSafe.replace("<", "&lt;").replaceAll(">", "&gt;")
+      ? qSafe.replaceAll("<", "&lt;").replaceAll(">", "&gt;")
       : type === "maps"
         ? "maps"
         : "search";
@@ -562,7 +562,15 @@ export default new Elysia({ adapter: CloudflareAdapter })
     return { title, artist, image: state.ogImage, lyrics };
   })
   .get("/p/:q", async ({ set, params }) => {
-    const { payload } = await jwtVerify(params?.q || "", getSecret());
+    let payload;
+    try {
+      ({ payload } = await jwtVerify(params?.q || "", getSecret()));
+    } catch {
+      set.status = 401;
+      set.headers["content-type"] = "application/javascript";
+      set.headers["cache-control"] = "no-store";
+      return "location.reload()";
+    }
 
     set.headers["content-type"] = "application/javascript";
     set.headers["cache-control"] = "public, max-age=86400";
@@ -608,7 +616,13 @@ export default new Elysia({ adapter: CloudflareAdapter })
     "/p",
     async ({ set, headers, body }) => {
       const secret = getSecret();
-      const { payload } = await jwtVerify(body, secret);
+      let payload;
+      try {
+        ({ payload } = await jwtVerify(body, secret));
+      } catch {
+        set.status = 401;
+        return ["expired token"];
+      }
 
       if (!payload.q || !payload.p) {
         return ["missing q or p"];
@@ -630,7 +644,13 @@ export default new Elysia({ adapter: CloudflareAdapter })
       const isImages = payload.t === "images";
       const isNews = payload.t === "news";
 
-      const Cl = await jwtVerify(headers["x-galileo-jwt"], secret);
+      let Cl;
+      try {
+        Cl = await jwtVerify(headers["x-galileo-jwt"], secret);
+      } catch {
+        set.status = 401;
+        return ["expired token"];
+      }
 
       if (Cl.payload.v !== q) {
         return ["invalid v"];
@@ -756,7 +776,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
 
     set.headers["content-type"] = "application/json";
     set.headers["cache-control"] = "public, max-age=300";
-    if (!q || !isFinite(lat) || !isFinite(lng)) {
+    if (!q || !Number.isFinite(lat) || !Number.isFinite(lng)) {
       return { name: q || "", lat: lat || 0, lng: lng || 0, place: null };
     }
     return await maps.enrichPlace(q, lat, lng);
