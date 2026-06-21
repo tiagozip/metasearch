@@ -781,12 +781,16 @@ converter(
 );
 
 const toBinary = (s) =>
-  [...s].map((c) => c.codePointAt(0).toString(2).padStart(8, "0")).join(" ");
+  [...new TextEncoder().encode(s)]
+    .map((b) => b.toString(2).padStart(8, "0"))
+    .join(" ");
 const fromBinary = (s) => {
   const groups = s.trim().split(/\s+/).filter(Boolean);
   if (groups.some((b) => !/^[01]+$/.test(b)))
     throw new Error("binary digits only");
-  return groups.map((b) => String.fromCodePoint(parseInt(b, 2))).join("");
+  return new TextDecoder().decode(
+    Uint8Array.from(groups, (b) => parseInt(b, 2)),
+  );
 };
 converter(
   "textbin",
@@ -1157,94 +1161,608 @@ reg({
 
 // ─── math / calculators ──────────────────────────────────────────────────────
 
+const CALC_CONSTS = {
+  pi: Math.PI,
+  π: Math.PI,
+  tau: Math.PI * 2,
+  τ: Math.PI * 2,
+  e: Math.E,
+  phi: (1 + Math.sqrt(5)) / 2,
+};
+
+const CALC_FUNCS = {
+  sin: (a, d) => Math.sin(d ? (a * Math.PI) / 180 : a),
+  cos: (a, d) => Math.cos(d ? (a * Math.PI) / 180 : a),
+  tan: (a, d) => Math.tan(d ? (a * Math.PI) / 180 : a),
+  asin: (a, d) => (d ? (Math.asin(a) * 180) / Math.PI : Math.asin(a)),
+  acos: (a, d) => (d ? (Math.acos(a) * 180) / Math.PI : Math.acos(a)),
+  atan: (a, d) => (d ? (Math.atan(a) * 180) / Math.PI : Math.atan(a)),
+  sinh: (a) => Math.sinh(a),
+  cosh: (a) => Math.cosh(a),
+  tanh: (a) => Math.tanh(a),
+  ln: (a) => Math.log(a),
+  log: (a) => Math.log10(a),
+  log2: (a) => Math.log2(a),
+  sqrt: (a) => Math.sqrt(a),
+  cbrt: (a) => Math.cbrt(a),
+  abs: (a) => Math.abs(a),
+  exp: (a) => Math.exp(a),
+  ceil: (a) => Math.ceil(a),
+  floor: (a) => Math.floor(a),
+  round: (a) => Math.round(a),
+};
+
+const CALC_PREC = { "+": 2, "-": 2, "*": 3, "/": 3, mod: 3, "^": 4, "u-": 4 };
+const CALC_RIGHT = { "^": true, "u-": true };
+
+const calcGamma = (z) => {
+  const c = [
+    0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+    771.32342877765313, -176.61502916214059, 12.507343278686905,
+    -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7,
+  ];
+  if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * calcGamma(1 - z));
+  z -= 1;
+  let x = c[0];
+  for (let i = 1; i < 9; i++) x += c[i] / (z + i);
+  const t = z + 7.5;
+  return Math.sqrt(2 * Math.PI) * t ** (z + 0.5) * Math.exp(-t) * x;
+};
+
+const calcFact = (n) => {
+  if (n < 0 && Number.isInteger(n)) throw new Error("domain");
+  if (!Number.isInteger(n)) return calcGamma(n + 1);
+  if (n > 170) return Infinity;
+  let r = 1;
+  for (let i = 2; i <= n; i++) r *= i;
+  return r;
+};
+
+const calcTokenize = (src) => {
+  const s = src.replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-");
+  const tokens = [];
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i];
+    if (c === " " || c === "\t") {
+      i++;
+      continue;
+    }
+    if (/[0-9.]/.test(c)) {
+      let j = i + 1;
+      while (j < s.length && /[0-9.]/.test(s[j])) j++;
+      if ((s[j] === "e" || s[j] === "E") && /[0-9+-]/.test(s[j + 1] || "")) {
+        j += 2;
+        while (j < s.length && /[0-9]/.test(s[j])) j++;
+      }
+      const num = s.slice(i, j);
+      const val = Number(num);
+      if (!Number.isFinite(val)) throw new Error(`bad number: ${num}`);
+      tokens.push({ t: "num", v: val });
+      i = j;
+      continue;
+    }
+    if (/[a-zπτ]/i.test(c)) {
+      let j = i + 1;
+      while (j < s.length && /[a-z0-9]/i.test(s[j])) j++;
+      const name = s.slice(i, j).toLowerCase();
+      if (name in CALC_FUNCS) tokens.push({ t: "func", v: name });
+      else if (name in CALC_CONSTS)
+        tokens.push({ t: "num", v: CALC_CONSTS[name] });
+      else if (name === "mod") tokens.push({ t: "op", v: "mod" });
+      else throw new Error(`unknown: ${name}`);
+      i = j;
+      continue;
+    }
+    if ("+-*/^%!()".includes(c)) {
+      tokens.push({ t: c === "(" ? "lp" : c === ")" ? "rp" : "op", v: c });
+      i++;
+      continue;
+    }
+    throw new Error(`bad char: ${c}`);
+  }
+  return tokens;
+};
+
+const calcApplyOp = (out, ops, v) => {
+  const p = CALC_PREC[v];
+  const right = CALC_RIGHT[v];
+  while (ops.length) {
+    const top = ops[ops.length - 1];
+    if (top.t === "func") {
+      out.push(ops.pop());
+      continue;
+    }
+    if (top.t !== "op") break;
+    const tp = CALC_PREC[top.v];
+    if (tp > p || (tp === p && !right)) out.push(ops.pop());
+    else break;
+  }
+  ops.push({ t: "op", v });
+};
+
+const calcToRPN = (tokens) => {
+  const out = [];
+  const ops = [];
+  let prev = null;
+  const mulIfValue = () => {
+    if (prev === "num" || prev === "rp") calcApplyOp(out, ops, "*");
+  };
+  for (const tk of tokens) {
+    if (tk.t === "num") {
+      mulIfValue();
+      out.push(tk);
+      prev = "num";
+    } else if (tk.t === "func") {
+      mulIfValue();
+      ops.push(tk);
+      prev = "func";
+    } else if (tk.t === "lp") {
+      mulIfValue();
+      ops.push(tk);
+      prev = "lp";
+    } else if (tk.t === "rp") {
+      while (ops.length && ops[ops.length - 1].t !== "lp") out.push(ops.pop());
+      if (!ops.length) throw new Error("mismatched )");
+      ops.pop();
+      if (ops.length && ops[ops.length - 1].t === "func") out.push(ops.pop());
+      prev = "rp";
+    } else {
+      let v = tk.v;
+      if (v === "!" || v === "%") {
+        out.push({ t: "op", v });
+        prev = "rp";
+        continue;
+      }
+      if (
+        (v === "-" || v === "+") &&
+        (prev === null || prev === "op" || prev === "lp" || prev === "func")
+      ) {
+        if (v === "+") continue;
+        v = "u-";
+      }
+      calcApplyOp(out, ops, v);
+      prev = "op";
+    }
+  }
+  while (ops.length) {
+    const o = ops.pop();
+    if (o.t === "lp") throw new Error("mismatched (");
+    out.push(o);
+  }
+  return out;
+};
+
+const calcEvalRPN = (rpn, deg) => {
+  const st = [];
+  for (const tk of rpn) {
+    if (tk.t === "num") {
+      st.push(tk.v);
+      continue;
+    }
+    if (tk.t === "func") {
+      if (!st.length) throw new Error("missing arg");
+      st.push(CALC_FUNCS[tk.v](st.pop(), deg));
+      continue;
+    }
+    const v = tk.v;
+    if (v === "u-" || v === "!" || v === "%") {
+      if (!st.length) throw new Error("missing operand");
+      const a = st.pop();
+      st.push(v === "u-" ? -a : v === "!" ? calcFact(a) : a / 100);
+      continue;
+    }
+    if (st.length < 2) throw new Error("missing operand");
+    const b = st.pop();
+    const a = st.pop();
+    st.push(
+      v === "+"
+        ? a + b
+        : v === "-"
+          ? a - b
+          : v === "*"
+            ? a * b
+            : v === "/"
+              ? a / b
+              : v === "^"
+                ? a ** b
+                : v === "mod"
+                  ? a % b
+                  : NaN,
+    );
+  }
+  if (st.length !== 1) throw new Error("invalid expression");
+  return st[0];
+};
+
+const calcEvaluate = (expr, deg) => {
+  const rpn = calcToRPN(calcTokenize(expr));
+  if (!rpn.length) throw new Error("empty");
+  const r = calcEvalRPN(rpn, deg);
+  if (typeof r !== "number" || Number.isNaN(r)) throw new Error("not a number");
+  return r;
+};
+
+const calcFmt = (n) => {
+  if (!Number.isFinite(n)) return n > 0 ? "∞" : "-∞";
+  if (Number.isInteger(n) && Math.abs(n) < 1e15) return String(n);
+  return String(Number(n.toPrecision(12)));
+};
+
 reg({
   id: "calculator",
   match: (q) => /^(?:calculator|calc|scientific\s+calculator)$/i.test(q.trim()),
   build: () => {
-    const disp = h("input", {
-      class: "w-calc-disp w-mono",
-      value: "0",
-      readonly: "",
+    const HKEY = "ms-calc-history";
+    let history = [];
+    try {
+      const stored = JSON.parse(localStorage.getItem(HKEY) || "[]");
+      if (Array.isArray(stored)) history = stored.slice(-50);
+    } catch {}
+    let mem = 0;
+    let deg = true;
+    let histNav = -1;
+
+    const expr = h("input", {
+      class: "w-calc2-expr w-mono",
+      placeholder: "0",
+      spellcheck: "false",
+      autocomplete: "off",
+      autocapitalize: "off",
+      "aria-label": "calculator expression",
     });
-    const copy = copyBtn(() => disp.value, "copy result");
-    const keys = [
-      "7",
-      "8",
-      "9",
-      "/",
-      "4",
-      "5",
-      "6",
-      "*",
-      "1",
-      "2",
-      "3",
-      "-",
-      "0",
-      ".",
-      "=",
-      "+",
-      "(",
-      ")",
-      "C",
-      "←",
+    const preview = h("div", { class: "w-calc2-preview w-mono" });
+    const copy = copyBtn(
+      () => preview.textContent.replace(/^=\s*/, "") || expr.value,
+      "copy result",
+    );
+
+    const degBtn = h(
+      "button",
+      { class: "w-calc2-deg", type: "button", title: "degrees / radians" },
+      "DEG",
+    );
+
+    const updatePreview = () => {
+      const s = expr.value.trim();
+      preview.classList.remove("err");
+      if (!s) {
+        preview.textContent = "";
+        return;
+      }
+      try {
+        preview.textContent = `= ${calcFmt(calcEvaluate(s, deg))}`;
+      } catch {
+        preview.textContent = "";
+      }
+    };
+
+    const insert = (text) => {
+      const start = expr.selectionStart ?? expr.value.length;
+      const end = expr.selectionEnd ?? expr.value.length;
+      expr.value = expr.value.slice(0, start) + text + expr.value.slice(end);
+      const caret = start + text.length;
+      expr.focus();
+      expr.setSelectionRange(caret, caret);
+      histNav = -1;
+      updatePreview();
+    };
+
+    const backspace = () => {
+      const start = expr.selectionStart ?? expr.value.length;
+      const end = expr.selectionEnd ?? expr.value.length;
+      const from = start === end ? Math.max(0, start - 1) : start;
+      expr.value = expr.value.slice(0, from) + expr.value.slice(end);
+      expr.focus();
+      expr.setSelectionRange(from, from);
+      histNav = -1;
+      updatePreview();
+    };
+
+    const clearAll = () => {
+      expr.value = "";
+      preview.textContent = "";
+      preview.classList.remove("err");
+      histNav = -1;
+      expr.focus();
+    };
+
+    const toggleSign = () => {
+      const m = expr.value.match(/(-?\d*\.?\d+)(?!.*\d)/);
+      if (m) {
+        const flipped = m[0].startsWith("-") ? m[0].slice(1) : `-${m[0]}`;
+        expr.value =
+          expr.value.slice(0, m.index) +
+          flipped +
+          expr.value.slice(m.index + m[0].length);
+        updatePreview();
+        expr.focus();
+      } else insert("-");
+    };
+
+    const histList = h("div", { class: "w-calc2-hist-list" });
+    const renderHistory = () => {
+      histList.replaceChildren();
+      if (!history.length) {
+        histList.append(
+          h("div", { class: "w-calc2-hist-empty" }, "no calculations yet"),
+        );
+        return;
+      }
+      for (let i = history.length - 1; i >= 0; i--) {
+        const it = history[i];
+        const row = h(
+          "button",
+          { class: "w-calc2-hist-row", type: "button" },
+          h("span", { class: "w-calc2-hist-expr" }, it.expr),
+          h("span", { class: "w-calc2-hist-res" }, `= ${it.result}`),
+        );
+        row.onclick = () => insert(it.result);
+        histList.append(row);
+      }
+    };
+    const saveHistory = () => {
+      try {
+        localStorage.setItem(HKEY, JSON.stringify(history));
+      } catch {}
+    };
+
+    const commit = () => {
+      const s = expr.value.trim();
+      if (!s) return;
+      let r;
+      try {
+        r = calcEvaluate(s, deg);
+      } catch {
+        preview.textContent = "error";
+        preview.classList.add("err");
+        return;
+      }
+      const res = calcFmt(r);
+      const last = history[history.length - 1];
+      if (!last || last.expr !== s || last.result !== res) {
+        history.push({ expr: s, result: res });
+        history = history.slice(-50);
+        saveHistory();
+        renderHistory();
+      }
+      expr.value = res;
+      expr.focus();
+      expr.setSelectionRange(res.length, res.length);
+      preview.textContent = "";
+      preview.classList.remove("err");
+      histNav = -1;
+    };
+
+    degBtn.onclick = () => {
+      deg = !deg;
+      degBtn.textContent = deg ? "DEG" : "RAD";
+      updatePreview();
+      expr.focus();
+    };
+
+    const sci = [
+      ["sin", "sin("],
+      ["cos", "cos("],
+      ["tan", "tan("],
+      ["π", "pi"],
+      ["asin", "asin("],
+      ["acos", "acos("],
+      ["atan", "atan("],
+      ["e", "e"],
+      ["ln", "ln("],
+      ["log", "log("],
+      ["√", "sqrt("],
+      ["xʸ", "^"],
+      ["x²", "^2"],
+      ["n!", "!"],
+      ["mod", " mod "],
+      ["%", "%"],
     ];
-    let expr = "";
-    const upd = () => (disp.value = expr || "0");
-    const grid = h("div", { class: "w-calc-grid" });
-    for (const k of keys) {
+    const num = [
+      ["C", "clear"],
+      ["(", "("],
+      [")", ")"],
+      ["⌫", "back"],
+      ["7", "7"],
+      ["8", "8"],
+      ["9", "9"],
+      ["÷", "/"],
+      ["4", "4"],
+      ["5", "5"],
+      ["6", "6"],
+      ["×", "*"],
+      ["1", "1"],
+      ["2", "2"],
+      ["3", "3"],
+      ["−", "-"],
+      ["±", "sign"],
+      ["0", "0"],
+      [".", "."],
+      ["+", "+"],
+    ];
+
+    const makeKey = ([label, action], cls) => {
       const b = h(
         "button",
-        {
-          class:
-            "w-calc-key" +
-            (/[/*\-+=]/.test(k) ? " op" : "") +
-            (k === "=" ? " eq" : ""),
-        },
-        k,
+        { class: `w-calc2-key${cls}`, type: "button" },
+        label,
       );
       b.onclick = () => {
-        if (k === "C") expr = "";
-        else if (k === "←") expr = expr.slice(0, -1);
-        else if (k === "=") {
-          try {
-            const safe = expr.replace(/[^-()\d/*+.%]/g, "");
-            const r = Function(`"use strict";return (${safe})`)();
-            expr = String(Number.isFinite(r) ? +r.toPrecision(12) : "error");
-          } catch {
-            expr = "error";
-          }
-        } else {
-          if (expr === "error") expr = "";
-          expr += k;
-        }
-        upd();
+        if (action === "clear") clearAll();
+        else if (action === "back") backspace();
+        else if (action === "sign") toggleSign();
+        else insert(action);
       };
-      grid.append(b);
-    }
-    document.addEventListener("keydown", (e) => {
-      if (!grid.isConnected) return;
-      const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (/[\d+\-*/.()%]/.test(e.key)) {
-        expr += e.key;
-        upd();
-      } else if (e.key === "Enter" || e.key === "=")
-        grid.querySelector(".eq").click();
-      else if (e.key === "Backspace") {
-        expr = expr.slice(0, -1);
-        upd();
+      return b;
+    };
+
+    const sciGrid = h(
+      "div",
+      { class: "w-calc2-sci" },
+      ...sci.map((k) => makeKey(k, " fn")),
+    );
+    const numKeys = num.map((k) => {
+      const cls =
+        k[1] === "clear" || k[1] === "back"
+          ? " ctrl"
+          : /^[/*+-]$|^sign$/.test(k[1])
+            ? " op"
+            : "";
+      return makeKey(k, cls);
+    });
+    const equals = h(
+      "button",
+      { class: "w-calc2-key eq", type: "button" },
+      "=",
+    );
+    equals.onclick = commit;
+    const numGrid = h("div", { class: "w-calc2-num" }, ...numKeys, equals);
+
+    const memBar = h(
+      "div",
+      { class: "w-calc2-mem" },
+      ...[
+        ["MC", () => (mem = 0)],
+        ["MR", () => insert(calcFmt(mem))],
+        [
+          "M+",
+          () => {
+            try {
+              mem += calcEvaluate(expr.value.trim() || "0", deg);
+            } catch {}
+          },
+        ],
+        [
+          "M−",
+          () => {
+            try {
+              mem -= calcEvaluate(expr.value.trim() || "0", deg);
+            } catch {}
+          },
+        ],
+      ].map(([l, fn]) => {
+        const b = h(
+          "button",
+          { class: "w-calc2-mem-key", type: "button" },
+          l,
+        );
+        b.onclick = () => {
+          fn();
+          if (l !== "MR") expr.focus();
+        };
+        return b;
+      }),
+    );
+
+    const histClear = h(
+      "button",
+      { class: "w-calc2-hist-clear", type: "button" },
+      "clear",
+    );
+    histClear.onclick = () => {
+      history = [];
+      saveHistory();
+      renderHistory();
+      expr.focus();
+    };
+
+    expr.addEventListener("input", () => {
+      histNav = -1;
+      updatePreview();
+    });
+    expr.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === "=") {
+        e.preventDefault();
+        commit();
       } else if (e.key === "Escape") {
-        expr = "";
-        upd();
+        e.preventDefault();
+        clearAll();
+      } else if (e.key === "ArrowUp") {
+        if (!history.length) return;
+        e.preventDefault();
+        if (histNav === -1) histNav = history.length;
+        histNav = Math.max(0, histNav - 1);
+        expr.value = history[histNav].expr;
+        expr.setSelectionRange(expr.value.length, expr.value.length);
+        updatePreview();
+      } else if (e.key === "ArrowDown") {
+        if (histNav === -1) return;
+        e.preventDefault();
+        histNav++;
+        if (histNav >= history.length) {
+          histNav = -1;
+          expr.value = "";
+        } else expr.value = history[histNav].expr;
+        expr.setSelectionRange(expr.value.length, expr.value.length);
+        updatePreview();
       }
     });
-    return card(
+
+    const root = card(
       "calculator",
-      "use your keyboard too · esc clears",
-      h("div", { class: "w-calc-disp-row" }, disp, copy),
-      grid,
+      "scientific · ↑↓ recalls history · esc clears",
+      h(
+        "div",
+        { class: "w-calc2" },
+        h(
+          "div",
+          { class: "w-calc2-display" },
+          h("div", { class: "w-calc2-top" }, degBtn, copy),
+          expr,
+          preview,
+        ),
+        h(
+          "div",
+          { class: "w-calc2-body" },
+          h(
+            "div",
+            { class: "w-calc2-pad" },
+            memBar,
+            h("div", { class: "w-calc2-grids" }, sciGrid, numGrid),
+          ),
+          h(
+            "div",
+            { class: "w-calc2-hist" },
+            h(
+              "div",
+              { class: "w-calc2-hist-head" },
+              h("span", null, "history"),
+              histClear,
+            ),
+            histList,
+          ),
+        ),
+      ),
     );
+
+    const onDoc = (e) => {
+      if (!root.isConnected) {
+        document.removeEventListener("keydown", onDoc);
+        return;
+      }
+      const ae = document.activeElement;
+      if (ae === expr) return;
+      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
+      if (e.key.length === 1 && /[0-9.+\-*/^%()!]/.test(e.key)) {
+        e.preventDefault();
+        insert(e.key);
+      } else if (e.key === "Enter" || e.key === "=") {
+        e.preventDefault();
+        expr.focus();
+        commit();
+      }
+    };
+    document.addEventListener("keydown", onDoc);
+
+    renderHistory();
+    let focusTries = 0;
+    const focusWhenReady = () => {
+      if (root.isConnected) expr.focus({ preventScroll: true });
+      else if (focusTries++ < 30) setTimeout(focusWhenReady, 16);
+    };
+    setTimeout(focusWhenReady, 0);
+    return root;
   },
 });
 
@@ -3232,7 +3750,11 @@ reg({
         if (flags.value.includes("g")) {
           m = re.exec(str);
           while (m && count < 1000) {
-            if (m.index === re.lastIndex) re.lastIndex++;
+            if (m[0] === "") {
+              re.lastIndex++;
+              m = re.exec(str);
+              continue;
+            }
             html += `${esc(str.slice(last, m.index))}<mark>${esc(m[0])}</mark>`;
             last = m.index + m[0].length;
             count++;
@@ -4415,7 +4937,7 @@ reg({
   },
   build: ({ n }) => {
     const num = parseInt(n, 10);
-    if (Math.abs(num) > 1e15)
+    if (Math.abs(num) >= 1e15)
       return card(
         "number to words",
         null,
