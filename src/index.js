@@ -792,6 +792,6 @@ export default new Elysia({ adapter: CloudflareAdapter })
   })
   .all("/*", async () => {
     const resp = await env.ASSETS.fetch(new Request("https://assets/404.html"));
-    return new Response(resp.body, resp);
+    return new Response(resp.body, { status: 404, headers: resp.headers });
   })
   .compile();
