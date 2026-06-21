@@ -483,7 +483,7 @@
       }
       
       if (sourceHost === "codepen.io") {
-        const codepenMatch = url.match(/codepen\.io\/([^\/]+)\/pen\/([^/?]+)/);
+        const codepenMatch = url.match(/codepen\.io\/([^/]+)\/pen\/([^/?]+)/);
         if (codepenMatch) {
           const [, username, penId] = codepenMatch;
           const iframe = document.createElement("iframe");
@@ -1105,7 +1105,12 @@
       const section = document.createElement("section");
       section.className = "rich-result";
 
-      if (item.subtype === "calculator" && item.calculator) {
+      if (
+        item.subtype === "calculator" &&
+        item.calculator &&
+        item.calculator.answer != null &&
+        item.calculator.answer !== ""
+      ) {
         section.classList.add("rich-calculator");
         const expr = document.createElement("div");
         expr.className = "rich-calc-expr";
@@ -2369,16 +2374,16 @@
       const results = Array.from(document.querySelectorAll(".result-title"));
       if (!results.length) return;
 
-      let active = document.activeElement;
+      const active = document.activeElement;
       let index = results.indexOf(active);
 
-      if (event.key === "k" || event.key === "ArrowDown") {
+      if (event.key === "j" || event.key === "ArrowDown") {
         if (index === -1 || index === results.length - 1) {
           index = 0;
         } else {
           index++;
         }
-      } else if (event.key === "j" || event.key === "ArrowUp") {
+      } else if (event.key === "k" || event.key === "ArrowUp") {
         if (index <= 0) {
           index = results.length - 1;
         } else {
