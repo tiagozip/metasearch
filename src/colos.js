@@ -170,7 +170,7 @@ const COLOS = {
   OSL: "oslo",
   OTP: "bucharest",
   OUA: "ouagadougou",
-  PA0: "palo alto",
+  PAO: "palo alto",
   PAP: "port-au-prince",
   PBM: "paramaribo",
   PBX: "porto velho",
