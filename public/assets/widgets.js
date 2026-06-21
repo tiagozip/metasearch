@@ -1400,7 +1400,7 @@ reg({
       if (Array.isArray(stored)) history = stored.slice(-50);
     } catch {}
     let mem = 0;
-    let deg = true;
+    let deg = localStorage.getItem("ms-calc-deg") !== "rad";
     let histNav = -1;
 
     const expr = h("input", {
