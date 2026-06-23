@@ -438,6 +438,22 @@ a.infobox-img-wrap:hover .infobox-img,
 a.infobox-gallery-item:hover .infobox-img {
   opacity: 0.85;
 }
+.infobox-hero-wide {
+  display: block;
+  margin: 14px 0 2px;
+}
+.infobox-hero-wide img {
+  width: 100%;
+  height: auto;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  transition: opacity 0.15s;
+}
+a.infobox-hero-wide:hover img {
+  opacity: 0.9;
+}
 
 .sitelinks {
   display: flex;
@@ -1133,8 +1149,10 @@ a.infobox-gallery-item:hover .infobox-img {
   border-top: 1px solid var(--surface0);
 
   &.expanded {
-    .infobox-attr-row.hidden,
-    .infobox-attr-header.hidden,
+    .infobox-attr-row.hidden {
+      display: contents;
+    }
+
     .infobox-profiles.hidden {
       display: flex;
     }
@@ -1152,9 +1170,12 @@ a.infobox-gallery-item:hover .infobox-img {
 .infobox-attrs {
   margin: 0;
   font-size: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  line-height: 1.5;
+  display: grid;
+  grid-template-columns: fit-content(40%) 1fr;
+  column-gap: 16px;
+  row-gap: 7px;
+  align-items: baseline;
 
   a {
     color: var(--blue);
@@ -1167,6 +1188,7 @@ a.infobox-gallery-item:hover .infobox-img {
 }
 
 .infobox-attr-header {
+  grid-column: 1 / -1;
   color: var(--text);
   font-weight: 600;
   font-size: 0.9rem;
@@ -1190,19 +1212,10 @@ a.infobox-gallery-item:hover .infobox-img {
 }
 
 .infobox-attr-row {
-  display: flex;
-  gap: 8px;
-  line-height: 1.5;
+  display: contents;
 
   dt {
     color: var(--muted);
-    flex-shrink: 0;
-    min-width: 100px;
-    width: 40%;
-
-    @media (max-width: 600px) {
-      min-width: auto;
-    }
   }
 
   dd {
@@ -1221,14 +1234,10 @@ a.infobox-gallery-item:hover .infobox-img {
   &.hidden {
     display: none;
   }
-
-  @media (max-width: 600px) {
-    flex-direction: column;
-    gap: 2px;
-  }
 }
 
 .infobox-toggle {
+  grid-column: 1 / -1;
   background: transparent;
   font-size: 0.8rem;
   padding: 6px 12px;
@@ -1272,6 +1281,7 @@ a.infobox-gallery-item:hover .infobox-img {
 }
 
 .infobox-profiles {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;

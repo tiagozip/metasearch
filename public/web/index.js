@@ -141,21 +141,42 @@
       (a, b) => b.naturalW * b.naturalH - a.naturalW * a.naturalH,
     );
     const display = useGallery ? ranked.slice(0, 5) : ranked.slice(0, 1);
+    const wrapUrl = linkUrl ? safeUrl(linkUrl) : "#";
+    const linkWrap = (cls) => {
+      const w = document.createElement(wrapUrl !== "#" ? "a" : "div");
+      if (wrapUrl !== "#") {
+        w.href = wrapUrl;
+        w.target = "_blank";
+        w.rel = "noopener";
+      }
+      w.className = cls;
+      return w;
+    };
+
+    if (!useGallery && display.length === 1 && !display[0].contain) {
+      const a = display[0];
+      if (a.naturalW / a.naturalH >= 1.3) {
+        const wide = linkWrap("infobox-hero-wide");
+        const img = document.createElement("img");
+        img.src = a.src;
+        img.alt = "";
+        img.loading = "lazy";
+        img.onerror = () => wide.remove();
+        wide.append(img);
+        header.after(wide);
+        return;
+      }
+    }
 
     const container = document.createElement("div");
     container.className = useGallery
       ? "infobox-gallery"
       : `infobox-header-right count-${display.length}`;
 
-    const wrapUrl = linkUrl ? safeUrl(linkUrl) : "#";
     for (const a of display) {
-      const wrap = document.createElement(wrapUrl !== "#" ? "a" : "div");
-      if (wrapUrl !== "#") {
-        wrap.href = wrapUrl;
-        wrap.target = "_blank";
-        wrap.rel = "noopener";
-      }
-      wrap.className = useGallery ? "infobox-gallery-item" : "infobox-img-wrap";
+      const wrap = linkWrap(
+        useGallery ? "infobox-gallery-item" : "infobox-img-wrap",
+      );
       if (a.needsBackdrop) wrap.classList.add("needs-backdrop");
 
       const img = document.createElement("img");
