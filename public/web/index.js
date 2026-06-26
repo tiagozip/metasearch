@@ -516,7 +516,7 @@
         if (spotifyMatch) {
           const [, type, id] = spotifyMatch;
           const iframe = document.createElement("iframe");
-          iframe.style.cssText = `width:100%;aspect-ratio:560/332;border-radius:.75rem;border:1px solid rgb(49, 50, 68);`;
+          iframe.style.cssText = `width:100%;height:82px;border-radius:13px;border:1px solid rgb(49, 50, 68);display:block;`;
           iframe.src = `https://open.spotify.com/embed/${type}/${id}?utm_source=metasearch`;
           iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
           iframe.loading = "lazy";
@@ -2361,12 +2361,35 @@
     document.getElementById("sidebar").append(renderSidebar());
     showGeniusInstantAnswer();
 
-    import("/s/widgets.js")
-      .then(({ renderLocalWidgets }) => {
-        const widget = renderLocalWidgets(currentQuery);
-        if (widget) document.getElementById("results-all").prepend(widget);
-      })
-      .catch(() => {});
+    const r = data.results;
+    const isEmpty =
+      !r.web?.results?.length &&
+      !r.news?.results?.length &&
+      !r.discussions?.results?.length &&
+      !r.infobox?.results?.length &&
+      !r.videos?.results?.length &&
+      !r.rich?.length;
+    const retryKey = `ms-retry:${currentQuery}`;
+    const retries = Number(sessionStorage.getItem(retryKey) || 0);
+
+    if (isEmpty && currentQuery && retries < 3) {
+      sessionStorage.setItem(retryKey, String(retries + 1));
+      document.getElementById("results-all").innerHTML =
+        '<div class="results-retrying">no results, retrying…</div>';
+      setTimeout(() => {
+        const u = new URL(location.href);
+        u.searchParams.set("_r", String(retries + 1));
+        location.replace(u.toString());
+      }, 500 + retries * 400);
+    } else {
+      sessionStorage.removeItem(retryKey);
+      import("/s/widgets.js")
+        .then(({ renderLocalWidgets }) => {
+          const widget = renderLocalWidgets(currentQuery);
+          if (widget) document.getElementById("results-all").prepend(widget);
+        })
+        .catch(() => {});
+    }
   }
 
   let pk = "__results_pk__";

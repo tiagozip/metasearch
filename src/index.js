@@ -401,7 +401,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
       )
       .replaceAll("%%inputValueEncoded%%", encodeURIComponent(qSafe))
       .replaceAll("&pass", "")
-      .replaceAll('<input type="hidden" name="pass">', "");
+      .replace(/<input[^>]*name="pass"[^>]*>/g, "");
 
     return html;
   })

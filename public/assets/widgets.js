@@ -410,27 +410,81 @@ reg({
       q.trim(),
     ),
   build: () => {
-    const coin = h("div", { class: "w-coin" }, "?");
-    const label = h("div", { class: "w-coin-label" }, "tap to flip");
+    const CROWN = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.6l3.2 4.9l4.4 -3.4l-1.7 9.1a1 1 0 0 1 -1 .8h-9.8a1 1 0 0 1 -1 -.8l-1.7 -9.1l4.4 3.4z"/><rect x="5.4" y="17.4" width="13.2" height="2.2" rx="1.1"/></svg>`;
+    const STAR = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2l2.7 5.6l6.1 .9l-4.4 4.3l1 6.1l-5.4 -2.9l-5.4 2.9l1 -6.1l-4.4 -4.3l6.1 -.9z"/></svg>`;
+
+    const mkFace = (cls, icon, text) =>
+      h(
+        "div",
+        { class: `w-coin-face ${cls}` },
+        h("div", { class: "w-coin-icon", html: icon }),
+        h("div", { class: "w-coin-text" }, text),
+      );
+
+    const inner = h(
+      "div",
+      { class: "w-coin3d-inner" },
+      mkFace("heads", CROWN, "heads"),
+      mkFace("tails", STAR, "tails"),
+    );
+    const toss = h("div", { class: "w-coin3d-toss" }, inner);
+    const stage = h("div", { class: "w-coin3d" }, toss);
+    const label = h("div", { class: "w-coin-label" }, "flipping…");
+    const tally = h("div", { class: "w-coin-tally" });
+
+    let rotation = 0;
+    let heads = 0;
+    let tails = 0;
+    let flipping = false;
+
+    const drawTally = () =>
+      tally.replaceChildren(
+        h("span", null, `${heads} heads`),
+        h("span", { class: "w-coin-dot" }),
+        h("span", null, `${tails} tails`),
+      );
+
     const flip = () => {
-      coin.classList.add("spin");
-      label.textContent = "…";
+      if (flipping) return;
+      flipping = true;
+      label.textContent = "flipping…";
+      label.className = "w-coin-label";
+
+      const result = Math.random() < 0.5 ? "heads" : "tails";
+      const base = rotation + 5 * 360;
+      const want = result === "heads" ? 0 : 180;
+      let target = base - (base % 360) + want;
+      if (target < base) target += 360;
+      rotation = target;
+
+      inner.style.transform = `rotateX(${rotation}deg)`;
+      toss.classList.remove("tossing");
+      void toss.offsetWidth;
+      toss.classList.add("tossing");
+
       setTimeout(() => {
-        const r = Math.random() < 0.5 ? "heads" : "tails";
-        coin.textContent = r === "heads" ? "H" : "T";
-        coin.classList.remove("spin");
-        label.textContent = r;
-      }, 600);
+        if (result === "heads") heads++;
+        else tails++;
+        label.textContent = result;
+        label.className = `w-coin-label ${result}`;
+        drawTally();
+        flipping = false;
+      }, 1150);
     };
-    coin.onclick = flip;
+
+    drawTally();
+    setTimeout(flip, 350);
+
     return card(
       "coin flip",
       null,
-      h("div", { class: "w-coin-wrap" }, coin, label),
+      stage,
+      label,
+      tally,
       h(
         "div",
         { class: "w-btn-row" },
-        h("button", { class: "w-btn primary", html: "flip", onclick: flip }),
+        h("button", { class: "w-btn primary", html: "flip again", onclick: flip }),
       ),
     );
   },
