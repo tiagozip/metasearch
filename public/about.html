@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>try{var d=document.documentElement,L=localStorage;if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";var m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",function(){var s="/s/"+m+".png",f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach(function(i){if(i.closest(".mascot-picker"))return;i.src=s;i.style.objectFit="contain"})})}}catch(e){}</script>
+    <script>try{var d=document.documentElement,L=localStorage;var a=L.getItem("ms-accent");if(a)d.style.setProperty("--blue",a);if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";var m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",function(){var s="/s/"+m+".png",f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach(function(i){if(i.closest(".mascot-picker"))return;i.src=s;i.style.objectFit="contain"})})}}catch(e){}</script>
     <script defer data-domain="search.tiago.zip" src="https://palantir.estrogen.delivery/Pn7xQk2.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>about / search.tiago.zip</title>
@@ -142,6 +142,74 @@
         background: var(--surface1);
       }
       .mascot-tile.selected {
+        border-color: var(--blue);
+        color: var(--text);
+      }
+
+      .accent-picker {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .accent-swatch {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+        transition: transform 0.1s, outline-color 0.15s;
+      }
+      .accent-swatch:hover {
+        transform: scale(1.12);
+      }
+      .accent-swatch.selected {
+        outline-color: var(--text);
+      }
+      .accent-custom {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        overflow: hidden;
+        cursor: pointer;
+        background: conic-gradient(
+          from 90deg,
+          #f38ba8,
+          #fab387,
+          #f9e2af,
+          #a6e3a1,
+          #94e2d5,
+          #89b4fa,
+          #cba6f7,
+          #f38ba8
+        );
+      }
+      .accent-custom input {
+        position: absolute;
+        inset: -4px;
+        width: calc(100% + 8px);
+        height: calc(100% + 8px);
+        opacity: 0;
+        cursor: pointer;
+        border: none;
+      }
+      .accent-reset {
+        font: inherit;
+        font-size: 0.85rem;
+        color: var(--subtext);
+        background: var(--surface0);
+        border: 1px solid var(--surface1);
+        border-radius: 8px;
+        padding: 6px 12px;
+        cursor: pointer;
+        margin-left: 4px;
+        transition: border-color 0.15s, color 0.15s;
+      }
+      .accent-reset:hover {
         border-color: var(--blue);
         color: var(--text);
       }
@@ -528,6 +596,24 @@
           <button class="mascot-tile" data-mascot="miku" type="button">
             <img src="/s/miku.png" alt="" /><span>miku</span>
           </button>
+        </div>
+
+        <p>accent color (overrides the mascot's accent)</p>
+        <div class="accent-picker">
+          <button class="accent-swatch" data-accent="#89b4fa" style="background:#89b4fa" type="button" title="blue"></button>
+          <button class="accent-swatch" data-accent="#b4befe" style="background:#b4befe" type="button" title="lavender"></button>
+          <button class="accent-swatch" data-accent="#cba6f7" style="background:#cba6f7" type="button" title="mauve"></button>
+          <button class="accent-swatch" data-accent="#f5c2e7" style="background:#f5c2e7" type="button" title="pink"></button>
+          <button class="accent-swatch" data-accent="#f38ba8" style="background:#f38ba8" type="button" title="red"></button>
+          <button class="accent-swatch" data-accent="#fab387" style="background:#fab387" type="button" title="peach"></button>
+          <button class="accent-swatch" data-accent="#f9e2af" style="background:#f9e2af" type="button" title="yellow"></button>
+          <button class="accent-swatch" data-accent="#a6e3a1" style="background:#a6e3a1" type="button" title="green"></button>
+          <button class="accent-swatch" data-accent="#94e2d5" style="background:#94e2d5" type="button" title="teal"></button>
+          <button class="accent-swatch" data-accent="#89dceb" style="background:#89dceb" type="button" title="sky"></button>
+          <label class="accent-custom" title="custom">
+            <input type="color" id="accent-input" value="#89b4fa" />
+          </label>
+          <button class="accent-reset" id="accent-reset" type="button">default</button>
         </div>
 
         <p>made and hosted in the EU 🇪🇺</p>
