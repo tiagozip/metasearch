@@ -44,6 +44,16 @@
   background: #0a0a0d;
 }
 
+:root[data-mascot="spongebob"] {
+  --blue: #f4c842;
+}
+:root[data-mascot="gumi"] {
+  --blue: #a6e3a1;
+}
+:root[data-mascot="miku"] {
+  --blue: #4fd6c6;
+}
+
 html {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -4571,6 +4581,86 @@ body.images-detail-sidebar-open .images-body {
   font-size: 1.4rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+/* minesweeper */
+.w-mine-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 2px;
+  background: var(--surface0);
+  padding: 6px;
+  border-radius: 8px;
+  width: 288px;
+  max-width: 100%;
+}
+.w-mine-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface1);
+  border: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+.w-mine-cell:hover:not(.revealed) {
+  background: var(--muted);
+}
+.w-mine-cell.revealed {
+  background: var(--bg);
+  cursor: default;
+}
+.w-mine-cell.flag {
+  background: var(--surface1);
+}
+.w-mine-cell.w-mine-mine {
+  background: var(--red);
+}
+.w-mine-cell[data-n="1"] {
+  color: var(--blue);
+}
+.w-mine-cell[data-n="2"] {
+  color: var(--green);
+}
+.w-mine-cell[data-n="3"] {
+  color: var(--red);
+}
+.w-mine-cell[data-n="4"] {
+  color: var(--mauve);
+}
+.w-mine-cell[data-n="5"] {
+  color: var(--yellow);
+}
+.w-mine-cell[data-n="6"] {
+  color: var(--teal, var(--green));
+}
+.w-mine-cell[data-n="7"] {
+  color: var(--subtext);
+}
+.w-mine-cell[data-n="8"] {
+  color: var(--muted);
+}
+.w-mine-status {
+  text-align: center;
+  color: var(--subtext);
+  font-variant-numeric: tabular-nums;
+}
+.w-mine-face {
+  background: var(--surface0);
+  border: none;
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.w-mine-face:hover {
+  background: var(--surface1);
 }
 
 /* guitar chord */

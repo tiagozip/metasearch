@@ -4790,6 +4790,161 @@ reg({
   },
 });
 
+reg({
+  id: "minesweeper",
+  match: (q) => /^(?:play\s+)?mine\s?sweeper$/i.test(q.trim()),
+  build: () => {
+    const ROWS = 9,
+      COLS = 9,
+      MINES = 10;
+    let cells, started, dead, won, flags;
+    const board = h("div", { class: "w-mine-grid" });
+    const status = h("div", { class: "w-mine-status" });
+    const face = h("button", { class: "w-mine-face", html: "🙂" });
+    const inBounds = (r, c) => r >= 0 && c >= 0 && r < ROWS && c < COLS;
+    const neighbors = (r, c) => {
+      const out = [];
+      for (let dr = -1; dr <= 1; dr++)
+        for (let dc = -1; dc <= 1; dc++) {
+          if (!dr && !dc) continue;
+          if (inBounds(r + dr, c + dc)) out.push([r + dr, c + dc]);
+        }
+      return out;
+    };
+    const makeCells = () =>
+      Array.from({ length: ROWS }, () =>
+        Array.from({ length: COLS }, () => ({
+          mine: false,
+          revealed: false,
+          flagged: false,
+          count: 0,
+        })),
+      );
+    const placeMines = (sr, sc) => {
+      const safe = new Set([`${sr},${sc}`]);
+      for (const [r, c] of neighbors(sr, sc)) safe.add(`${r},${c}`);
+      let placed = 0;
+      while (placed < MINES) {
+        const r = Math.floor(Math.random() * ROWS);
+        const c = Math.floor(Math.random() * COLS);
+        if (safe.has(`${r},${c}`) || cells[r][c].mine) continue;
+        cells[r][c].mine = true;
+        placed++;
+      }
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          cells[r][c].count = neighbors(r, c).filter(
+            ([nr, nc]) => cells[nr][nc].mine,
+          ).length;
+    };
+    const reveal = (r, c) => {
+      const cell = cells[r][c];
+      if (cell.revealed || cell.flagged) return;
+      cell.revealed = true;
+      if (cell.count === 0 && !cell.mine)
+        for (const [nr, nc] of neighbors(r, c)) reveal(nr, nc);
+    };
+    const remaining = () =>
+      cells.reduce(
+        (acc, row) =>
+          acc + row.filter((cell) => !cell.mine && !cell.revealed).length,
+        0,
+      );
+    const showStatus = () => {
+      const left = MINES - flags;
+      if (won) status.textContent = "you win · 😎";
+      else if (dead) status.textContent = "boom · 💀";
+      else status.textContent = `mines left: ${left}`;
+      face.innerHTML = won ? "😎" : dead ? "💀" : "🙂";
+    };
+    const draw = () => {
+      board.replaceChildren();
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++) {
+          const cell = cells[r][c];
+          const btn = h("button", { class: "w-mine-cell" });
+          if (cell.revealed) {
+            btn.classList.add("revealed");
+            if (cell.mine) {
+              btn.classList.add("w-mine-mine");
+              btn.textContent = "💣";
+            } else if (cell.count) {
+              btn.textContent = String(cell.count);
+              btn.dataset.n = String(cell.count);
+            }
+          } else if (cell.flagged) {
+            btn.classList.add("flag");
+            btn.textContent = "🚩";
+          }
+          btn.onclick = () => onReveal(r, c);
+          btn.oncontextmenu = (e) => {
+            e.preventDefault();
+            onFlag(r, c);
+          };
+          board.append(btn);
+        }
+      showStatus();
+    };
+    const onReveal = (r, c) => {
+      if (dead || won) return;
+      const cell = cells[r][c];
+      if (cell.flagged || cell.revealed) return;
+      if (!started) {
+        placeMines(r, c);
+        started = true;
+      }
+      if (cell.mine) {
+        dead = true;
+        for (const row of cells)
+          for (const m of row) if (m.mine) m.revealed = true;
+        draw();
+        return;
+      }
+      reveal(r, c);
+      if (remaining() === 0) {
+        won = true;
+        for (const row of cells)
+          for (const m of row) if (m.mine) m.flagged = true;
+        flags = MINES;
+      }
+      draw();
+    };
+    const onFlag = (r, c) => {
+      if (dead || won) return;
+      const cell = cells[r][c];
+      if (cell.revealed) return;
+      cell.flagged = !cell.flagged;
+      flags += cell.flagged ? 1 : -1;
+      draw();
+    };
+    const reset = () => {
+      cells = makeCells();
+      started = false;
+      dead = false;
+      won = false;
+      flags = 0;
+      draw();
+    };
+    reset();
+    return card(
+      "minesweeper",
+      "left-click reveals · right-click flags",
+      h("div", { class: "w-game" }, board),
+      status,
+      h(
+        "div",
+        { class: "w-btn-row" },
+        face,
+        h("button", {
+          class: "w-btn",
+          html: "new game",
+          onclick: reset,
+        }),
+      ),
+    );
+  },
+});
+
 const CHORDS = {
   C: [-1, 3, 2, 0, 1, 0],
   G: [3, 2, 0, 0, 0, 3],

@@ -2,6 +2,7 @@ import { env } from "cloudflare:workers";
 import { Elysia, t } from "elysia";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { jwtVerify, SignJWT } from "jose";
+import { ImageResponse } from "takumi-js/response";
 import bang from "./bangs.js";
 import { coloCity } from "./colos.js";
 import searchImages from "./search/images.js";
@@ -52,6 +53,150 @@ const checkApiAuth = async (headers) => {
 };
 
 export default new Elysia({ adapter: CloudflareAdapter })
+  .get("/og", async ({ query }) => {
+    const q =
+      (query?.q || "").toString().replaceAll("\n", " ").trim().slice(0, 120) ||
+      "search";
+
+    let web = [];
+    try {
+      const data = await searchMixed(q);
+      web = data?.results?.web?.results || [];
+    } catch {}
+
+    const strip = (s) =>
+      (s || "")
+        .replace(/<[^>]+>/g, "")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#0?39;|&apos;/g, "'")
+        .replace(/\s+/g, " ")
+        .trim();
+    const clip = (s, n) => (s.length > n ? `${s.slice(0, n).trimEnd()}…` : s);
+    const box = (style, children) => ({
+      type: "div",
+      props: { style, children },
+    });
+    const C = {
+      bg: "#1e1e2e",
+      text: "#cdd6f4",
+      blue: "#89b4fa",
+      sub: "#a6adc8",
+      muted: "#7f849c",
+      surf: "#313244",
+    };
+
+    const results = web.slice(0, 3).map((r) => {
+      let host = "";
+      try {
+        host = new URL(r.url).hostname.replace(/^www\./, "");
+      } catch {}
+      return box(
+        { display: "flex", flexDirection: "column", marginBottom: "20px" },
+        [
+          box(
+            {
+              display: "flex",
+              fontSize: "18px",
+              color: C.muted,
+              marginBottom: "4px",
+            },
+            host,
+          ),
+          box(
+            {
+              display: "flex",
+              fontSize: "29px",
+              color: C.blue,
+              fontWeight: 600,
+              marginBottom: "6px",
+            },
+            clip(strip(r.title), 68),
+          ),
+          box(
+            {
+              display: "flex",
+              fontSize: "21px",
+              color: C.sub,
+              lineHeight: 1.35,
+            },
+            clip(strip(r.description), 150),
+          ),
+        ],
+      );
+    });
+
+    const tree = box(
+      {
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        background: C.bg,
+        color: C.text,
+        padding: "52px 60px",
+        position: "relative",
+      },
+      [
+        box(
+          {
+            display: "flex",
+            alignItems: "center",
+            marginBottom: "26px",
+            fontSize: "26px",
+            fontWeight: 700,
+            color: C.text,
+          },
+          "search.tiago.zip",
+        ),
+        box(
+          {
+            display: "flex",
+            alignItems: "center",
+            height: "76px",
+            background: C.surf,
+            borderRadius: "14px",
+            padding: "0 28px",
+            marginBottom: "40px",
+            fontSize: "34px",
+            color: C.text,
+          },
+          clip(q, 46),
+        ),
+        box(
+          { display: "flex", flexDirection: "column" },
+          results.length
+            ? results
+            : [
+                box(
+                  { display: "flex", fontSize: "24px", color: C.muted },
+                  "no preview available",
+                ),
+              ],
+        ),
+        box(
+          {
+            position: "absolute",
+            left: "0px",
+            right: "0px",
+            bottom: "0px",
+            height: "160px",
+            display: "flex",
+            background: "linear-gradient(to bottom, rgba(30,30,46,0), #1e1e2e)",
+          },
+          "",
+        ),
+      ],
+    );
+
+    return new ImageResponse(tree, {
+      width: 1200,
+      height: 630,
+      headers: { "cache-control": "public, max-age=86400" },
+    });
+  })
   .get("/about", async () => {
     const resp = await env.ASSETS.fetch(
       new Request("https://assets/about.html"),
@@ -352,6 +497,42 @@ export default new Elysia({ adapter: CloudflareAdapter })
 
     set.headers["content-type"] = "text/html";
     set.headers.Link = `</s/inter-var-v4.woff2>; rel="preload"; as="font"`;
+
+    const ua = request.headers.get("user-agent") || "";
+    const isUnfurler =
+      /discordbot|twitterbot|slackbot|telegrambot|whatsapp|facebookexternalhit|linkedinbot|pinterest|redditbot|embedly|quora link preview|vkshare|skypeuripreview|nuzzel|bitlybot|flipboard|tumblr|mastodon|misskey|bluesky|iframely|gptbot|oai-searchbot/i.test(
+        ua,
+      );
+    if (q && isUnfurler) {
+      const origin = new URL(request.url).origin;
+      const enc = encodeURIComponent(q);
+      const esc = (s) =>
+        s
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      const eq = esc(q);
+      const img = `${origin}/og?q=${enc}`;
+      set.headers["cache-control"] = "public, max-age=300";
+      return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>${eq} · search.tiago.zip</title>
+<meta name="description" content="search the web without AI slop.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="search.tiago.zip">
+<meta property="og:title" content="${eq}">
+<meta property="og:description" content="search the web without AI slop.">
+<meta property="og:image" content="${img}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="${origin}/?q=${enc}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${eq}">
+<meta name="twitter:description" content="search the web without AI slop.">
+<meta name="twitter:image" content="${img}">
+<meta name="theme-color" content="#1e1e2e">
+</head><body>search results for ${eq}</body></html>`;
+    }
 
     if (!q && type !== "maps") {
       set.headers["cache-control"] = "public, max-age=86400";

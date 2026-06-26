@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>try{var d=document.documentElement,L=localStorage;if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";var m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",function(){var s="/s/"+m+".png",f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach(function(i){i.src=s;i.style.objectFit="contain"})})}}catch(e){}</script>
     <script
       defer
       data-domain="search.tiago.zip"
@@ -67,6 +68,22 @@
         --red: #f38ba8;
         --mauve: #cba6f7;
         --yellow: #f9e2af;
+      }
+
+      :root[data-theme="amoled"] {
+        --bg: #000;
+        --surface0: #131318;
+        --surface1: #222228;
+      }
+
+      :root[data-mascot="spongebob"] {
+        --blue: #f4c842;
+      }
+      :root[data-mascot="gumi"] {
+        --blue: #a6e3a1;
+      }
+      :root[data-mascot="miku"] {
+        --blue: #4fd6c6;
       }
 
       @font-face {

@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>try{if(localStorage.getItem("ms-theme")==="amoled")document.documentElement.dataset.theme="amoled"}catch{}</script>
+    <script>try{var d=document.documentElement,L=localStorage;if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";var m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",function(){var s="/s/"+m+".png",f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach(function(i){if(i.closest(".mascot-picker"))return;i.src=s;i.style.objectFit="contain"})})}}catch(e){}</script>
     <script defer data-domain="search.tiago.zip" src="https://palantir.estrogen.delivery/Pn7xQk2.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>about / search.tiago.zip</title>
@@ -87,6 +87,16 @@
         --surface1: #222228;
       }
 
+      :root[data-mascot="spongebob"] {
+        --blue: #f4c842;
+      }
+      :root[data-mascot="gumi"] {
+        --blue: #a6e3a1;
+      }
+      :root[data-mascot="miku"] {
+        --blue: #4fd6c6;
+      }
+
       .theme-toggle {
         font: inherit;
         font-size: 0.95rem;
@@ -100,6 +110,40 @@
       }
       .theme-toggle:hover {
         border-color: var(--blue);
+      }
+
+      .mascot-picker {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .mascot-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: 100px;
+        padding: 12px 8px;
+        background: var(--surface0);
+        border: 2px solid transparent;
+        border-radius: 12px;
+        cursor: pointer;
+        color: var(--subtext);
+        font: inherit;
+        font-size: 0.85rem;
+        transition: border-color 0.15s, background 0.15s;
+      }
+      .mascot-tile img {
+        width: 66px;
+        height: 66px;
+        object-fit: contain;
+      }
+      .mascot-tile:hover {
+        background: var(--surface1);
+      }
+      .mascot-tile.selected {
+        border-color: var(--blue);
+        color: var(--text);
       }
 
       html {
@@ -470,6 +514,22 @@
           <button id="theme-toggle" class="theme-toggle" type="button">enable amoled mode</button>
         </p>
 
+        <p>mascot (changes the logo, favicon and accent)</p>
+        <div class="mascot-picker">
+          <button class="mascot-tile" data-mascot="teto" type="button">
+            <img src="/s/teto.png" alt="" /><span>teto</span>
+          </button>
+          <button class="mascot-tile" data-mascot="spongebob" type="button">
+            <img src="/s/spongebob.png" alt="" /><span>spongebob</span>
+          </button>
+          <button class="mascot-tile" data-mascot="gumi" type="button">
+            <img src="/s/gumi.png" alt="" /><span>gumi</span>
+          </button>
+          <button class="mascot-tile" data-mascot="miku" type="button">
+            <img src="/s/miku.png" alt="" /><span>miku</span>
+          </button>
+        </div>
+
         <p>made and hosted in the EU 🇪🇺</p>
       </main>
     </div>
@@ -498,6 +558,42 @@
           }
           sync();
         });
+      })();
+
+      (() => {
+        const d = document.documentElement;
+        const tiles = document.querySelectorAll(".mascot-tile");
+        if (!tiles.length) return;
+        let current = "teto";
+        try {
+          current = localStorage.getItem("ms-mascot") || "teto";
+        } catch {}
+        const select = (m) => {
+          if (m === "teto") {
+            delete d.dataset.mascot;
+            try {
+              localStorage.removeItem("ms-mascot");
+            } catch {}
+          } else {
+            d.dataset.mascot = m;
+            try {
+              localStorage.setItem("ms-mascot", m);
+            } catch {}
+          }
+          const src = `/s/${m}.png`;
+          document.querySelectorAll("link[rel~=icon]").forEach((f) => {
+            f.href = src;
+          });
+          tiles.forEach((t) =>
+            t.classList.toggle("selected", t.dataset.mascot === m),
+          );
+        };
+        tiles.forEach((t) =>
+          t.addEventListener("click", () => select(t.dataset.mascot)),
+        );
+        tiles.forEach((t) =>
+          t.classList.toggle("selected", t.dataset.mascot === current),
+        );
       })();
     </script>
   </body>
