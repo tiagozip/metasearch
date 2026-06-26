@@ -3553,6 +3553,7 @@ body.images-detail-sidebar-open .images-body {
   justify-content: center;
   align-items: center;
   min-height: 190px;
+  cursor: pointer;
 }
 .w-coin3d-toss {
   transform-style: preserve-3d;

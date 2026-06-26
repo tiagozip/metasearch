@@ -472,6 +472,7 @@ reg({
       }, 1150);
     };
 
+    stage.onclick = flip;
     drawTally();
     setTimeout(flip, 350);
 
