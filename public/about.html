@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>try{if(localStorage.getItem("ms-theme")==="amoled")document.documentElement.dataset.theme="amoled"}catch{}</script>
     <script defer data-domain="search.tiago.zip" src="https://palantir.estrogen.delivery/Pn7xQk2.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>about / search.tiago.zip</title>
@@ -78,6 +79,27 @@
         --subtext: #a6adc8;
         --blue: #89b4fa;
         --muted: #7f849c;
+      }
+
+      :root[data-theme="amoled"] {
+        --bg: #000;
+        --surface0: #131318;
+        --surface1: #222228;
+      }
+
+      .theme-toggle {
+        font: inherit;
+        font-size: 0.95rem;
+        color: var(--text);
+        background: var(--surface0);
+        border: 1px solid var(--surface1);
+        border-radius: 8px;
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: border-color 0.15s;
+      }
+      .theme-toggle:hover {
+        border-color: var(--blue);
       }
 
       html {
@@ -432,8 +454,8 @@
 
         <h2>keyboard shortcuts</h2>
         <ul>
-          <li><b>j / ↑</b> — move highlight up a result</li>
-          <li><b>k / ↓</b> — move highlight down a result</li>
+          <li><b>j / ↓</b> — move highlight down a result</li>
+          <li><b>k / ↑</b> — move highlight up a result</li>
           <li><b>←</b> — show previous image's details</li>
           <li><b>→</b> — show next image's details</li>
           <li><b>/</b> — focus the search bar</li>
@@ -443,9 +465,41 @@
           <li><b>esc</b> — close details panel</li>
         </ul>
 
+        <h2 class="bigh2">appearance</h2>
+        <p>
+          <button id="theme-toggle" class="theme-toggle" type="button">enable amoled mode</button>
+        </p>
+
         <p>made and hosted in the EU 🇪🇺</p>
       </main>
     </div>
+    <script>
+      (() => {
+        const t = document.getElementById("theme-toggle");
+        if (!t) return;
+        const sync = () => {
+          t.textContent =
+            document.documentElement.dataset.theme === "amoled"
+              ? "disable amoled mode"
+              : "enable amoled mode";
+        };
+        sync();
+        t.addEventListener("click", () => {
+          if (document.documentElement.dataset.theme === "amoled") {
+            delete document.documentElement.dataset.theme;
+            try {
+              localStorage.removeItem("ms-theme");
+            } catch {}
+          } else {
+            document.documentElement.dataset.theme = "amoled";
+            try {
+              localStorage.setItem("ms-theme", "amoled");
+            } catch {}
+          }
+          sync();
+        });
+      })();
+    </script>
   </body>
   <script defer data-domain="search.tiago.zip" src="https://a.tiago.zip/js/script.js"></script>
 </html>

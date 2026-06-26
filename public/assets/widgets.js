@@ -401,6 +401,40 @@ reg({
   },
 });
 
+// ─── easter eggs ─────────────────────────────────────────────────────────────
+
+reg({
+  id: "not-furry",
+  match: (q) => {
+    const t = q.toLowerCase();
+    return t.includes("tiago") && t.includes("furry") ? {} : null;
+  },
+  build: () => {
+    const img = h("img", {
+      class: "w-notfurry-img",
+      src: "https://tiago.zip/assets/img/not-furry.png",
+      alt: "",
+      loading: "lazy",
+    });
+    return card(
+      null,
+      null,
+      h(
+        "div",
+        { class: "w-notfurry" },
+        img,
+        h(
+          "div",
+          { class: "w-notfurry-text" },
+          "Tiago is ",
+          h("b", null, "not"),
+          " a furry",
+        ),
+      ),
+    );
+  },
+});
+
 // ─── random / chance ─────────────────────────────────────────────────────────
 
 reg({

@@ -287,6 +287,36 @@ aside {
   text-align: center;
 }
 
+.w-notfurry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 28px 10px 16px;
+  text-align: center;
+}
+.w-notfurry-img {
+  width: 120px;
+  max-width: 100%;
+  height: auto;
+  border-radius: 16px;
+}
+.w-notfurry-text {
+  font-size: 2.6rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--text);
+}
+.w-notfurry-text b {
+  color: var(--red);
+  font-weight: 800;
+}
+@media (max-width: 600px) {
+  .w-notfurry-text {
+    font-size: 1.8rem;
+  }
+}
+
 .result {
   display: flex;
   gap: 16px;

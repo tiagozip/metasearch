@@ -56,9 +56,6 @@
       :root[data-theme="amoled"] .search-bar {
         background-color: #131318;
       }
-      #theme-toggle {
-        cursor: pointer;
-      }
 
       input,
       textarea,
@@ -301,7 +298,6 @@
         <a href="/about" target="_blank">about</a> · <a href="/api" target="_blank">api</a> ·
         <a href="/bangs" target="_blank">bangs</a> ·
         <a href="/translate" target="_blank">translate</a> ·
-        <a id="theme-toggle" role="button" tabindex="0">amoled</a> ·
         <span>cf %%colo%%</span>
       </div>
     </header>
@@ -310,31 +306,6 @@
       document.querySelector("input.searchinput").addEventListener("input", () => {
         document.title = document.querySelector("input").value || "search!";
       });
-
-      (() => {
-        const toggle = document.getElementById("theme-toggle");
-        if (!toggle) return;
-        const sync = () => {
-          const on = document.documentElement.dataset.theme === "amoled";
-          toggle.textContent = on ? "amoled ✓" : "amoled";
-        };
-        sync();
-        const flip = () => {
-          const on = document.documentElement.dataset.theme === "amoled";
-          if (on) {
-            delete document.documentElement.dataset.theme;
-            try { localStorage.removeItem("ms-theme"); } catch {}
-          } else {
-            document.documentElement.dataset.theme = "amoled";
-            try { localStorage.setItem("ms-theme", "amoled"); } catch {}
-          }
-          sync();
-        };
-        toggle.addEventListener("click", flip);
-        toggle.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); }
-        });
-      })();
 
       (() => {
         const teto = document.querySelector(".teto");
