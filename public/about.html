@@ -681,6 +681,47 @@
           t.classList.toggle("selected", t.dataset.mascot === current),
         );
       })();
+
+      (() => {
+        const d = document.documentElement;
+        const swatches = [...document.querySelectorAll(".accent-swatch")];
+        const input = document.getElementById("accent-input");
+        const reset = document.getElementById("accent-reset");
+        if (!swatches.length) return;
+        const valid = (c) => /^#[0-9a-f]{6}$/i.test(c);
+        const apply = (c) => {
+          const ok = c && valid(c);
+          if (ok) {
+            d.style.setProperty("--blue", c);
+            try {
+              localStorage.setItem("ms-accent", c);
+            } catch {}
+            if (input) input.value = c;
+          } else {
+            c = "";
+            d.style.removeProperty("--blue");
+            try {
+              localStorage.removeItem("ms-accent");
+            } catch {}
+          }
+          swatches.forEach((s) =>
+            s.classList.toggle(
+              "selected",
+              ok && s.dataset.accent.toLowerCase() === c.toLowerCase(),
+            ),
+          );
+        };
+        swatches.forEach((s) =>
+          s.addEventListener("click", () => apply(s.dataset.accent)),
+        );
+        if (input) input.addEventListener("input", () => apply(input.value));
+        if (reset) reset.addEventListener("click", () => apply(""));
+        let saved = "";
+        try {
+          saved = localStorage.getItem("ms-accent") || "";
+        } catch {}
+        if (saved) apply(saved);
+      })();
     </script>
   </body>
   <script defer data-domain="search.tiago.zip" src="https://a.tiago.zip/js/script.js"></script>
