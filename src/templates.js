@@ -1,14 +1,6 @@
 import { env } from "cloudflare:workers";
 
-let cssCache,
-	webCache,
-	webJsCache,
-	imagesCache,
-	imagesJsCache,
-	newsCache,
-	newsJsCache,
-	mapsCache,
-	mapsJsCache;
+const cache = {};
 
 async function readAsset(path) {
 	let resp = await env.ASSETS.fetch(
@@ -25,68 +17,23 @@ async function readAsset(path) {
 	return resp.text();
 }
 
-export const css = async () => {
-	if (cssCache) return cssCache;
-	cssCache = await readAsset("/search.css");
-	return cssCache;
-};
+async function load(key, path, fn) {
+	if (cache[key]) return cache[key];
+	let html = await readAsset(path);
+	if (fn) html = await fn(html);
+	cache[key] = html;
+	return html;
+}
 
-export const web = async () => {
-	if (webCache) return webCache;
-	webCache = (await readAsset("/web/index.html")).replace(
-		"/**css**/",
-		await css(),
-	);
-	return webCache;
-};
+const injectCss = async (html) =>
+	html.replace("/**css**/", await load("css", "/search.css"));
 
-export const webJs = async () => {
-	if (webJsCache) return webJsCache;
-	webJsCache = await readAsset("/web/index.js");
-	return webJsCache;
-};
-
-export const images = async () => {
-	if (imagesCache) return imagesCache;
-	imagesCache = (await readAsset("/images/index.html")).replace(
-		"/**css**/",
-		await css(),
-	);
-	return imagesCache;
-};
-
-export const imagesJs = async () => {
-	if (imagesJsCache) return imagesJsCache;
-	imagesJsCache = await readAsset("/images/index.js");
-	return imagesJsCache;
-};
-
-export const news = async () => {
-	if (newsCache) return newsCache;
-	newsCache = (await readAsset("/news/index.html")).replace(
-		"/**css**/",
-		await css(),
-	);
-	return newsCache;
-};
-
-export const newsJs = async () => {
-	if (newsJsCache) return newsJsCache;
-	newsJsCache = await readAsset("/news/index.js");
-	return newsJsCache;
-};
-
-export const maps = async () => {
-	if (mapsCache) return mapsCache;
-	mapsCache = (await readAsset("/maps/index.html")).replace(
-		"/**css**/",
-		await css(),
-	);
-	return mapsCache;
-};
-
-export const mapsJs = async () => {
-	if (mapsJsCache) return mapsJsCache;
-	mapsJsCache = await readAsset("/maps/index.js");
-	return mapsJsCache;
-};
+export const css = () => load("css", "/search.css");
+export const web = () => load("web", "/web/index.html", injectCss);
+export const webJs = () => load("webJs", "/web/index.js");
+export const images = () => load("images", "/images/index.html", injectCss);
+export const imagesJs = () => load("imagesJs", "/images/index.js");
+export const news = () => load("news", "/news/index.html", injectCss);
+export const newsJs = () => load("newsJs", "/news/index.js");
+export const maps = () => load("maps", "/maps/index.html", injectCss);
+export const mapsJs = () => load("mapsJs", "/maps/index.js");
