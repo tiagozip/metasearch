@@ -416,22 +416,23 @@ reg({
       alt: "",
       loading: "lazy",
     });
-    return card(
-      null,
-      null,
-      h(
-        "div",
-        { class: "w-notfurry" },
-        img,
-        h(
-          "div",
-          { class: "w-notfurry-text" },
-          "Tiago is ",
-          h("b", null, "not"),
-          " a furry",
-        ),
-      ),
+    const word = h("b", null, "not");
+    const text = h(
+      "div",
+      { class: "w-notfurry-text" },
+      "Tiago is ",
+      word,
+      " a furry",
     );
+    if (Math.random() < 0.1) {
+      word.textContent = "absolutely";
+      word.style.color = "var(--green)";
+      setTimeout(() => {
+        word.textContent = "not";
+        word.style.color = "";
+      }, 300);
+    }
+    return card(null, null, h("div", { class: "w-notfurry" }, img, text));
   },
 });
 
