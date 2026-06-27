@@ -1,8 +1,4 @@
-import {
-  currencyLabel,
-  parseCurrencyQuery,
-  sortCodes,
-} from "./currency.js";
+import { currencyLabel, parseCurrencyQuery, sortCodes } from "./currency.js";
 import {
   browserTargetLang,
   codeForName,
@@ -520,7 +516,11 @@ reg({
       h(
         "div",
         { class: "w-btn-row" },
-        h("button", { class: "w-btn primary", html: "flip again", onclick: flip }),
+        h("button", {
+          class: "w-btn primary",
+          html: "flip again",
+          onclick: flip,
+        }),
       ),
     );
   },
@@ -1732,11 +1732,7 @@ reg({
           },
         ],
       ].map(([l, fn]) => {
-        const b = h(
-          "button",
-          { class: "w-calc2-mem-key", type: "button" },
-          l,
-        );
+        const b = h("button", { class: "w-calc2-mem-key", type: "button" }, l);
         b.onclick = () => {
           fn();
           if (l !== "MR") expr.focus();
@@ -4877,7 +4873,15 @@ reg({
             btn.classList.add("flag");
             btn.textContent = "🚩";
           }
-          btn.onclick = () => onReveal(r, c);
+          btn.onclick = () => {
+            if (cells[r][c].revealed) chord(r, c);
+            else onReveal(r, c);
+          };
+          btn.onauxclick = (e) => {
+            if (e.button !== 1) return;
+            e.preventDefault();
+            chord(r, c);
+          };
           btn.oncontextmenu = (e) => {
             e.preventDefault();
             onFlag(r, c);
@@ -4918,6 +4922,35 @@ reg({
       flags += cell.flagged ? 1 : -1;
       draw();
     };
+    const chord = (r, c) => {
+      if (dead || won) return;
+      const cell = cells[r][c];
+      if (!cell.revealed || !cell.count) return;
+      const adj = neighbors(r, c);
+      const flagged = adj.filter(([nr, nc]) => cells[nr][nc].flagged).length;
+      if (flagged !== cell.count) return;
+      let hitMine = false;
+      for (const [nr, nc] of adj) {
+        const n = cells[nr][nc];
+        if (n.flagged || n.revealed) continue;
+        if (n.mine) hitMine = true;
+        else reveal(nr, nc);
+      }
+      if (hitMine) {
+        dead = true;
+        for (const row of cells)
+          for (const m of row) if (m.mine) m.revealed = true;
+        draw();
+        return;
+      }
+      if (remaining() === 0) {
+        won = true;
+        for (const row of cells)
+          for (const m of row) if (m.mine) m.flagged = true;
+        flags = MINES;
+      }
+      draw();
+    };
     const reset = () => {
       cells = makeCells();
       started = false;
@@ -4929,7 +4962,7 @@ reg({
     reset();
     return card(
       "minesweeper",
-      "left-click reveals · right-click flags",
+      "left-click reveals · right-click flags · click a number to chord",
       h("div", { class: "w-game" }, board),
       status,
       h(
@@ -5715,7 +5748,11 @@ reg({
         const opts = (sel, val) => {
           sel.replaceChildren(
             ...codes.map((c) =>
-              h("option", { value: c, selected: c === val ? "" : null }, currencyLabel(c)),
+              h(
+                "option",
+                { value: c, selected: c === val ? "" : null },
+                currencyLabel(c),
+              ),
             ),
           );
           if (rates[val]) sel.value = val;
@@ -5733,19 +5770,15 @@ reg({
     return card(
       "currency converter",
       "live mid-market rates",
-      h(
-        "div",
-        { class: "w-cur-row" },
-        amt,
-        fromSel,
-        swap,
-        toSel,
-      ),
+      h("div", { class: "w-cur-row" }, amt, fromSel, swap, toSel),
       h(
         "div",
         { class: "w-out-row w-cur-out-row" },
         result,
-        copyBtn(() => (lastValue ? String(+lastValue.toFixed(6)) : ""), "copy result"),
+        copyBtn(
+          () => (lastValue ? String(+lastValue.toFixed(6)) : ""),
+          "copy result",
+        ),
       ),
       rateLine,
       stamp,
