@@ -408,7 +408,7 @@ reg({
   build: () => {
     const img = h("img", {
       class: "w-notfurry-img",
-      src: "https://tiago.zip/assets/img/not-furry.png",
+      src: "https://tiago.zip/assets/img/not-furry.webp",
       alt: "",
       loading: "lazy",
     });
