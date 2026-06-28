@@ -17,11 +17,20 @@ const braveFetch = async (url, options = {}) => {
 		...options.headers,
 	};
 
-	const resp = await fetch(url, {
-		method,
-		headers,
-		body: options.body,
-	});
+	// brave hangs sometimes, bail out
+	const ac = new AbortController();
+	const timer = setTimeout(() => ac.abort(), 8000);
+	let resp;
+	try {
+		resp = await fetch(url, {
+			method,
+			headers,
+			body: options.body,
+			signal: ac.signal,
+		});
+	} finally {
+		clearTimeout(timer);
+	}
 
 	const bodyText = await resp.text();
 
