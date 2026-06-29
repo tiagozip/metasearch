@@ -628,6 +628,93 @@ console.log(data.results);</code></pre>
         </table>
         <pre><code>{ "error": "missing required field: query" }</code></pre>
 
+        <h2 class="bigh2">autocomplete (<code>/suggest</code>)</h2>
+        <p>send a <code>GET</code> to <code>/suggest</code> with a partial query.</p>
+        <pre><code>GET /suggest?q=weath</code></pre>
+
+        <h3>query parameters</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>param</th>
+              <th>type</th>
+              <th>description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>q</code></td>
+              <td>string</td>
+              <td>required. the partial query to complete, up to 100 characters.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>response</h3>
+        <p>
+          <code>suggestions</code> is an ordered array. plain completions carry just a
+          <code>query</code>; rich entities (people, places, and more) set
+          <code>entity</code> and add the best-effort fields below.
+        </p>
+        <pre><code>{
+  "suggestions": [
+    { "query": "weather" },
+    { "query": "weather radar" },
+    {
+      "query": "elon musk",
+      "entity": true,
+      "name": "Elon Musk",
+      "desc": "businessman and entrepreneur (born 1971)",
+      "category": "person",
+      "img": "https://imgs.search.brave.com/…"
+    }
+  ]
+}</code></pre>
+        <table>
+          <thead>
+            <tr>
+              <th>field</th>
+              <th>type</th>
+              <th>description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>query</code></td>
+              <td>string</td>
+              <td>the suggested query. always present.</td>
+            </tr>
+            <tr>
+              <td><code>entity</code></td>
+              <td>boolean</td>
+              <td><code>true</code> on entity suggestions; absent otherwise.</td>
+            </tr>
+            <tr>
+              <td><code>name</code></td>
+              <td>string</td>
+              <td>the entity's display name.</td>
+            </tr>
+            <tr>
+              <td><code>desc</code></td>
+              <td>string</td>
+              <td>a short description.</td>
+            </tr>
+            <tr>
+              <td><code>category</code></td>
+              <td>string</td>
+              <td>e.g. <code>person</code>, <code>place</code>.</td>
+            </tr>
+            <tr>
+              <td><code>img</code></td>
+              <td>string</td>
+              <td>thumbnail URL, when one is available.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>curl</h3>
+        <pre><code>curl "https://search.tiago.zip/suggest?q=weath"</code></pre>
+
         <h2 class="bigh2">notes</h2>
         <ul>
           <li><b>CORS</b> is open, so the endpoint is reachable from the browser. only do that if you accept exposing your key client-side.</li>
