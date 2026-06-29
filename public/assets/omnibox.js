@@ -18,12 +18,13 @@ const STYLE = `
   z-index: 100;
   display: none;
   flex-direction: column;
+  gap: 2px;
   padding: 5px;
   background: var(--surface0, #313244);
   border: 1px solid var(--surface1, #45475a);
   border-radius: 10px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-  max-height: min(60vh, 440px);
+  max-height: min(70vh, 620px);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -41,10 +42,15 @@ const STYLE = `
   cursor: pointer;
   color: var(--text, #cdd6f4);
   user-select: none;
+  transition: background .2s, transform .2s;
 }
 .omnibox-item:hover,
 .omnibox-item.active {
-  background: var(--surface1, #45475a);
+  background: var(--surface1, #45475aa6);
+  transition: transform .2s;
+}
+.omnibox-item:active {
+  transform: scale(.98);
 }
 .omnibox-icon {
   flex: none;
@@ -64,7 +70,7 @@ const STYLE = `
   height: 30px;
   border-radius: 6px;
   object-fit: cover;
-  background: var(--surface1, #45475a);
+  background: var(--surface1, #45475aa6);
 }
 .omnibox-text {
   flex: 1;
