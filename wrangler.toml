@@ -8,15 +8,5 @@ binding = "ASSETS"
 html_handling = "none"
 not_found_handling = "none"
 
-# Set secrets via: wrangler secret put JWT_SECRET
+# set secrets via: wrangler secret put JWT_SECRET
 # [vars]
-
-# Optional: enables the POST /api JSON endpoint. Create the DB with
-#   wrangler d1 create metasearch
-# then paste the printed database_id below and run the migration:
-#   wrangler d1 migrations apply metasearch --remote
-# Remove this block to hard-disable the API.
-[[d1_databases]]
-binding = "DB"
-database_name = "metasearch"
-database_id = "db76a3cb-eb71-47ca-ac84-798a5e301538"
