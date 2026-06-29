@@ -21,21 +21,21 @@
 
     <meta
       name="description"
-      content="search.tiago.zip JSON API: query the web, images, and news over a simple authenticated POST endpoint."
+      content="search.tiago.zip JSON API: query the web, images, and news over a simple public POST endpoint."
     />
 
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://search.tiago.zip/api" />
     <meta
       property="og:description"
-      content="search.tiago.zip JSON API: query the web, images, and news over a simple authenticated POST endpoint."
+      content="search.tiago.zip JSON API: query the web, images, and news over a simple public POST endpoint."
     />
     <meta name="twitter:url" content="https://search.tiago.zip/api" />
     <meta name="twitter:site" content="@tiagozip_" />
     <meta name="twitter:creator" content="@tiagozip_" />
     <meta
       name="twitter:description"
-      content="search.tiago.zip JSON API: query the web, images, and news over a simple authenticated POST endpoint."
+      content="search.tiago.zip JSON API: query the web, images, and news over a simple public POST endpoint."
     />
     <style>
       * {
@@ -394,49 +394,20 @@
       <main>
         <h1>JSON API</h1>
         <p>
-          query the web, images, and news over a single authenticated endpoint and get back clean,
+          query the web, images, and news over a single public endpoint and get back clean,
           structured JSON: the exact same data that powers the results pages, with none of the HTML.
         </p>
 
         <p>
-          the API is <b>off by default</b>. the instance author enables it by adding a key to the
-          database, then shares that key with whoever should have access. there are no rate limits
-          or pagination caps: you get whatever the upstream returns.
-        </p>
-
-        <h2 class="bigh2">enabling it (instance authors)</h2>
-        <p>
-          keys live in a D1 database, one row per key, so you can add, label, and revoke them
-          individually. create the database once and apply the migration:
-        </p>
-        <pre><code>wrangler d1 create metasearch
-# paste the printed database_id into wrangler.toml, then:
-wrangler d1 migrations apply metasearch --remote</code></pre>
-        <p>each key is a random string with an optional label. mint one and hand it out:</p>
-        <pre><code>KEY=$(openssl rand -hex 32)
-wrangler d1 execute metasearch --remote \
-  --command "INSERT INTO api_keys (key, label) VALUES ('$KEY', 'alice')"
-echo "$KEY"</code></pre>
-        <p>list who has access, and revoke a single key without touching the others:</p>
-        <pre><code># list
-wrangler d1 execute metasearch --remote \
-  --command "SELECT label, created_at FROM api_keys"
-
-# revoke just one
-wrangler d1 execute metasearch --remote \
-  --command "DELETE FROM api_keys WHERE label = 'alice'"</code></pre>
-        <p>
-          auth is a single read, no per-request writes. with no database bound, the endpoint stays
-          disabled and answers <code>503</code>.
+          the API is <b>public</b>: no key, no signup, no auth header. there are no rate limits or
+          pagination caps either, so be a good citizen, the upstream is shared.
         </p>
 
         <h2 class="bigh2">making a request</h2>
         <p>
-          send a <code>POST</code> to <code>/api</code> with a
-          <code>Bearer</code> token and a JSON body.
+          send a <code>POST</code> to <code>/api</code> with a JSON body.
         </p>
         <pre><code>POST /api
-Authorization: Bearer YOUR_KEY
 Content-Type: application/json
 
 {
@@ -482,7 +453,6 @@ Content-Type: application/json
         <h2 class="bigh2">examples</h2>
         <h3>curl</h3>
         <pre><code>curl -X POST https://search.tiago.zip/api \
-  -H "Authorization: Bearer YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{"query":"metasearch","type":"web","page":0}'</code></pre>
 
@@ -490,7 +460,6 @@ Content-Type: application/json
         <pre><code>const res = await fetch("https://search.tiago.zip/api", {
   method: "POST",
   headers: {
-    Authorization: "Bearer YOUR_KEY",
     "Content-Type": "application/json",
   },
   body: JSON.stringify({ query: "metasearch", type: "web", page: 0 }),
@@ -613,16 +582,8 @@ console.log(data.results);</code></pre>
               <td>bad body, missing <code>query</code>, unknown <code>type</code>, or invalid <code>page</code>.</td>
             </tr>
             <tr>
-              <td><code>401</code></td>
-              <td>missing, malformed, or invalid <code>Authorization</code> header.</td>
-            </tr>
-            <tr>
               <td><code>502</code></td>
               <td>the upstream search failed.</td>
-            </tr>
-            <tr>
-              <td><code>503</code></td>
-              <td>the API is not enabled on this instance.</td>
             </tr>
           </tbody>
         </table>
@@ -717,7 +678,7 @@ console.log(data.results);</code></pre>
 
         <h2 class="bigh2">notes</h2>
         <ul>
-          <li><b>CORS</b> is open, so the endpoint is reachable from the browser. only do that if you accept exposing your key client-side.</li>
+          <li><b>CORS</b> is open, so the endpoint is reachable directly from the browser.</li>
           <li><b>no rate limits</b> are enforced by the API itself. be a good citizen: the upstream is shared.</li>
           <li><b>no logging.</b> queries sent through the API are not stored, same as the website.</li>
         </ul>
