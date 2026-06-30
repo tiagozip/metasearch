@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>try{var d=document.documentElement,L=localStorage;var a=L.getItem("ms-accent");if(a)d.style.setProperty("--blue",a);if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";var m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",function(){var s="/s/"+m+".png",f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach(function(i){if(i.closest(".mascot-picker"))return;i.src=s;i.style.objectFit="contain"})})}}catch(e){}</script>
+    <script>try{const d=document.documentElement,L=localStorage;const a=L.getItem("ms-accent");if(a)d.style.setProperty("--blue",a);if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";const m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",()=> {const s=`/s/${m}.png`,f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach((i)=> {if(i.closest(".mascot-picker"))return;i.src=s;i.style.objectFit="contain"})})}}catch{}</script>
     <script defer data-domain="search.tiago.zip" src="https://palantir.estrogen.delivery/Pn7xQk2.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>about / search.tiago.zip</title>
@@ -610,7 +610,7 @@
           <button class="accent-swatch" data-accent="#a6e3a1" style="background:#a6e3a1" type="button" title="green"></button>
           <button class="accent-swatch" data-accent="#94e2d5" style="background:#94e2d5" type="button" title="teal"></button>
           <button class="accent-swatch" data-accent="#89dceb" style="background:#89dceb" type="button" title="sky"></button>
-          <label class="accent-custom" title="custom">
+          <label class="accent-custom" title="custom" aria-label="custom accent color">
             <input type="color" id="accent-input" value="#89b4fa" />
           </label>
           <button class="accent-reset" id="accent-reset" type="button">default</button>
@@ -670,16 +670,16 @@
           document.querySelectorAll("link[rel~=icon]").forEach((f) => {
             f.href = src;
           });
-          tiles.forEach((t) =>
-            t.classList.toggle("selected", t.dataset.mascot === m),
-          );
+          tiles.forEach((t) => {
+            t.classList.toggle("selected", t.dataset.mascot === m);
+          });
         };
-        tiles.forEach((t) =>
-          t.addEventListener("click", () => select(t.dataset.mascot)),
-        );
-        tiles.forEach((t) =>
-          t.classList.toggle("selected", t.dataset.mascot === current),
-        );
+        tiles.forEach((t) => {
+          t.addEventListener("click", () => select(t.dataset.mascot));
+        });
+        tiles.forEach((t) => {
+          t.classList.toggle("selected", t.dataset.mascot === current);
+        });
       })();
 
       (() => {
@@ -704,16 +704,16 @@
               localStorage.removeItem("ms-accent");
             } catch {}
           }
-          swatches.forEach((s) =>
+          swatches.forEach((s) => {
             s.classList.toggle(
               "selected",
               ok && s.dataset.accent.toLowerCase() === c.toLowerCase(),
-            ),
-          );
+            );
+          });
         };
-        swatches.forEach((s) =>
-          s.addEventListener("click", () => apply(s.dataset.accent)),
-        );
+        swatches.forEach((s) => {
+          s.addEventListener("click", () => apply(s.dataset.accent));
+        });
         if (input) input.addEventListener("input", () => apply(input.value));
         if (reset) reset.addEventListener("click", () => apply(""));
         let saved = "";

@@ -1,7 +1,7 @@
 (() => {
   const ctx = __results_template__;
   const urlQuery = new URLSearchParams(window.location.search).get("q") || "";
-  const initialQuery = (ctx && ctx.initialQuery) || urlQuery || "";
+  const initialQuery = ctx?.initialQuery || urlQuery || "";
 
   try {
     mapboxgl.config.EVENTS_URL = "https://localhost.invalid";
@@ -266,8 +266,8 @@
         name: s[1],
         place: s[2],
         poi: s[3],
-      }
-      
+      };
+
       el.className = "map-sug";
       el.innerHTML = `
         <div class="ic">
@@ -337,8 +337,8 @@
       return 4;
     };
     prioritized.sort((a, b) => {
-      const ra = rank((a.f.layer && a.f.layer.id) || "");
-      const rb = rank((b.f.layer && b.f.layer.id) || "");
+      const ra = rank(a.f.layer?.id || "");
+      const rb = rank(b.f.layer?.id || "");
       return ra - rb;
     });
     return prioritized[0].f;
@@ -400,7 +400,7 @@
       },
       body: JSON.stringify([token]),
     });
-    if (!r.ok) throw new Error("HTTP " + r.status);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return await r.json();
   }
 
@@ -494,7 +494,9 @@
     if (!Number.isFinite(h)) return hhmm;
     const period = h >= 12 ? "PM" : "AM";
     const h12 = h % 12 === 0 ? 12 : h % 12;
-    return m === 0 ? `${h12} ${period}` : `${h12}:${String(m).padStart(2, "0")} ${period}`;
+    return m === 0
+      ? `${h12} ${period}`
+      : `${h12}:${String(m).padStart(2, "0")} ${period}`;
   }
 
   function formatHoursRange(range) {
@@ -538,7 +540,9 @@
     const parts = [];
     if (p.category) parts.push(p.category);
     if (p.city) {
-      const hasCity = (p.category || "").toLowerCase().includes(p.city.toLowerCase());
+      const hasCity = (p.category || "")
+        .toLowerCase()
+        .includes(p.city.toLowerCase());
       if (!hasCity) parts.push(`in ${p.city}`);
     }
     const subtitle = parts.join(" ") || s.place || "";
@@ -581,7 +585,12 @@
   function renderActions(p, lat, lng) {
     const actions = [];
     if (p.website) {
-      actions.push({ icon: "globe", label: "Website", href: p.website, external: true });
+      actions.push({
+        icon: "globe",
+        label: "Website",
+        href: p.website,
+        external: true,
+      });
     }
     actions.push({
       icon: "directions",
@@ -607,9 +616,13 @@
     if (p.phoneDisplay || p.phone) {
       const display = p.phoneDisplay || p.phone;
       const tel = p.phone || display;
-      rows.push(iconRow("phone", null, `<a href="tel:${esc(tel)}">${esc(display)}</a>`));
+      rows.push(
+        iconRow("phone", null, `<a href="tel:${esc(tel)}">${esc(display)}</a>`),
+      );
     }
-    return rows.length ? `<div class="mp-info-list">${rows.join("")}</div>` : "";
+    return rows.length
+      ? `<div class="mp-info-list">${rows.join("")}</div>`
+      : "";
   }
 
   function renderHours(p) {
@@ -657,7 +670,7 @@
   }
 
   function renderReviews(p) {
-    if (!p.reviews || !p.reviews.length) return "";
+    if (!p.reviews?.length) return "";
     const items = p.reviews
       .map((r) => {
         const initials = (r.user.name || "?")
@@ -750,7 +763,7 @@
       const q = input.value.trim();
       if (q) {
         e.preventDefault();
-        window.location.href = "/?q=" + encodeURIComponent(q) + "&pass";
+        window.location.href = `/?q=${encodeURIComponent(q)}&pass`;
       }
     });
   }

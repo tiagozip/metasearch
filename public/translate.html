@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>try{var d=document.documentElement,L=localStorage;var a=L.getItem("ms-accent");if(a)d.style.setProperty("--blue",a);if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";var m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",function(){var s="/s/"+m+".png",f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach(function(i){i.src=s;i.style.objectFit="contain"})})}}catch(e){}</script>
+    <script>try{const d=document.documentElement,L=localStorage;const a=L.getItem("ms-accent");if(a)d.style.setProperty("--blue",a);if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";const m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",()=> {const s=`/s/${m}.png`,f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach((i)=> {i.src=s;i.style.objectFit="contain"})})}}catch{}</script>
     <script
       defer
       data-domain="search.tiago.zip"
@@ -607,8 +607,9 @@
       <section class="card">
         <div class="langbar">
           <div class="lang-slot" id="src-slot"></div>
-          <button id="swap" class="swap" title="swap languages" aria-label="swap languages">
+          <button type="button" id="swap" class="swap" title="swap languages" aria-label="swap languages">
             <svg
+              aria-hidden="true"
               viewBox="0 0 24 24"
               width="17"
               height="17"
@@ -637,12 +638,14 @@
             <div id="dym" class="dym"></div>
             <div class="pane-foot">
               <button
+                type="button"
                 id="speak-src"
                 class="iconbtn"
                 title="listen"
                 aria-label="listen to source text"
               >
                 <svg
+                  aria-hidden="true"
                   viewBox="0 0 24 24"
                   width="17"
                   height="17"
@@ -658,8 +661,9 @@
                 </svg>
               </button>
               <span class="count" id="count">0 / 5000</span>
-              <button id="clear" class="iconbtn" title="clear" aria-label="clear text">
+              <button type="button" id="clear" class="iconbtn" title="clear" aria-label="clear text">
                 <svg
+                  aria-hidden="true"
                   viewBox="0 0 24 24"
                   width="17"
                   height="17"
@@ -681,12 +685,14 @@
             <div id="out-translit" class="translit" dir="auto"></div>
             <div class="pane-foot">
               <button
+                type="button"
                 id="speak-out"
                 class="iconbtn"
                 title="listen"
                 aria-label="listen to translation"
               >
                 <svg
+                  aria-hidden="true"
                   viewBox="0 0 24 24"
                   width="17"
                   height="17"
@@ -703,12 +709,14 @@
               </button>
               <span id="status" class="status"></span>
               <button
+                type="button"
                 id="copy"
                 class="iconbtn push"
                 title="copy translation"
                 aria-label="copy translation"
               >
                 <svg
+                  aria-hidden="true"
                   viewBox="0 0 24 24"
                   width="17"
                   height="17"

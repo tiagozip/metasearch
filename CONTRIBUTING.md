@@ -19,7 +19,7 @@ bun run dev
 
 ## code style
 
-- use biome for formatting and linting
+- use biome for formatting and linting (`bun run format` to fix, `bun run lint` to check before you push)
 - we use two-space indentation
 - please try to match the surrounding code
 - prose and ui copy should all be lowercase

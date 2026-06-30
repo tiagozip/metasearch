@@ -92,4 +92,4 @@ after deploying, you can add a custom domain in the cloudflare dashboard under w
 
 ### license
 
-all code is licensed under aGPL-v3.0. see [LICENSE](./LICENSE) for more details.
+see [LICENSE](./LICENSE) for more details.

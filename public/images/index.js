@@ -8,7 +8,8 @@
     if (!url) return "#";
     try {
       const parsed = new URL(url);
-      if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
+      if (parsed.protocol === "http:" || parsed.protocol === "https:")
+        return url;
     } catch {}
     return "#";
   };
@@ -16,7 +17,11 @@
   const readCookie = (name) => {
     try {
       const m = document.cookie.match(
-        new RegExp("(?:^|; )" + name.replace(/[.$?*|{}()[\]\\/+^]/g, "\\$&") + "=([^;]*)"),
+        new RegExp(
+          "(?:^|; )" +
+            name.replace(/[.$?*|{}()[\]\\/+^]/g, "\\$&") +
+            "=([^;]*)",
+        ),
       );
       return m ? decodeURIComponent(m[1]) : null;
     } catch {
@@ -31,7 +36,8 @@
     } catch {}
   };
 
-  let detailMode = readCookie("pref_images_detail") === "sidebar" ? "sidebar" : "bar";
+  let detailMode =
+    readCookie("pref_images_detail") === "sidebar" ? "sidebar" : "bar";
   let transparentOnly = false;
 
   let allImages = [];
@@ -96,7 +102,7 @@
         try {
           const regexStr = trimmed.slice(1, -1);
           patterns.push({ type: "regex", pattern: new RegExp(regexStr, "i") });
-        } catch (e) {
+        } catch {
           console.warn("Invalid regex pattern:", trimmed);
         }
       } else if (trimmed.includes("*")) {
@@ -106,7 +112,7 @@
           .replace(/\./g, "\\.");
         try {
           patterns.push({ type: "glob", pattern: new RegExp(regexStr, "i") });
-        } catch (e) {
+        } catch {
           console.warn("Invalid glob pattern:", trimmed);
         }
       } else {
@@ -129,7 +135,10 @@
 
     for (const keyword of AI_KEYWORDS) {
       if (
-        (img.title || "").toLowerCase().replaceAll(" ", "").includes(keyword.replaceAll(" ", ""))
+        (img.title || "")
+          .toLowerCase()
+          .replaceAll(" ", "")
+          .includes(keyword.replaceAll(" ", ""))
       ) {
         return true;
       }
@@ -141,7 +150,10 @@
           return true;
         }
       } else if (type === "text") {
-        if (url.toLowerCase().includes(pattern) || hostname.toLowerCase().includes(pattern)) {
+        if (
+          url.toLowerCase().includes(pattern) ||
+          hostname.toLowerCase().includes(pattern)
+        ) {
           return true;
         }
       }
@@ -158,32 +170,7 @@
         return;
       }
 
-      let blocklistText;
-
-      try {
-        const cachedList = localStorage.getItem("slop:cache");
-        const cachedTimestamp = localStorage.getItem("slop:ts");
-
-        if (cachedList && cachedTimestamp) {
-          const age = Date.now() - parseInt(cachedTimestamp, 10);
-          if (age < 24 * 60 * 60 * 1000) {
-            return cachedList;
-          }
-        }
-
-        blocklistText = await (
-          await fetch(
-            "https://cdn.jsdelivr.net/gh/laylavish/uBlockOrigin-HUGE-AI-Blocklist@main/list_uBlacklist.txt",
-          )
-        ).text();
-
-        localStorage.setItem("slop:cache", text);
-        localStorage.setItem("slop:ts", Date.now().toString());
-      } catch {
-        blocklistText = localStorage.getItem("slop:cache") || "";
-      }
-
-      aiBlocklist = parseBlocklist(blocklistText);
+      aiBlocklist = parseBlocklist(await fetchBlocklist());
     } catch {
       // firefox with cookies disabled errors out instead
       // of returning null. we have this catch to prevent
@@ -302,7 +289,9 @@
 
   const closeDetailPanel = ({ skipLayoutCompensation = false } = {}) => {
     const selected = document.querySelector(".image-item.selected");
-    const wasSidebarOpen = document.body.classList.contains("images-detail-sidebar-open");
+    const wasSidebarOpen = document.body.classList.contains(
+      "images-detail-sidebar-open",
+    );
     const shouldCompensate = wasSidebarOpen && !skipLayoutCompensation;
 
     preserveAnchorPosition(shouldCompensate ? selected : null, () => {
@@ -347,7 +336,9 @@
     detailPanel = createDetailPanel(img, index);
 
     if (detailMode === "sidebar") {
-      const alreadyOpen = document.body.classList.contains("images-detail-sidebar-open");
+      const alreadyOpen = document.body.classList.contains(
+        "images-detail-sidebar-open",
+      );
       preserveAnchorPosition(alreadyOpen ? null : clickedItem, () => {
         document.body.classList.add("images-detail-sidebar-open");
         document.body.append(detailPanel);
@@ -392,7 +383,9 @@
   const transparencyCanvas = document.createElement("canvas");
   transparencyCanvas.width = 48;
   transparencyCanvas.height = 48;
-  const transparencyCtx = transparencyCanvas.getContext("2d", { willReadFrequently: true });
+  const transparencyCtx = transparencyCanvas.getContext("2d", {
+    willReadFrequently: true,
+  });
 
   const detectTransparent = (imgEl) => {
     try {
@@ -426,7 +419,8 @@
       return;
     }
 
-    if (img._transparent === undefined) img._transparent = detectTransparent(imgEl);
+    if (img._transparent === undefined)
+      img._transparent = detectTransparent(imgEl);
 
     if (img._transparent === true) {
       if (link.dataset.transHidden) {
@@ -539,7 +533,7 @@
     const grid = document.getElementById("images-grid");
     const frag = document.createDocumentFragment();
 
-    if (!results || !results.length) {
+    if (!results?.length) {
       const noResults = document.createElement("div");
       noResults.className = "no-results";
       noResults.textContent = "No images found";
@@ -610,7 +604,8 @@
       }
 
       appendImages(newData.results);
-      hasMoreResults = newData.more_results_available !== false && newData.results.length > 0;
+      hasMoreResults =
+        newData.more_results_available !== false && newData.results.length > 0;
     } catch (err) {
       console.error("failed to load more images:", err);
     } finally {
@@ -642,12 +637,15 @@
   let savedSetting;
   try {
     savedSetting = localStorage.getItem("config:hide_slop") === "true";
-    transparentOnly = localStorage.getItem("config:transparent_only") === "true";
+    transparentOnly =
+      localStorage.getItem("config:transparent_only") === "true";
   } catch {}
 
   hideAiSlopCheckbox.checked = savedSetting;
-  if (detailsSidebarCheckbox) detailsSidebarCheckbox.checked = detailMode === "sidebar";
-  if (transparentOnlyCheckbox) transparentOnlyCheckbox.checked = transparentOnly;
+  if (detailsSidebarCheckbox)
+    detailsSidebarCheckbox.checked = detailMode === "sidebar";
+  if (transparentOnlyCheckbox)
+    transparentOnlyCheckbox.checked = transparentOnly;
 
   optionsBtn?.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -681,7 +679,10 @@
   transparentOnlyCheckbox?.addEventListener("change", (e) => {
     transparentOnly = e.target.checked;
     try {
-      localStorage.setItem("config:transparent_only", transparentOnly.toString());
+      localStorage.setItem(
+        "config:transparent_only",
+        transparentOnly.toString(),
+      );
     } catch {}
     reapplyTransparentFilter();
   });

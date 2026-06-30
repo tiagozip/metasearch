@@ -1,9 +1,15 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.1/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "files": {
     "includes": [
       "**",
       "!**/*.svg",
+      "!src/bangs-data.json",
       "!public/assets/chart.js",
       "!public/assets/fflate.min.js",
       "!public/assets/map.js",
@@ -12,7 +18,21 @@
     ]
   },
   "linter": {
-    "enabled": true
+    "enabled": true,
+    "rules": {
+      "a11y": {
+        "noAutofocus": "off"
+      },
+      "complexity": {
+        "noImportantStyles": "off"
+      },
+      "style": {
+        "noDescendingSpecificity": "off"
+      },
+      "suspicious": {
+        "noDocumentCookie": "off"
+      }
+    }
   },
   "formatter": {
     "enabled": true,

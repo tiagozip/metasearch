@@ -293,7 +293,8 @@ export function makeLangPicker({ value, detect = false, onChange }) {
   const scrollListTo = (item, center = false) => {
     if (!item) return;
     if (center) {
-      list.scrollTop = item.offsetTop - (list.clientHeight - item.offsetHeight) / 2;
+      list.scrollTop =
+        item.offsetTop - (list.clientHeight - item.offsetHeight) / 2;
     } else if (item.offsetTop < list.scrollTop) {
       list.scrollTop = item.offsetTop;
     } else if (

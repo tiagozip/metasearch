@@ -94,7 +94,8 @@ window.fetch = async (...args) => {
         }
 
         if (event.data.data.startsWith("PROGRESS:")) {
-          document.querySelector(".progress").style.width = `${event.data.data.split(":")[1]}%`;
+          document.querySelector(".progress").style.width =
+            `${event.data.data.split(":")[1]}%`;
         }
 
         if (event.data.data.startsWith("POW:")) {
@@ -118,8 +119,10 @@ window.fetch = async (...args) => {
 
           if (!resp.ok) {
             document.querySelector("p").remove();
-            document.querySelector(".progress").style.backgroundColor = "#ff5c5c";
-            document.querySelector("h1").innerHTML = `an error occured. <br>please try again`;
+            document.querySelector(".progress").style.backgroundColor =
+              "#ff5c5c";
+            document.querySelector("h1").innerHTML =
+              `an error occured. <br>please try again`;
           }
         }
       }
