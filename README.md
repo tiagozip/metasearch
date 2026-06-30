@@ -40,27 +40,15 @@ we implement most of brave's rich answer features, including calculator, color p
 
 ### json api
 
-once the instance author enables it, you can query the engine over a simple authenticated endpoint and get clean JSON back, no scraping required:
+you can query the engine over a simple authenticated endpoint and get clean JSON back:
 
 ```bash
 curl -X POST https://search.tiago.zip/api \
-  -H "Authorization: Bearer YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{"query":"metasearch","type":"web","page":0}'
 ```
 
-`type` is one of `web`, `images`, or `news` (defaults to `web`), and `page` is a zero-based offset with no cap. keys live in a D1 database (one row per key, so you can label and revoke them individually):
-
-```bash
-wrangler d1 create metasearch          # paste the id into wrangler.toml
-wrangler d1 migrations apply metasearch --remote
-
-KEY=$(openssl rand -hex 32)
-wrangler d1 execute metasearch --remote \
-  --command "INSERT INTO api_keys (key, label) VALUES ('$KEY', 'alice')"
-```
-
-full docs live at [/api](https://search.tiago.zip/api).
+`type` is one of `web`, `images`, or `news` (defaults to `web`), and `page` is a zero-based offset.
 
 ### self-hosting
 

@@ -1,6 +1,3 @@
-// throwaway dev server for previewing local widgets in isolation.
-// maps /s/<file> -> public/assets/<file> like production, serves search.css,
-// and renders a gallery of widgets for a list of test queries.
 import { file } from "bun";
 
 const ROOT = new URL("../public/", import.meta.url).pathname;

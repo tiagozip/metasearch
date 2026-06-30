@@ -1,5 +1,16 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+  "files": {
+    "includes": [
+      "**",
+      "!**/*.svg",
+      "!public/assets/chart.js",
+      "!public/assets/fflate.min.js",
+      "!public/assets/map.js",
+      "!public/assets/qrcode.js",
+      "!public/assets/sugar-high.js"
+    ]
+  },
   "linter": {
     "enabled": true
   },
