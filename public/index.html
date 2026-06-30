@@ -328,15 +328,18 @@
 
       <script>
         if (location.hostname !== "search.tiago.zip") {
-          // removing or hiding this notice violates the CPAL 1.0 
+          // removing or hiding this notice violates the CPAL 1.0
           // attribution clause this project is licensed under.
-          const badge = document.createElement("div");
-          badge.style.cssText = `display: flex;align-items: center;border: 1px solid #7f849c78;padding: 5px 8px;border-radius: 7px;margin-top: 3em;color: var(--text);cursor: pointer;padding-right: 13px;
-        `;
+          const badge = document.createElement("a");
+          badge.href = "https://github.com/tiagozip/metasearch";
+          badge.target = "_blank";
+          badge.rel = "noopener noreferrer";
+          badge.style.cssText = `display: flex;align-items: center;border: 1px solid #7f849c78;padding: 5px 8px;border-radius: 7px;margin-top: 3em;color: var(--text);cursor: pointer;padding-right: 13px;text-decoration: none;
+          `;
           badge.innerHTML = `
           <img src="/s/teto_big.webp" alt="teto" draggable="false" style="width: 32px;">
           <span style="margin-left: 12px;">unofficial mirror of</span><b style="margin-left: 4px; font-weight: 500; color: white;">metasearch</b>
-        `;
+          `;
           document.querySelector("header").appendChild(badge);
         }
       </script>
