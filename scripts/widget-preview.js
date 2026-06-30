@@ -117,28 +117,82 @@ window.__stats = { total: queries.length, hits, registered: __widgetCount };
 console.log("widgets:", __widgetCount, "queries:", queries.length, "matched:", hits);
 </script></body></html>`;
 
-const types = { js: "application/javascript", css: "text/css", html: "text/html", png: "image/png", svg: "image/svg+xml" };
+const types = {
+  js: "application/javascript",
+  css: "text/css",
+  html: "text/html",
+  png: "image/png",
+  svg: "image/svg+xml",
+};
 
 const day = (n) => Math.floor(Date.now() / 1000) + n * 86400;
 const MOCK_RICH = [
-  { subtype: "calculator", calculator: { expression: "1234 * 5678", answer: "7,006,652" } },
+  {
+    subtype: "calculator",
+    calculator: { expression: "1234 * 5678", answer: "7,006,652" },
+  },
   {
     subtype: "weather",
     weather: {
       location: { name: "London", state: "", country: "United Kingdom" },
-      current_weather: { temp: 14, feels_like: 12, humidity: 82, wind_speed: 5.4, weather: { main: "Rain", description: "light rain" } },
+      current_weather: {
+        temp: 14,
+        feels_like: 12,
+        humidity: 82,
+        wind_speed: 5.4,
+        weather: { main: "Rain", description: "light rain" },
+      },
       daily: [
-        { ts: day(0), temperature: { max: 16, min: 9 }, weather: { main: "Rain" } },
-        { ts: day(1), temperature: { max: 18, min: 10 }, weather: { main: "Clouds" } },
-        { ts: day(2), temperature: { max: 21, min: 12 }, weather: { main: "Clear" } },
-        { ts: day(3), temperature: { max: 19, min: 11 }, weather: { main: "Drizzle" } },
-        { ts: day(4), temperature: { max: 15, min: 8 }, weather: { main: "Thunderstorm" } },
+        {
+          ts: day(0),
+          temperature: { max: 16, min: 9 },
+          weather: { main: "Rain" },
+        },
+        {
+          ts: day(1),
+          temperature: { max: 18, min: 10 },
+          weather: { main: "Clouds" },
+        },
+        {
+          ts: day(2),
+          temperature: { max: 21, min: 12 },
+          weather: { main: "Clear" },
+        },
+        {
+          ts: day(3),
+          temperature: { max: 19, min: 11 },
+          weather: { main: "Drizzle" },
+        },
+        {
+          ts: day(4),
+          temperature: { max: 15, min: 8 },
+          weather: { main: "Thunderstorm" },
+        },
       ],
-      alerts: [{ event: "Yellow wind warning", start_relative_i18n: "in 2 hours" }],
+      alerts: [
+        { event: "Yellow wind warning", start_relative_i18n: "in 2 hours" },
+      ],
     },
   },
-  { subtype: "unitConversion", unitConversion: { amount: 100, from_unit: "kilometer", to_unit: "mile", dimensionality: "length" } },
-  { subtype: "currency", currency: { from_currency_code: "USD", to_currency_code: "EUR", amount: 100, converted_amount: 92.15, exchange_rate: 0.9215 } },
+  {
+    subtype: "unitConversion",
+    unitConversion: {
+      amount: 100,
+      from_unit: "kilometer",
+      to_unit: "mile",
+      dimensionality: "length",
+    },
+  },
+  {
+    subtype: "currency",
+    currency: {
+      from_currency_code: "USD",
+      to_currency_code: "EUR",
+      amount: 100,
+      converted_amount: 92.15,
+      exchange_rate: 0.9215,
+    },
+  },
   { subtype: "unixtimestamp", unixtimestamp: {} },
 ];
 const MOCK = {
@@ -147,18 +201,18 @@ const MOCK = {
 };
 
 async function searchPage() {
-  let html = await Bun.file(ROOT + "web/index.html").text();
-  const css = await Bun.file(ROOT + "search.css").text();
+  let html = await Bun.file(`${ROOT}web/index.html`).text();
+  const css = await Bun.file(`${ROOT}search.css`).text();
   html = html
     .replace("/**css**/", css)
     .replaceAll("%%pageTitle%%", "mock")
     .replaceAll("%%inputValue%%", "")
     .replaceAll("%%inputValueEncoded%%", "")
-    .replace('/p/%%jsJwt%%', "/page-js");
+    .replace("/p/%%jsJwt%%", "/page-js");
   return html;
 }
 async function searchJs() {
-  let js = await Bun.file(ROOT + "web/index.js").text();
+  let js = await Bun.file(`${ROOT}web/index.js`).text();
   js = js
     .replace("__results_template__", JSON.stringify(MOCK))
     .replace('"__results_pk__"', '"mock"')
@@ -174,23 +228,34 @@ Bun.serve({
     if (pathname === "/" || pathname === "/index.html")
       return new Response(page, { headers: { "content-type": "text/html" } });
     if (pathname === "/page")
-      return new Response(await searchPage(), { headers: { "content-type": "text/html" } });
+      return new Response(await searchPage(), {
+        headers: { "content-type": "text/html" },
+      });
     if (pathname === "/page-js")
-      return new Response(await searchJs(), { headers: { "content-type": "application/javascript" } });
+      return new Response(await searchJs(), {
+        headers: { "content-type": "application/javascript" },
+      });
     if (pathname.startsWith("/fx/")) {
       const base = pathname.slice(4).toUpperCase();
       const up = await fetch(`https://open.er-api.com/v6/latest/${base}`);
       const data = await up.json();
-      return Response.json({ base: data.base_code, rates: data.rates, updated: data.time_last_update_unix });
+      return Response.json({
+        base: data.base_code,
+        rates: data.rates,
+        updated: data.time_last_update_unix,
+      });
     }
     let path = null;
-    if (pathname.startsWith("/s/")) path = ROOT + "assets/" + pathname.slice(3);
-    else if (pathname === "/search.css") path = ROOT + "search.css";
+    if (pathname.startsWith("/s/")) path = `${ROOT}assets/${pathname.slice(3)}`;
+    else if (pathname === "/search.css") path = `${ROOT}search.css`;
     if (!path) return new Response("not found", { status: 404 });
     const f = file(path);
-    if (!(await f.exists())) return new Response("missing " + path, { status: 404 });
+    if (!(await f.exists()))
+      return new Response(`missing ${path}`, { status: 404 });
     const ext = path.split(".").pop();
-    return new Response(f, { headers: { "content-type": types[ext] || "application/octet-stream" } });
+    return new Response(f, {
+      headers: { "content-type": types[ext] || "application/octet-stream" },
+    });
   },
 });
 console.log("widget preview on http://localhost:5599");

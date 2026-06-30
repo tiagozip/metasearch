@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>try{var d=document.documentElement,L=localStorage;var a=L.getItem("ms-accent");if(a)d.style.setProperty("--blue",a);if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";var m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",function(){var s="/s/"+m+".png",f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach(function(i){i.src=s;i.style.objectFit="contain"})})}}catch(e){}</script>
+    <script>try{const d=document.documentElement,L=localStorage;const a=L.getItem("ms-accent");if(a)d.style.setProperty("--blue",a);if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";const m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",()=> {const s=`/s/${m}.png`,f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach((i)=> {i.src=s;i.style.objectFit="contain"})})}}catch{}</script>
     <script defer data-domain="search.tiago.zip" src="https://palantir.estrogen.delivery/Pn7xQk2.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>%%pageTitle%% · maps</title>
@@ -149,7 +149,6 @@
         position: absolute;
         top: 39px;
         left: 0;
-        display: block;
         margin-left: -40px;
         width: calc(100% + 40px);
         z-index: 30;
@@ -816,6 +815,7 @@
         aria-label="Back to search"
       >
         <svg
+          aria-hidden="true"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -872,8 +872,9 @@
     </div>
 
     <div class="map-panel" id="map-panel">
-      <button class="mp-close" id="map-panel-close" aria-label="Close">
+      <button type="button" class="mp-close" id="map-panel-close" aria-label="Close">
         <svg
+          aria-hidden="true"
           width="20"
           height="20"
           viewBox="0 0 24 24"

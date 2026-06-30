@@ -11,7 +11,8 @@
     if (!url) return "#";
     try {
       const parsed = new URL(url);
-      if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
+      if (parsed.protocol === "http:" || parsed.protocol === "https:")
+        return url;
     } catch {}
     return "#";
   };
@@ -22,7 +23,8 @@
       im.crossOrigin = "anonymous";
       im.onerror = () => resolve({ ...pick, broken: true });
       im.onload = () => {
-        const nw = im.naturalWidth, nh = im.naturalHeight;
+        const nw = im.naturalWidth,
+          nh = im.naturalHeight;
         if (!nw || !nh) return resolve({ ...pick, broken: true });
         pick = { ...pick, naturalW: nw, naturalH: nh };
 
@@ -38,9 +40,16 @@
           ctx.drawImage(im, 0, 0, sw, sh);
           const { data } = ctx.getImageData(0, 0, sw, sh);
 
-          let oMinX = sw, oMaxX = -1, oMinY = sh, oMaxY = -1;
-          let cMinX = sw, cMaxX = -1, cMinY = sh, cMaxY = -1;
-          let opaque = 0, dark = 0;
+          let oMinX = sw,
+            oMaxX = -1,
+            oMinY = sh,
+            oMaxY = -1;
+          let cMinX = sw,
+            cMaxX = -1,
+            cMinY = sh,
+            cMaxY = -1;
+          let opaque = 0,
+            dark = 0;
           for (let y = 0; y < sh; y++) {
             for (let x = 0; x < sw; x++) {
               const i = (y * sw + x) * 4;
@@ -51,7 +60,9 @@
               if (x > oMaxX) oMaxX = x;
               if (y < oMinY) oMinY = y;
               if (y > oMaxY) oMaxY = y;
-              const r = data[i], g = data[i + 1], b = data[i + 2];
+              const r = data[i],
+                g = data[i + 1],
+                b = data[i + 2];
               const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
               if (lum < 70) dark++;
               if (r < 235 || g < 235 || b < 235) {
@@ -72,9 +83,7 @@
             ? (cMaxX - cMinX + 1) * (cMaxY - cMinY + 1)
             : opaqueArea;
           const hasWhiteBg =
-            opaqueFillsImage &&
-            hasContent &&
-            contentArea < opaqueArea * 0.7;
+            opaqueFillsImage && hasContent && contentArea < opaqueArea * 0.7;
 
           const cropBbox = hasWhiteBg
             ? { L: cMinX, R: cMaxX, T: cMinY, B: cMaxY }
@@ -82,7 +91,8 @@
 
           const transMarginX = oMinX + (sw - 1 - oMaxX);
           const transMarginY = oMinY + (sh - 1 - oMaxY);
-          const hasTransMargin = transMarginX > sw * 0.05 || transMarginY > sh * 0.05;
+          const hasTransMargin =
+            transMarginX > sw * 0.05 || transMarginY > sh * 0.05;
           const shouldCrop = hasTransMargin || hasWhiteBg;
 
           const darkRatio = opaque ? dark / opaque : 0;
@@ -105,7 +115,13 @@
               : null,
           });
         } catch {
-          resolve({ ...pick, broken: false, hasWhiteBg: false, needsBackdrop: false, crop: null });
+          resolve({
+            ...pick,
+            broken: false,
+            hasWhiteBg: false,
+            needsBackdrop: false,
+            crop: null,
+          });
         }
       };
       im.src = pick.src;
@@ -120,7 +136,8 @@
       const safe = heroSrc ? safeUrl(heroSrc) : "#";
       if (safe !== "#") {
         const hero = await analyzeImage({ src: safe, contain: false });
-        if (!hero.broken && !hero.hasWhiteBg) picks = [{ src: safe, contain: false }];
+        if (!hero.broken && !hero.hasWhiteBg)
+          picks = [{ src: safe, contain: false }];
       }
     }
     if (!picks.length) return;
@@ -238,7 +255,8 @@
 
     const all = raw
       .map((img) => {
-        let src = img?.src || img?.original || (typeof img === "string" ? img : "");
+        let src =
+          img?.src || img?.original || (typeof img === "string" ? img : "");
         if (src?.startsWith?.("//")) src = `https:${src}`;
         if (!src) return null;
         const safe = safeUrl(src);
@@ -276,7 +294,8 @@
     let urlSource = "";
     try {
       const parsed = new URL(r.url);
-      urlPath = parsed.hostname.replace("www.", "") + parsed.pathname + parsed.search;
+      urlPath =
+        parsed.hostname.replace("www.", "") + parsed.pathname + parsed.search;
       urlSource = parsed.hostname;
 
       if (urlPath.endsWith("/")) {
@@ -289,7 +308,9 @@
           urlPath = `r/${parts[1]}`;
         }
       } else if (
-        ["x.com", "instagram.com"].some((d) => urlSource.endsWith(`.${d}`) || urlSource === d)
+        ["x.com", "instagram.com"].some(
+          (d) => urlSource.endsWith(`.${d}`) || urlSource === d,
+        )
       ) {
         const parts = parsed.pathname.split("/").filter(Boolean);
         if (parts[0]) {
@@ -437,8 +458,18 @@
           article.classList.add("youtube-featured");
 
           iframe.addEventListener("load", () => {
-            const handshake = JSON.stringify({ event: "listening", id: videoId, channel: "widget" });
-            const subscribe = JSON.stringify({ event: "command", func: "addEventListener", args: ["onError"], id: videoId, channel: "widget" });
+            const handshake = JSON.stringify({
+              event: "listening",
+              id: videoId,
+              channel: "widget",
+            });
+            const subscribe = JSON.stringify({
+              event: "command",
+              func: "addEventListener",
+              args: ["onError"],
+              id: videoId,
+              channel: "widget",
+            });
             iframe.contentWindow?.postMessage(handshake, "*");
             iframe.contentWindow?.postMessage(subscribe, "*");
           });
@@ -446,7 +477,11 @@
           const onErrorMessage = (e) => {
             if (e.source !== iframe.contentWindow) return;
             let data;
-            try { data = typeof e.data === "string" ? JSON.parse(e.data) : e.data; } catch { return; }
+            try {
+              data = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+            } catch {
+              return;
+            }
             if (data?.event !== "onError") return;
             if (![100, 101, 150, 153].includes(data.info)) return;
 
@@ -461,9 +496,10 @@
 
             const probe = new Image();
             probe.onload = () => {
-              fallback.style.backgroundImage = probe.naturalWidth > 120
-                ? `url(${probe.src})`
-                : `url(https://i.ytimg.com/vi/${videoId}/hqdefault.jpg)`;
+              fallback.style.backgroundImage =
+                probe.naturalWidth > 120
+                  ? `url(${probe.src})`
+                  : `url(https://i.ytimg.com/vi/${videoId}/hqdefault.jpg)`;
             };
             probe.onerror = () => {
               fallback.style.backgroundImage = `url(https://i.ytimg.com/vi/${videoId}/hqdefault.jpg)`;
@@ -476,7 +512,10 @@
         }
       }
 
-      if (sourceHost === "polymarket.com" || sourceHost.endsWith(".polymarket.com")) {
+      if (
+        sourceHost === "polymarket.com" ||
+        sourceHost.endsWith(".polymarket.com")
+      ) {
         const eventMatch = url.match(/\/event\/([^/?]+)/);
         if (eventMatch) {
           const eventSlug = eventMatch[1];
@@ -494,7 +533,9 @@
       }
 
       if (
-        ["whatismyipaddress.com","whatismyip.com","showmyip.com"].includes(sourceHost) &&
+        ["whatismyipaddress.com", "whatismyip.com", "showmyip.com"].includes(
+          sourceHost,
+        ) &&
         (u.pathname === "/" || u.pathname === "")
       ) {
         const ipFrame = document.createElement("div");
@@ -502,29 +543,37 @@
         ipFrame.innerHTML = `<p style="margin-top: 0px;color: var(--subtext);margin-bottom: 10px;">your ip is:</p><p class="ip" style="font-size: 21px;margin: 0px;font-variant-numeric: tabular-nums lining-nums;font-weight: 500;">...</p><p style="margin: 0px;margin-top: 6px;font-size: 15px;color: var(--subtext);display: flex;align-items: center;gap: 6px;" class="ipdata">loading data...</p>`;
 
         (async () => {
-          const ip = await (await fetch("https://api.country.is/?fields=city,continent,subdivision,postal,location,asn")).json();
+          const ip = await (
+            await fetch(
+              "https://api.country.is/?fields=city,continent,subdivision,postal,location,asn",
+            )
+          ).json();
 
           ipFrame.querySelector(".ip").innerText = ip.ip;
-          ipFrame.querySelector(".ipdata").innerHTML = `<img src="https://tiagozip.github.io/asn-data/logos/${ip.asn.number}.png" alt="Organization icon" style="width: 20px;height: 20px;border-radius: 4px;"> ${ip.asn.organization} (as${ip.asn.number}) // ${ip.city}, ${ip.country}`;
+          ipFrame.querySelector(".ipdata").innerHTML =
+            `<img src="https://tiagozip.github.io/asn-data/logos/${ip.asn.number}.png" alt="Organization icon" style="width: 20px;height: 20px;border-radius: 4px;"> ${ip.asn.organization} (as${ip.asn.number}) // ${ip.city}, ${ip.country}`;
         })();
 
         document.querySelector("#results-all").append(ipFrame);
       }
-      
+
       if (sourceHost === "spotify.com" || sourceHost.endsWith(".spotify.com")) {
-        const spotifyMatch = url.match(/\/(track|album|playlist|episode)\/([a-zA-Z0-9]+)/);
+        const spotifyMatch = url.match(
+          /\/(track|album|playlist|episode)\/([a-zA-Z0-9]+)/,
+        );
         if (spotifyMatch) {
           const [, type, id] = spotifyMatch;
           const iframe = document.createElement("iframe");
           iframe.style.cssText = `width:100%;height:82px;border-radius:13px;border:1px solid rgb(49, 50, 68);display:block;`;
           iframe.src = `https://open.spotify.com/embed/${type}/${id}?utm_source=metasearch`;
-          iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+          iframe.allow =
+            "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
           iframe.loading = "lazy";
           document.querySelector("#results-all").append(iframe);
           article.classList.add("spotify-featured");
         }
       }
-      
+
       if (sourceHost === "codepen.io") {
         const codepenMatch = url.match(/codepen\.io\/([^/]+)\/pen\/([^/?]+)/);
         if (codepenMatch) {
@@ -532,15 +581,19 @@
           const iframe = document.createElement("iframe");
           iframe.style.cssText = `width:100%;aspect-ratio:560/300;border-radius:6px;border:1px solid rgb(49, 50, 68);`;
           iframe.src = `https://codepen.io/${username}/embed/preview/${penId}?default-tabs=result&height=520`;
-          iframe.allow = "accelerometer; camera; encrypted-media; geolocation; gyroscope; microphone";
+          iframe.allow =
+            "accelerometer; camera; encrypted-media; geolocation; gyroscope; microphone";
           iframe.loading = "lazy";
           iframe.title = "CodePen Embed";
           document.querySelector("#results-all").append(iframe);
           article.classList.add("codepen-featured");
         }
       }
-      
-      if (sourceHost === "music.apple.com" || sourceHost.endsWith(".music.apple.com")) {
+
+      if (
+        sourceHost === "music.apple.com" ||
+        sourceHost.endsWith(".music.apple.com")
+      ) {
         const appleMatch = url.match(/\/(album|playlist|song)\/([^?]+)/);
         if (appleMatch) {
           const fullPath = url.split("music.apple.com")[1];
@@ -855,7 +908,6 @@
     const longDesc = info.long_desc || "";
     const profiles = info.profiles || [];
 
-
     const box = document.createElement("div");
     box.className = "infobox";
 
@@ -1164,7 +1216,12 @@
     if (m.includes("snow") || m.includes("sleet")) return "🌨️";
     if (m.includes("clear") || m.includes("sun")) return "☀️";
     if (m.includes("cloud")) return "☁️";
-    if (m.includes("mist") || m.includes("fog") || m.includes("haze") || m.includes("smoke"))
+    if (
+      m.includes("mist") ||
+      m.includes("fog") ||
+      m.includes("haze") ||
+      m.includes("smoke")
+    )
       return "🌫️";
     if (m.includes("wind")) return "💨";
     return "🌡️";
@@ -1191,7 +1248,11 @@
         const answer = document.createElement("div");
         answer.className = "rich-calc-answer";
         answer.textContent = `= ${item.calculator.answer}`;
-        section.append(expr, answer, richCopyBtn(() => String(item.calculator.answer), "copy answer"));
+        section.append(
+          expr,
+          answer,
+          richCopyBtn(() => String(item.calculator.answer), "copy answer"),
+        );
         frag.append(section);
       } else if (item.subtype === "colorpicker" && item.colorpicker) {
         section.classList.add("rich-colorpicker");
@@ -1267,7 +1328,11 @@
         header.className = "rich-weather-header";
         const location = document.createElement("div");
         location.className = "rich-weather-location";
-        location.textContent = [w.location?.name, w.location?.state, w.location?.country]
+        location.textContent = [
+          w.location?.name,
+          w.location?.state,
+          w.location?.country,
+        ]
           .filter(Boolean)
           .join(", ");
         header.append(location);
@@ -1279,7 +1344,9 @@
 
           const icon = document.createElement("span");
           icon.className = "rich-weather-icon";
-          icon.textContent = weatherIcon(cw.weather?.main || cw.weather?.description);
+          icon.textContent = weatherIcon(
+            cw.weather?.main || cw.weather?.description,
+          );
 
           const temp = document.createElement("span");
           temp.className = "rich-weather-temp";
@@ -1299,10 +1366,13 @@
           header.append(current);
 
           const metrics = [];
-          if (cw.humidity != null) metrics.push(["humidity", `${Math.round(cw.humidity)}%`]);
-          if (cw.wind_speed != null) metrics.push(["wind", `${Math.round(cw.wind_speed)} m/s`]);
+          if (cw.humidity != null)
+            metrics.push(["humidity", `${Math.round(cw.humidity)}%`]);
+          if (cw.wind_speed != null)
+            metrics.push(["wind", `${Math.round(cw.wind_speed)} m/s`]);
           if (cw.uvi != null) metrics.push(["uv index", Math.round(cw.uvi)]);
-          if (cw.pressure != null) metrics.push(["pressure", `${Math.round(cw.pressure)} hPa`]);
+          if (cw.pressure != null)
+            metrics.push(["pressure", `${Math.round(cw.pressure)} hPa`]);
           if (metrics.length) {
             const stats = document.createElement("div");
             stats.className = "rich-weather-metrics";
@@ -1378,15 +1448,24 @@
         const display = document.createElement("div");
         display.className = "rich-timer-display";
 
-        const progressRing = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        const progressRing = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "svg",
+        );
         progressRing.setAttribute("class", "progress-ring");
         progressRing.setAttribute("viewBox", "0 0 32 32");
-        const bgCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        const bgCircle = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "circle",
+        );
         bgCircle.setAttribute("class", "progress-ring-bg");
         bgCircle.setAttribute("cx", "16");
         bgCircle.setAttribute("cy", "16");
         bgCircle.setAttribute("r", "14");
-        const progressCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        const progressCircle = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "circle",
+        );
         progressCircle.setAttribute("class", "progress-ring-circle");
         progressCircle.setAttribute("cx", "16");
         progressCircle.setAttribute("cy", "16");
@@ -1452,7 +1531,11 @@
 
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-        const playTick = ({ freq = 2000, duration = 0.015, volume = 0.12 } = {}) => {
+        const playTick = ({
+          freq = 2000,
+          duration = 0.015,
+          volume = 0.12,
+        } = {}) => {
           const now = ctx.currentTime;
 
           const osc = ctx.createOscillator();
@@ -1602,20 +1685,35 @@
               .toLowerCase()
           );
         };
-        const converted = convertUnit(u.amount, u.from_unit, u.to_unit, u.dimensionality);
+        const converted = convertUnit(
+          u.amount,
+          u.from_unit,
+          u.to_unit,
+          u.dimensionality,
+        );
         const fromDisplay =
-          u.amount === 1 ? formatUnit(u.from_unit) : `${formatUnit(u.from_unit)}s`;
+          u.amount === 1
+            ? formatUnit(u.from_unit)
+            : `${formatUnit(u.from_unit)}s`;
         const toNum = parseFloat(converted.toString().replace(/,/g, ""));
         const toDisplay =
-          Math.abs(toNum) === 1 ? formatUnit(u.to_unit) : `${formatUnit(u.to_unit)}s`;
+          Math.abs(toNum) === 1
+            ? formatUnit(u.to_unit)
+            : `${formatUnit(u.to_unit)}s`;
 
         const result = document.createElement("div");
         result.className = "rich-conversion-result";
         result.innerHTML = `<span class="rich-conversion-from">${u.amount} ${fromDisplay}</span> = <span class="rich-conversion-to">${converted} ${toDisplay}</span>`;
 
-        section.append(result, richCopyBtn(() => String(converted), "copy result"));
+        section.append(
+          result,
+          richCopyBtn(() => String(converted), "copy result"),
+        );
         frag.append(section);
-      } else if (item.subtype === "timezones" && item.timezones?.timezones?.length) {
+      } else if (
+        item.subtype === "timezones" &&
+        item.timezones?.timezones?.length
+      ) {
         section.classList.add("rich-timezones");
         const tzList = document.createElement("div");
         tzList.className = "rich-tz-list";
@@ -1628,16 +1726,22 @@
           const tzLoc = document.createElement("span");
           tzLoc.className = "rich-tz-location";
           tzLoc.textContent =
-            tz.converted_time?.city?.name || tz.converted_time?.location || tz.abbreviation;
+            tz.converted_time?.city?.name ||
+            tz.converted_time?.location ||
+            tz.abbreviation;
           const tzOffset = document.createElement("span");
           tzOffset.className = "rich-tz-offset";
-          tzOffset.textContent = tz.converted_time?.utc_diff || tz.utc_offset || "";
+          tzOffset.textContent =
+            tz.converted_time?.utc_diff || tz.utc_offset || "";
           tzEl.append(tzTime, tzLoc, tzOffset);
           tzList.append(tzEl);
         }
         section.append(tzList);
         frag.append(section);
-      } else if (item.subtype === "cryptocurrency" && item.cryptocurrency?.quote) {
+      } else if (
+        item.subtype === "cryptocurrency" &&
+        item.cryptocurrency?.quote
+      ) {
         section.classList.add("rich-crypto");
         const c = item.cryptocurrency;
         const q = c.quote;
@@ -1710,7 +1814,9 @@
           const prices = c.timeseries.ts_price;
           const isUp = prices[prices.length - 1][1] >= prices[0][1];
           const lineColor = isUp ? "#a6e3a1" : "#f38ba8";
-          const fillColor = isUp ? "rgba(166, 227, 161, 0.15)" : "rgba(243, 139, 168, 0.15)";
+          const fillColor = isUp
+            ? "rgba(166, 227, 161, 0.15)"
+            : "rgba(243, 139, 168, 0.15)";
 
           const renderChart = async () => {
             if (!window.Chart) {
@@ -1820,7 +1926,12 @@
           update();
         }, 1000);
 
-        section.append(display, richCopyBtn(() => String(current), "copy timestamp"), label, readable);
+        section.append(
+          display,
+          richCopyBtn(() => String(current), "copy timestamp"),
+          label,
+          readable,
+        );
         frag.append(section);
       } else if (item.subtype === "stopwatch" || item.stopwatch) {
         section.classList.add("rich-stopwatch");
@@ -2015,8 +2126,10 @@
         return ((amount * 9) / 5 + 32).toFixed(2);
       if (fromLower === "fahrenheit" && toLower === "celsius")
         return (((amount - 32) * 5) / 9).toFixed(2);
-      if (fromLower === "celsius" && toLower === "kelvin") return (amount + 273.15).toFixed(2);
-      if (fromLower === "kelvin" && toLower === "celsius") return (amount - 273.15).toFixed(2);
+      if (fromLower === "celsius" && toLower === "kelvin")
+        return (amount + 273.15).toFixed(2);
+      if (fromLower === "kelvin" && toLower === "celsius")
+        return (amount - 273.15).toFixed(2);
       if (fromLower === "fahrenheit" && toLower === "kelvin")
         return (((amount - 32) * 5) / 9 + 273.15).toFixed(2);
       if (fromLower === "kelvin" && toLower === "fahrenheit")
@@ -2253,7 +2366,11 @@
           });
           section.append(gallery);
           frag.append(section);
-        } else if (type === "faq" && results.faq?.results?.length && !faqRendered) {
+        } else if (
+          type === "faq" &&
+          results.faq?.results?.length &&
+          !faqRendered
+        ) {
           faqRendered = true;
           const faqSection = renderFaqSection(results.faq);
           if (faqSection) frag.append(faqSection);
@@ -2376,11 +2493,14 @@
       sessionStorage.setItem(retryKey, String(retries + 1));
       document.getElementById("results-all").innerHTML =
         '<div class="results-retrying">no results, retrying…</div>';
-      setTimeout(() => {
-        const u = new URL(location.href);
-        u.searchParams.set("_r", String(retries + 1));
-        location.replace(u.toString());
-      }, 500 + retries * 400);
+      setTimeout(
+        () => {
+          const u = new URL(location.href);
+          u.searchParams.set("_r", String(retries + 1));
+          location.replace(u.toString());
+        },
+        500 + retries * 400,
+      );
     } else {
       sessionStorage.removeItem(retryKey);
       import("/s/widgets.js")
@@ -2441,7 +2561,8 @@
         resultsContainer.append(renderWebResult(r));
       }
 
-      hasMoreResults = newData.more_results_available !== false && webResults.length > 0;
+      hasMoreResults =
+        newData.more_results_available !== false && webResults.length > 0;
     } catch (err) {
       console.error("Failed to load more results:", err);
     } finally {

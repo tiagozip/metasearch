@@ -78,9 +78,7 @@ function rerankByQueryContext(results, query) {
     return { r, i, hits };
   });
 
-  return scored
-    .sort((a, b) => b.hits - a.hits || a.i - b.i)
-    .map((s) => s.r);
+  return scored.sort((a, b) => b.hits - a.hits || a.i - b.i).map((s) => s.r);
 }
 
 export async function mapboxSearch(q, proximity) {
@@ -131,7 +129,8 @@ async function ddgGetVqd(query) {
       {
         headers: {
           "User-Agent": BROWSER_UA,
-          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
           "Accept-Language": "en-US,en;q=0.9",
         },
       },
@@ -367,7 +366,7 @@ async function overpassLookup(name, lat, lng) {
   const radius = 500;
   const escaped = name.replace(/["\\]/g, "\\$&");
   const q = `[out:json][timeout:6];(node(around:${radius},${lat},${lng})["name"="${escaped}"];way(around:${radius},${lat},${lng})["name"="${escaped}"];node(around:${radius},${lat},${lng})["name:en"="${escaped}"];way(around:${radius},${lat},${lng})["name:en"="${escaped}"];);out tags center 1;`;
-  const body = "data=" + encodeURIComponent(q);
+  const body = `data=${encodeURIComponent(q)}`;
   const endpoints = [
     "https://overpass.kumi.systems/api/interpreter",
     "https://overpass-api.de/api/interpreter",
@@ -407,7 +406,7 @@ async function overpassLookup(name, lat, lng) {
   }
 }
 
-function mergeFallbackPlace(name, lat, lng, wiki, osm, commons) {
+function mergeFallbackPlace(name, wiki, osm, commons) {
   const coords = wiki?.coords || osm?.center || null;
   if (!coords) return null;
   const tags = osm?.tags || {};
@@ -419,8 +418,7 @@ function mergeFallbackPlace(name, lat, lng, wiki, osm, commons) {
     tags["addr:country"],
   ].filter(Boolean);
   const address = addrParts.length ? addrParts.join(", ") : null;
-  const website =
-    tags.website || tags["contact:website"] || null;
+  const website = tags.website || tags["contact:website"] || null;
   const phone = tags.phone || tags["contact:phone"] || null;
 
   const photoPool = [];
@@ -469,7 +467,7 @@ async function fallbackEnrich(name, lat, lng) {
     overpassLookup(name, lat, lng),
     commonsImages(name, 8),
   ]);
-  return mergeFallbackPlace(name, lat, lng, wiki, osm, commons);
+  return mergeFallbackPlace(name, wiki, osm, commons);
 }
 
 export async function enrichPlace(name, lat, lng) {

@@ -8,7 +8,8 @@
     if (!url) return "#";
     try {
       const parsed = new URL(url);
-      if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
+      if (parsed.protocol === "http:" || parsed.protocol === "https:")
+        return url;
     } catch {}
     return "#";
   };
@@ -120,7 +121,7 @@
     const container = document.getElementById("news-results");
     const frag = document.createDocumentFragment();
 
-    if (!results || !results.length) {
+    if (!results?.length) {
       const noResults = document.createElement("div");
       noResults.className = "no-results";
       noResults.textContent = "No news found";
@@ -187,7 +188,8 @@
       }
 
       appendNews(newData.results);
-      hasMoreResults = newData.more_results_available !== false && newData.results.length > 0;
+      hasMoreResults =
+        newData.more_results_available !== false && newData.results.length > 0;
     } catch (err) {
       console.error("failed to load more news:", err);
     } finally {
@@ -250,10 +252,12 @@
     }
 
     if (["j", "k", "ArrowUp", "ArrowDown"].includes(event.key)) {
-      const results = Array.from(document.querySelectorAll(".news-result-link"));
+      const results = Array.from(
+        document.querySelectorAll(".news-result-link"),
+      );
       if (!results.length) return;
 
-      let active = document.activeElement;
+      const active = document.activeElement;
       let index = results.indexOf(active);
 
       if (event.key === "k" || event.key === "ArrowDown") {

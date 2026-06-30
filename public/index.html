@@ -2,8 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>try{var d=document.documentElement,L=localStorage;var a=L.getItem("ms-accent");if(a)d.style.setProperty("--blue",a);if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";var m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",function(){var s="/s/"+m+".png",f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach(function(i){i.src=s;i.style.objectFit="contain"})})}}catch(e){}</script>
-    <script defer data-domain="search.tiago.zip" src="https://palantir.estrogen.delivery/Pn7xQk2.js"></script>
+    <script>
+      try {
+        const d = document.documentElement,
+          L = localStorage;
+        const a = L.getItem("ms-accent");
+        if (a) d.style.setProperty("--blue", a);
+        if (L.getItem("ms-theme") === "amoled") d.dataset.theme = "amoled";
+        const m = L.getItem("ms-mascot");
+        if (m && m !== "teto") {
+          d.dataset.mascot = m;
+          addEventListener("DOMContentLoaded", () => {
+            const s = `/s/${m}.png`,
+              f = document.querySelector("link[rel~=icon]");
+            if (f) f.href = s;
+            document.querySelectorAll('img[src*="teto"]').forEach((i) => {
+              i.src = s;
+              i.style.objectFit = "contain";
+            });
+          });
+        }
+      } catch {}
+    </script>
+    <script
+      defer
+      data-domain="search.tiago.zip"
+      src="https://palantir.estrogen.delivery/Pn7xQk2.js"
+    ></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>search!</title>
     <meta name="theme-color" content="#1F1E2E" />
@@ -300,6 +325,21 @@
         <a href="/translate" target="_blank">translate</a> ·
         <span>cf %%colo%%</span>
       </div>
+
+      <script>
+        if (location.hostname !== "search.tiago.zip") {
+          // removing or hiding this notice violates the CPAL 1.0 
+          // attribution clause this project is licensed under.
+          const badge = document.createElement("div");
+          badge.style.cssText = `display: flex;align-items: center;border: 1px solid #7f849c78;padding: 5px 8px;border-radius: 7px;margin-top: 3em;color: var(--text);cursor: pointer;padding-right: 13px;
+        `;
+          badge.innerHTML = `
+          <img src="/s/teto_big.webp" alt="teto" draggable="false" style="width: 32px;">
+          <span style="margin-left: 12px;">unofficial mirror of</span><b style="margin-left: 4px; font-weight: 500; color: white;">metasearch</b>
+        `;
+          document.querySelector("header").appendChild(badge);
+        }
+      </script>
     </header>
 
     <script>
@@ -399,7 +439,7 @@
           }
         };
 
-        const spawn = (e) => {
+        const spawn = () => {
           const rect = teto.getBoundingClientRect();
           const cx = rect.left + rect.width / 2;
           const cy = rect.top + rect.height / 2;
@@ -425,7 +465,7 @@
 
         teto.addEventListener("click", (e) => {
           if (!isOnPlushie(e)) return;
-          spawn(e);
+          spawn();
         });
       })();
     </script>
