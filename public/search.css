@@ -1272,12 +1272,24 @@ a.infobox-hero-wide:hover img {
   display: contents;
 
   dt {
-    color: var(--muted);
+    color: #bac2de;
+    font-weight: 500;
   }
 
   dd {
     margin: 0;
-    color: #bac2de;
+    color: var(--muted);
+
+    a {
+      color: #bac2de;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+
+      &:hover {
+        color: var(--blue);
+        text-decoration: none;
+      }
+    }
   }
 
   .infobox-attr-img {
