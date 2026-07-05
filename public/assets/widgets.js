@@ -432,6 +432,643 @@ reg({
   },
 });
 
+const quiz = ({ id, match, title, sub, questions, tiers }) => {
+  const max = questions.reduce(
+    (s, q) => s + Math.max(...q.opts.map((o) => o[1])),
+    0,
+  );
+  reg({
+    id,
+    match: (q) => (match.test(q.trim()) ? {} : null),
+    build: () => {
+      let idx = 0;
+      const picks = [];
+      const fill = h("div", { class: `w-quiz-fill` });
+      const track = h("div", { class: "w-quiz-track" }, fill);
+      const pane = h("div", { class: "w-quiz-pane" });
+      const root = h("div", { class: "w-quiz" }, track, pane);
+
+      const restart = () => {
+        idx = 0;
+        picks.length = 0;
+        show();
+      };
+
+      const showResult = () => {
+        track.style.display = "none";
+        const score = picks.reduce((s, p) => s + p, 0);
+        const pct = Math.round((score / max) * 100);
+        const tier = tiers.find((t) => pct <= t.max) ?? tiers[tiers.length - 1];
+        const num = h("div", { class: "w-quiz-pct" }, "0%");
+        const gauge = h("div", { class: "w-quiz-gauge" }, num);
+        gauge.insertAdjacentHTML(
+          "afterbegin",
+          `<svg viewBox="0 0 100 100" aria-hidden="true"><circle class="w-quiz-ring" cx="50" cy="50" r="44" pathLength="100"/><circle class="w-quiz-ring fg" cx="50" cy="50" r="44" pathLength="100"/></svg>`,
+        );
+        const arc = gauge.querySelector(".fg");
+        const setArc = (v) => {
+          arc.style.strokeDasharray = `${v * 75} 100`;
+        };
+        pane.replaceChildren(
+          h(
+            "div",
+            { class: "w-quiz-card" },
+            gauge,
+            h("div", { class: "w-quiz-verdict" }, tier.title),
+            h("div", { class: "w-quiz-line" }, tier.line),
+            h(
+              "div",
+              { class: "w-btn-row w-center-row" },
+              h("button", {
+                class: "w-btn",
+                html: "take it again",
+                onclick: restart,
+              }),
+            ),
+          ),
+        );
+        let start;
+        const tick = (t) => {
+          start ??= t;
+          const p = Math.min(1, (t - start) / 900);
+          const e = 1 - (1 - p) ** 3;
+          num.textContent = `${Math.round(pct * e)}%`;
+          setArc((pct / 100) * e);
+          if (p < 1 && num.isConnected) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+        setTimeout(() => {
+          num.textContent = `${pct}%`;
+          setArc(pct / 100);
+        }, 950);
+      };
+
+      const show = () => {
+        if (idx >= questions.length) return showResult();
+        track.style.display = "";
+        fill.style.width = `${(idx / questions.length) * 100}%`;
+        const { q, opts } = questions[idx];
+        pane.replaceChildren(
+          h(
+            "div",
+            { class: "w-quiz-card" },
+            h(
+              "div",
+              { class: "w-quiz-top" },
+              idx > 0 &&
+                h("button", {
+                  class: "w-quiz-back",
+                  html: "&larr; back",
+                  onclick: () => {
+                    idx--;
+                    picks.pop();
+                    show();
+                  },
+                }),
+              h(
+                "span",
+                { class: "w-quiz-step" },
+                `${idx + 1} of ${questions.length}`,
+              ),
+            ),
+            h("div", { class: "w-quiz-q" }, q),
+            h(
+              "div",
+              { class: "w-quiz-opts" },
+              opts.map(([label, pts]) =>
+                h(
+                  "button",
+                  {
+                    class: "w-quiz-opt",
+                    onclick: () => {
+                      picks.push(pts);
+                      idx++;
+                      show();
+                    },
+                  },
+                  label,
+                ),
+              ),
+            ),
+          ),
+        );
+      };
+
+      show();
+      return card(title, sub, root);
+    },
+  });
+};
+
+quiz({
+  id: "quiz-gay",
+  match: /^(?:am\s+i\s+gay|how\s+gay\s+am\s+i|gay\s+(?:quiz|test))\s*\??$/i,
+  title: "am i gay?",
+  questions: [
+    {
+      q: "have you ever had feelings for a same-gender close friend?",
+      opts: [
+        ["i think so. that's why i'm taking this quiz", 3],
+        ["wait, what's the difference between friendship and a crush?", 2],
+        ["don't think so, but we're so close people joke that we're dating", 1],
+        ["nope. we're just friends", 0],
+      ],
+    },
+    {
+      q: "have you ever kissed someone or wanted to kiss someone of the same gender?",
+      opts: [
+        ["definitely, and it was great", 3],
+        ["i haven't done it, but i want to try it", 2],
+        [
+          "only as a joke or a dare, and i think about it more than i should",
+          2,
+        ],
+        ["yeah, and i'm not sure how i felt about it", 1],
+        ["nope. not interested", 0],
+      ],
+    },
+    {
+      q: "how do you feel about queer characters in tv shows and movies?",
+      opts: [
+        [
+          "oh, i've totally watched shows just for the queer ships and storylines",
+          3,
+        ],
+        ["i kind of feel like i can identify with queer characters", 2],
+        ["i notice queer characters, but i don't feel strongly about them", 1],
+        [
+          "i like the positive representation, but they don't stand out to me",
+          0,
+        ],
+      ],
+    },
+    {
+      q: "when someone asks you who you're crushing on:",
+      opts: [
+        [
+          "a name comes to mind immediately, and it's someone of the same gender",
+          3,
+        ],
+        ["i make up a name or pick someone random", 2],
+        ["i literally don't get the big deal about crushes", 1],
+        [
+          "i talk about someone of the opposite sex who i'm genuinely crushing on",
+          0,
+        ],
+      ],
+    },
+    {
+      q: "has anyone ever asked you if you were gay?",
+      opts: [
+        ["people pretty much assume that about me all the time", 3],
+        ["i've been asked that once or twice", 2],
+        [
+          "no one has asked directly, but i wouldn't be surprised if they did",
+          1,
+        ],
+        ["never. people assume i'm straight", 0],
+      ],
+    },
+    {
+      q: "when you imagine being in a relationship, what do you picture?",
+      opts: [
+        ["i can only see myself with someone of the same sex", 3],
+        ["i'm not sure. any gender seems okay", 2],
+        ["i'll probably be with someone of the opposite sex", 1],
+        ["i can only see myself with someone of the opposite sex", 0],
+      ],
+    },
+    {
+      q: "how would you feel about identifying as gay?",
+      opts: [
+        ["yeah, that feels right", 3],
+        ["it honestly makes me a little nervous, but also kinda fits", 2],
+        ["i'm not sure how i feel", 1],
+        ["no, i really don't think that's me", 0],
+      ],
+    },
+    {
+      q: "have you ever felt attracted to someone of the same gender?",
+      opts: [
+        ["yes", 3],
+        ["yeah, but everyone has, right?", 2],
+        ["people of the same gender are just objectively more attractive", 2],
+        ["nope", 0],
+      ],
+    },
+    {
+      q: "how do you feel about dating someone of the opposite gender?",
+      opts: [
+        ["i'm not interested. that would feel like a chore", 3],
+        ["i wouldn't mind, and i've either wanted to do it or have done it", 1],
+        ["maybe, but i'm not really interested in anyone", 1],
+        [
+          "i'd definitely date (or have dated) someone of the opposite gender",
+          0,
+        ],
+      ],
+    },
+    {
+      q: "do you ever fantasize about being with someone of the same gender?",
+      opts: [
+        ["yeah. pretty often", 3],
+        ["sometimes", 2],
+        [
+          "yes, but i'm not sure i'd actually end up with someone of the same gender",
+          1,
+        ],
+        ["no", 0],
+      ],
+    },
+    {
+      q: "when you imagine kissing or being intimate with a future partner, how do you feel?",
+      opts: [
+        ["as long as i'm with someone i really like, that sounds great", 1],
+        ["good, i guess?", 1],
+        [
+          "i can't imagine that, and i don't think i'll ever want that, regardless of gender",
+          0,
+        ],
+        ["i'm too young for that", 0],
+      ],
+    },
+    {
+      q: "if you scroll through your feed or fyp, do you see content from queer creators?",
+      opts: [
+        ["yup. you got me", 3],
+        ["maybe! it depends on the day", 2],
+        ["yeah, but only because i've looked at one or two related posts", 1],
+        ["probably not", 0],
+      ],
+    },
+    {
+      q: "flash forward 5 years: how likely is it that your partner is the same gender as you?",
+      opts: [
+        ["very likely", 3],
+        ["pretty likely", 2],
+        ["possible, but not super likely", 1],
+        ["not very likely", 0],
+      ],
+    },
+    {
+      q: "would you be comfortable using an lgbtq+ dating app?",
+      opts: [
+        ["absolutely! i already have one downloaded", 3],
+        ["i'm open to giving one a try", 2],
+        ["not really, but i won't rule it out completely", 1],
+        ["no. that makes me uncomfortable", 0],
+      ],
+    },
+    {
+      q: "are there a lot of lgbtq+ individuals in your friend group?",
+      opts: [
+        ["absolutely! lots of my friends are queer", 3],
+        ["a few good friends of mine identify as lgbtq+", 2],
+        ["not really, most of my friends are straight", 1],
+        ["nope. my entire friend group is straight", 0],
+      ],
+    },
+    {
+      q: "what inspired you to take this quiz?",
+      opts: [
+        ["i think i might be gay, but i wanted some extra validation", 3],
+        [
+          "i identify with aspects of the queer experience but am not totally sure where i stand",
+          2,
+        ],
+        ["i'm just curious about the result i'll get", 1],
+        ["i want to confirm that i'm heterosexual", 0],
+      ],
+    },
+  ],
+  tiers: [
+    {
+      max: 24,
+      title: "probably straight",
+      line: "not much same-gender attraction showing up in your answers.",
+    },
+    {
+      max: 49,
+      title: "maybe a little curious",
+      line: "a few of your answers point somewhere. no pressure to name it yet.",
+    },
+    {
+      max: 74,
+      title: "signs point to queer",
+      line: "there's a real pattern in your answers. worth sitting with, at your own pace.",
+    },
+    {
+      max: 100,
+      title: "yeah, probably gay",
+      line: "your answers point pretty clearly toward same-gender attraction.",
+    },
+  ],
+});
+
+quiz({
+  id: "quiz-trans",
+  match:
+    /^(?:am\s+i\s+trans(?:gender)?|how\s+trans\s+am\s+i|trans(?:gender)?\s+(?:quiz|test))\s*\??$/i,
+  title: "am i trans?",
+  questions: [
+    {
+      q: "have you ever wondered what it'd be like to be a different gender, just for a little while?",
+      opts: [
+        ["yes, often!", 3],
+        ["i used to all the time as a kid", 2],
+        ["sometimes", 1],
+        ["no, not really", 0],
+      ],
+    },
+    {
+      q: "do you ever get uncomfortable when you think about certain parts of your own body?",
+      opts: [
+        [
+          "yeah. it's like i wish they weren't there, or that they were different",
+          3,
+        ],
+        ["sometimes, but for reasons that don't have to do with gender", 1],
+        ["no. for the most part, i like my body as it is!", 0],
+      ],
+    },
+    {
+      q: "is your friend group mostly the same gender as you?",
+      opts: [
+        ["yes, and that's fine by me", 0],
+        ["yes, but i wish i had more friends of another gender", 1],
+        ["nope. it's pretty mixed and diverse!", 1],
+        ["no. actually, most of my friends are a different gender!", 2],
+      ],
+    },
+    {
+      q: "when you see or think about your chest, how do you feel?",
+      opts: [
+        [
+          "i wish it were different in some way. it feels like it doesn't belong to me",
+          3,
+        ],
+        ["i'm fine with it. i don't really think about it", 0],
+        ["i'd like to change or improve it, but nothing dramatic", 1],
+        ["it feels good! it's a part of my body, and i like it", 0],
+      ],
+    },
+    {
+      q: "have you ever had trouble fitting in with people of the gender you were assigned at birth?",
+      opts: [
+        ["yes. i find them hard to relate to", 3],
+        ["sometimes, but not often", 1],
+        ["not really. i feel pretty at home around them", 0],
+        ["i'm not sure", 1],
+      ],
+    },
+    {
+      q: "if you could change one of these things about yourself, which would you choose?",
+      opts: [
+        ["my voice", 2],
+        ["my body", 2],
+        ["my personality", 0],
+        ["my life circumstances", 0],
+        ["i would change multiple of these, or even all of them", 3],
+        ["none of these", 0],
+      ],
+    },
+    {
+      q: "what's stopping you from transitioning right now?",
+      opts: [
+        ["i don't want to transition", 0],
+        ["i'm not sure if it's right for me", 1],
+        [
+          "i can't afford it, or my life circumstances (religion, politics, etc.) won't allow it",
+          3,
+        ],
+        ["something else", 2],
+      ],
+    },
+    {
+      q: "if you woke up tomorrow and found that you transitioned overnight, how do you think you would feel?",
+      opts: [
+        ["curious. i'd want to experiment and explore", 2],
+        ["relieved or excited. it'd be a dream come true", 3],
+        ["uncertain. i'm not sure if i'd want that", 1],
+        ["upset. i'd want to go back to how i was before", 0],
+      ],
+    },
+    {
+      q: "if you could do one of these right now with nothing but positive consequences, and you could snap your fingers and go back whenever you want, which would you pick?",
+      opts: [
+        [
+          "physically transition (change my body) and socially transition (change my social identity)",
+          3,
+        ],
+        ["only physically transition (changing parts of my body)", 2],
+        ["only socially transition (like changing my name and pronouns)", 2],
+        ["none of these", 0],
+      ],
+    },
+    {
+      q: "what emotion do you most feel when you see transgender people?",
+      opts: [
+        ["envy", 3],
+        ["curiosity", 1],
+        ["anxiety", 2],
+        ["excitement", 2],
+        ["nothing in particular", 0],
+      ],
+    },
+    {
+      q: "finally, can we ask why you're taking this quiz?",
+      opts: [
+        ["i think i might be trans, but want a second opinion", 3],
+        ["i'm not sure if i'm trans, and want some guidance", 2],
+        ["i don't think i'm trans, but want to be sure", 1],
+        ["i'm just taking it for fun!", 0],
+      ],
+    },
+  ],
+  tiers: [
+    {
+      max: 24,
+      title: "probably cis",
+      line: "not much gender friction showing up in your answers.",
+    },
+    {
+      max: 49,
+      title: "some questions worth sitting with",
+      line: "a few of your answers point somewhere",
+    },
+    {
+      max: 74,
+      title: "there's a real pattern here",
+      line: "plenty of people who answer like this end up somewhere under the trans umbrella",
+    },
+    {
+      max: 100,
+      title: "you're probably trans",
+      line: "you've probably suspected this for a while",
+    },
+  ],
+});
+
+quiz({
+  id: "quiz-furry",
+  match:
+    /^(?:am\s+i\s+a?\s*furry|how\s+furry\s+am\s+i|furry\s+(?:quiz|test))\s*\??$/i,
+  title: "am i a furry?",
+  questions: [
+    {
+      q: "how do you feel when you see an animal with human-like traits?",
+      opts: [
+        ["super excited", 3],
+        ["intrigued", 2],
+        ["mildly interested", 1],
+        ["indifferent", 0],
+      ],
+    },
+    {
+      q: "do you ever feel like an animal trapped in a human body?",
+      opts: [
+        ["yes, for sure! it's a frequent thing", 3],
+        ["sometimes, but the feeling goes away eventually", 2],
+        ["maybe once, but it was just a passing thought", 1],
+        ["nope. i feel 100% like a human", 0],
+      ],
+    },
+    {
+      q: "would you be interested in going to furry conventions?",
+      opts: [
+        ["yes! i already go to several cons in full fursuit every year", 3],
+        ["yes. i've never been to one, but i'm curious about them", 2],
+        ["maybe, i guess. but i definitely wouldn't dress up", 1],
+        ["no. i didn't even know they existed", 0],
+      ],
+    },
+    {
+      q: "do you belong to any online furry communities?",
+      opts: [
+        ["absolutely. the furry fandom is a major part of my life", 3],
+        [
+          "yeah, i'm in the community, but i'm not a super active participant",
+          2,
+        ],
+        [
+          "not exactly, but the algorithm keeps showing me furries and i don't stop it",
+          2,
+        ],
+        ["no, but i've lurked in the forums once or twice", 1],
+        ["no, i don't follow any of that stuff online or irl", 0],
+      ],
+    },
+    {
+      q: "do you have a fursona?",
+      opts: [
+        ["i definitely do, and it's a huge part of who i am", 3],
+        ["not yet, but i think i'd like to one day", 2],
+        [
+          "i have a commissioned animal pfp, but i wouldn't call it a fursona",
+          2,
+        ],
+        ["i have an animal character i doodle sometimes, that's all", 1],
+        ["no, it's not for me, but the idea is neat", 1],
+        ["um, what's a fursona?", 0],
+      ],
+    },
+    {
+      q: "what do you think about fursuits?",
+      opts: [
+        ["i love them, i wear my fursuit every chance i get", 3],
+        ["they're pretty cool, i'm thinking about getting one", 2],
+        ["i've looked up prices. purely out of curiosity.", 2],
+        ["i respect the craft, but i probably wouldn't wear one", 1],
+        ["i guess they're fine... as halloween costumes", 0],
+      ],
+    },
+    {
+      q: "do you watch cartoons, shows, or movies with animals in them?",
+      opts: [
+        ["of course! that's pretty much all i watch these days", 3],
+        ["yes, i watch a lot of them, but i like other stuff, too", 2],
+        ["sometimes, but i usually don't seek them out", 1],
+        ["rarely. i don't actively avoid them, but they're not my jam", 0],
+      ],
+    },
+    {
+      q: "have you ever spent time looking at furry art?",
+      opts: [
+        ["yes, tons! i even have a few pieces on my wall", 3],
+        ["i've commissioned a piece or two, for completely normal reasons", 3],
+        ["a little. i follow a few furry artists on social media", 2],
+        ["i've seen some furry art, but i wasn't searching for it", 1],
+        ["nope, never", 0],
+      ],
+    },
+    {
+      q: "have you ever role-played as a furry online or in person?",
+      opts: [
+        ["yes, regularly. it's one of my favorite things to do", 3],
+        ["yes, a few times, but it wasn't a big deal", 2],
+        ["no, but i think the idea is pretty cool", 1],
+        ["no, role-playing just isn't my thing", 0],
+      ],
+    },
+    {
+      q: "do you feel spiritually connected to a specific animal or creature?",
+      opts: [
+        [
+          "i feel a deep and spiritual kinship with a specific animal or character",
+          3,
+        ],
+        [
+          "i feel very drawn to a particular animal species that i like a lot",
+          2,
+        ],
+        [
+          "i feel a strong connection to all animals, but it's not spiritual",
+          1,
+        ],
+        ["i like animals well enough, but my feelings aren't that deep", 0],
+      ],
+    },
+    {
+      q: "do you have any friends in the furry fandom?",
+      opts: [
+        ["yes, some of my besties are in the fandom!", 3],
+        ["yes, i know a few people", 2],
+        ["maybe one or two casual acquaintances", 1],
+        ["no, i don't have any", 0],
+      ],
+    },
+    {
+      q: "how do you feel when someone says they're a furry?",
+      opts: [
+        ["i feel instantly connected to them", 3],
+        ["i'm intrigued. i usually ask questions about it", 2],
+        ["i'm interested, but i personally can't relate", 1],
+        ["nothing in particular. to each their own", 0],
+      ],
+    },
+  ],
+  tiers: [
+    {
+      max: 24,
+      title: "not a furry",
+    },
+    {
+      max: 49,
+      title: "furry-adjacent",
+    },
+    {
+      max: 74,
+      title: "basically a furry",
+      line: "you know far too much for a civilian.",
+    },
+    {
+      max: 100,
+      title: "furry",
+      line: "the quiz was a formality",
+    },
+  ],
+});
+
 ////// random / chance /////////////////////////////////////////////////////////
 
 reg({
@@ -3798,9 +4435,12 @@ reg({
         ),
       );
     run();
-    window.addEventListener("resize", () => {
-      if (out.isConnected) run();
-    });
+    const onResize = () => {
+      if (!out.isConnected)
+        return window.removeEventListener("resize", onResize);
+      run();
+    };
+    window.addEventListener("resize", onResize);
     return card("display info", "resize your window to watch it update", out);
   },
 });
@@ -4732,9 +5372,14 @@ reg({
         ArrowRight: "right",
         ArrowUp: "up",
         ArrowDown: "down",
+        a: "left",
+        d: "right",
+        w: "up",
+        s: "down",
       };
-      if (m[e.key]) {
-        move(m[e.key]);
+      const dir = m[e.key] || m[e.key.toLowerCase?.()];
+      if (dir) {
+        move(dir);
         e.preventDefault();
         e.stopPropagation();
       }
@@ -4768,7 +5413,7 @@ reg({
     reset();
     return card(
       "2048",
-      "arrow keys · or swipe on mobile",
+      "arrow keys or wasd · swipe on mobile",
       wrap,
       scoreEl,
       h(
@@ -4959,11 +5604,19 @@ reg({
       flags = 0;
       draw();
     };
+    const wrap = h("div", { class: "w-game", tabindex: "0" }, board);
+    wrap.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === "r") {
+        reset();
+        e.preventDefault();
+      }
+    });
+    wrap.onclick = () => wrap.focus();
     reset();
     return card(
       "minesweeper",
-      "left-click reveals · right-click flags · click a number to chord",
-      h("div", { class: "w-game" }, board),
+      "left-click reveals · right-click flags · click a number to chord · r restarts",
+      wrap,
       status,
       h(
         "div",
