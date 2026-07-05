@@ -432,7 +432,15 @@ reg({
   },
 });
 
-const quiz = ({ id, match, title, sub, questions, tiers }) => {
+const quiz = ({
+  id,
+  match,
+  title,
+  sub,
+  questions,
+  tiers,
+  fmt = (v) => `${v}%`,
+}) => {
   const max = questions.reduce(
     (s, q) => s + Math.max(...q.opts.map((o) => o[1])),
     0,
@@ -459,7 +467,7 @@ const quiz = ({ id, match, title, sub, questions, tiers }) => {
         const score = picks.reduce((s, p) => s + p, 0);
         const pct = Math.round((score / max) * 100);
         const tier = tiers.find((t) => pct <= t.max) ?? tiers[tiers.length - 1];
-        const num = h("div", { class: "w-quiz-pct" }, "0%");
+        const num = h("div", { class: "w-quiz-pct" }, fmt(0));
         const gauge = h("div", { class: "w-quiz-gauge" }, num);
         gauge.insertAdjacentHTML(
           "afterbegin",
@@ -492,13 +500,13 @@ const quiz = ({ id, match, title, sub, questions, tiers }) => {
           start ??= t;
           const p = Math.min(1, (t - start) / 900);
           const e = 1 - (1 - p) ** 3;
-          num.textContent = `${Math.round(pct * e)}%`;
+          num.textContent = fmt(Math.round(pct * e));
           setArc((pct / 100) * e);
           if (p < 1 && num.isConnected) requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
         setTimeout(() => {
-          num.textContent = `${pct}%`;
+          num.textContent = fmt(pct);
           setArc(pct / 100);
         }, 950);
       };
@@ -939,6 +947,7 @@ quiz({
         ["yes! i already go to several cons in full fursuit every year", 3],
         ["yes. i've never been to one, but i'm curious about them", 2],
         ["maybe, i guess. but i definitely wouldn't dress up", 1],
+        ["no. i know they exist, i just wouldn't go", 0],
         ["no. i didn't even know they existed", 0],
       ],
     },
@@ -1065,6 +1074,101 @@ quiz({
       max: 100,
       title: "furry",
       line: "the quiz was a formality",
+    },
+  ],
+});
+
+quiz({
+  id: "quiz-iq",
+  match:
+    /^(?:iq\s+test|test\s+my\s+iq|what(?:'s|\s+is)\s+my\s+iq|how\s+smart\s+am\s+i|am\s+i\s+(?:smart|stupid|dumb))\s*\??$/i,
+  title: "iq test",
+  fmt: (pct) => `iq ${55 + pct}`,
+  questions: [
+    {
+      q: "you have 3 apples. you take away 2. how many apples do you have?",
+      opts: [
+        ["2. i took them, they're mine now", 3],
+        ["3. taking isn't eating", 2],
+        ["1", 1],
+        ["i don't want apples", 0],
+      ],
+    },
+    {
+      q: "which is heavier: a kilogram of steel or a kilogram of feathers?",
+      opts: [
+        ["the feathers. emotionally.", 3],
+        ["they weigh the same", 2],
+        ["the feathers, but the steel hurts more", 1],
+        ["steel, obviously", 0],
+      ],
+    },
+    {
+      q: "a rooster lays an egg on the exact top of a roof. which side does it roll down?",
+      opts: [
+        ["roosters don't lay eggs", 3],
+        ["depends on the wind", 2],
+        ["the left", 1],
+        ["the right", 1],
+      ],
+    },
+    {
+      q: "how many months have 28 days?",
+      opts: [
+        ["all of them", 3],
+        ["depends on leap years", 2],
+        ["1", 1],
+        ["i'd have to check", 0],
+      ],
+    },
+    {
+      q: "finish the sequence: 1, 1, 2, 3, 5, …",
+      opts: [
+        ["8", 3],
+        ["it's already finished. you put an ellipsis, not me", 2],
+        ["7", 1],
+        ["6", 0],
+      ],
+    },
+    {
+      q: "you're in a race and you overtake the person in second place. what place are you in?",
+      opts: [
+        ["second", 3],
+        ["i would never run", 2],
+        ["depends how many racers there are", 1],
+        ["first", 0],
+      ],
+    },
+    {
+      q: "be honest: why are you taking an iq test on a search engine?",
+      opts: [
+        ["to settle an argument", 3],
+        ["i was promised a number", 2],
+        ["boredom", 1],
+        ["this is an iq test?", 0],
+      ],
+    },
+  ],
+  tiers: [
+    {
+      max: 24,
+      title: "room temperature",
+      line: "in celsius.",
+    },
+    {
+      max: 49,
+      title: "perfectly average",
+      line: "statistically speaking, someone has to be.",
+    },
+    {
+      max: 74,
+      title: "dangerously smart",
+      line: "smart enough to spot the trick questions, not smart enough to close the tab.",
+    },
+    {
+      max: 100,
+      title: "certified genius",
+      line: "as certified by a search engine widget, the highest scientific authority.",
     },
   ],
 });
