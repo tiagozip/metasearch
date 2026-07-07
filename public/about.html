@@ -2,8 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>try{const d=document.documentElement,L=localStorage;const a=L.getItem("ms-accent");if(a)d.style.setProperty("--blue",a);if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";const m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",()=> {const s=`/s/${m}.png`,f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach((i)=> {if(i.closest(".mascot-picker"))return;i.src=s;i.style.objectFit="contain"})})}}catch{}</script>
-    <script defer data-domain="search.tiago.zip" src="https://palantir.estrogen.delivery/Pn7xQk2.js"></script>
+    <script>
+      try {
+        const d = document.documentElement,
+          L = localStorage;
+        const a = L.getItem("ms-accent");
+        if (a) d.style.setProperty("--blue", a);
+        if (L.getItem("ms-theme") === "amoled") d.dataset.theme = "amoled";
+        const m = L.getItem("ms-mascot");
+        if (m && m !== "teto") {
+          d.dataset.mascot = m;
+          addEventListener("DOMContentLoaded", () => {
+            const s = `/s/${m}.png`,
+              f = document.querySelector("link[rel~=icon]");
+            if (f) f.href = s;
+            document.querySelectorAll('img[src*="teto"]').forEach((i) => {
+              if (i.closest(".mascot-picker")) return;
+              i.src = s;
+              i.style.objectFit = "contain";
+            });
+          });
+        }
+      } catch {}
+    </script>
+    <script
+      defer
+      data-domain="search.tiago.zip"
+      src="https://palantir.estrogen.delivery/Pn7xQk2.js"
+    ></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>about / search.tiago.zip</title>
     <meta name="theme-color" content="#1F1E2E" />
@@ -131,7 +157,9 @@
         color: var(--subtext);
         font: inherit;
         font-size: 0.85rem;
-        transition: border-color 0.15s, background 0.15s;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
       }
       .mascot-tile img {
         width: 66px;
@@ -161,7 +189,9 @@
         cursor: pointer;
         outline: 2px solid transparent;
         outline-offset: 2px;
-        transition: transform 0.1s, outline-color 0.15s;
+        transition:
+          transform 0.1s,
+          outline-color 0.15s;
       }
       .accent-swatch:hover {
         transform: scale(1.12);
@@ -207,7 +237,9 @@
         padding: 6px 12px;
         cursor: pointer;
         margin-left: 4px;
-        transition: border-color 0.15s, color 0.15s;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
       }
       .accent-reset:hover {
         border-color: var(--blue);
@@ -544,25 +576,18 @@
         <h2 class="bigh2">privacy</h2>
         <h2>anonymous traffic analytics</h2>
         <p>
-          we use plausible to get an approximate number of active users, fully anonymously. no
-          identifiable information about you or your requests is ever stored.
-          <a href="https://plausible.io/privacy-focused-web-analytics" target="_blank"
-            >learn more about plausible’s dedication to privacy</a
-          >
+          we use a custom, hardened fork of plausible to get an approximate number of active users,
+          fully anonymously. no identifiable information about you or your requests is ever stored.
+        </p>
+
+        <h2>results</h2>
+        <p>
+          we source our results from brave. they don't store your queries and can't see your ip
+          address or know who you are.
         </p>
 
         <h2>data sharing</h2>
-        <p>
-          we do <b>*not*</b> share your data with 3rd-parties. we need to send brave your search
-          queries to get result but they don't store them and can't see your ip address or know who
-          you are.
-        </p>
-
-        <h2>self-hosting</h2>
-        <p>
-          if you'd rather selfhost this, please follow the guide in
-          <a href="https://github.com/tiagozip/metasearch" target="_blank">the github repo</a>
-        </p>
+        <p>we do not collect or share your data. meow.</p>
 
         <h2>keyboard shortcuts</h2>
         <ul>
@@ -600,16 +625,76 @@
 
         <p>accent color (overrides the mascot's accent)</p>
         <div class="accent-picker">
-          <button class="accent-swatch" data-accent="#89b4fa" style="background:#89b4fa" type="button" title="blue"></button>
-          <button class="accent-swatch" data-accent="#b4befe" style="background:#b4befe" type="button" title="lavender"></button>
-          <button class="accent-swatch" data-accent="#cba6f7" style="background:#cba6f7" type="button" title="mauve"></button>
-          <button class="accent-swatch" data-accent="#f5c2e7" style="background:#f5c2e7" type="button" title="pink"></button>
-          <button class="accent-swatch" data-accent="#f38ba8" style="background:#f38ba8" type="button" title="red"></button>
-          <button class="accent-swatch" data-accent="#fab387" style="background:#fab387" type="button" title="peach"></button>
-          <button class="accent-swatch" data-accent="#f9e2af" style="background:#f9e2af" type="button" title="yellow"></button>
-          <button class="accent-swatch" data-accent="#a6e3a1" style="background:#a6e3a1" type="button" title="green"></button>
-          <button class="accent-swatch" data-accent="#94e2d5" style="background:#94e2d5" type="button" title="teal"></button>
-          <button class="accent-swatch" data-accent="#89dceb" style="background:#89dceb" type="button" title="sky"></button>
+          <button
+            class="accent-swatch"
+            data-accent="#89b4fa"
+            style="background: #89b4fa"
+            type="button"
+            title="blue"
+          ></button>
+          <button
+            class="accent-swatch"
+            data-accent="#b4befe"
+            style="background: #b4befe"
+            type="button"
+            title="lavender"
+          ></button>
+          <button
+            class="accent-swatch"
+            data-accent="#cba6f7"
+            style="background: #cba6f7"
+            type="button"
+            title="mauve"
+          ></button>
+          <button
+            class="accent-swatch"
+            data-accent="#f5c2e7"
+            style="background: #f5c2e7"
+            type="button"
+            title="pink"
+          ></button>
+          <button
+            class="accent-swatch"
+            data-accent="#f38ba8"
+            style="background: #f38ba8"
+            type="button"
+            title="red"
+          ></button>
+          <button
+            class="accent-swatch"
+            data-accent="#fab387"
+            style="background: #fab387"
+            type="button"
+            title="peach"
+          ></button>
+          <button
+            class="accent-swatch"
+            data-accent="#f9e2af"
+            style="background: #f9e2af"
+            type="button"
+            title="yellow"
+          ></button>
+          <button
+            class="accent-swatch"
+            data-accent="#a6e3a1"
+            style="background: #a6e3a1"
+            type="button"
+            title="green"
+          ></button>
+          <button
+            class="accent-swatch"
+            data-accent="#94e2d5"
+            style="background: #94e2d5"
+            type="button"
+            title="teal"
+          ></button>
+          <button
+            class="accent-swatch"
+            data-accent="#89dceb"
+            style="background: #89dceb"
+            type="button"
+            title="sky"
+          ></button>
           <label class="accent-custom" title="custom" aria-label="custom accent color">
             <input type="color" id="accent-input" value="#89b4fa" />
           </label>

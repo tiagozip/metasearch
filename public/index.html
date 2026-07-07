@@ -229,6 +229,28 @@
         }
       }
 
+      .meowing-badge {
+        display: flex;
+        align-items: center;
+        border: 1px solid #7f849c78;
+        padding: 5px 8px;
+        border-radius: 7px;
+        margin-top: 3em;
+        color: var(--text);
+        cursor: pointer;
+        padding-right: 13px;
+        text-decoration: none;
+        transition: transform 0.2s ease;
+      }
+
+      .meowing-badge:hover {
+        border-color: #7f849c;
+      }
+
+      .meowing-badge:active {
+        transform: scale(0.97);
+      }
+
       @font-face {
         font-family: "InstrumentSans";
         font-display: swap;
@@ -334,8 +356,7 @@
           badge.href = "https://github.com/tiagozip/metasearch";
           badge.target = "_blank";
           badge.rel = "noopener noreferrer";
-          badge.style.cssText = `display: flex;align-items: center;border: 1px solid #7f849c78;padding: 5px 8px;border-radius: 7px;margin-top: 3em;color: var(--text);cursor: pointer;padding-right: 13px;text-decoration: none;
-          `;
+          badge.classList.add("meowing-badge");
           badge.innerHTML = `
           <img src="/s/teto_big.webp" alt="teto" draggable="false" style="width: 32px;">
           <span style="margin-left: 12px;">unofficial mirror of</span><b style="margin-left: 4px; font-weight: 500; color: white;">metasearch</b>
