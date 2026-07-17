@@ -305,8 +305,10 @@
                 width: fit-content;
                 transition: transform 0.2s;
 
-                &:hover {
-                  transform: scale(1.03);
+                @media (hover: hover) and (pointer: fine) {
+                  &:hover {
+                    transform: scale(1.03);
+                  }
                 }
                 &:active {
                   transform: scale(0.95);

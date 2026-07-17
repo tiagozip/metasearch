@@ -29,9 +29,24 @@ const STYLE = `
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--surface1, #45475a) transparent;
+  transform: scale(0.96);
+  transform-origin: top center;
+  opacity: 0;
+  transition:
+    transform var(--duration-slow, 0.2s) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)),
+    opacity var(--duration-base, 0.15s) var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1)),
+    display var(--duration-slow, 0.2s) allow-discrete;
 }
 .omnibox-panel.open {
   display: flex;
+  transform: scale(1);
+  opacity: 1;
+}
+@starting-style {
+  .omnibox-panel.open {
+    transform: scale(0.96);
+    opacity: 0;
+  }
 }
 .omnibox-item {
   display: flex;
@@ -109,7 +124,7 @@ const STYLE = `
 .omnibox-item.active .omnibox-arrow {
   opacity: 0.7;
 }
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .omnibox-item:hover .omnibox-arrow {
     opacity: 0.7;
   }

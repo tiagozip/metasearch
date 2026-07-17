@@ -32,6 +32,11 @@
   --subtext: #a6adc8;
   --blue: #89b4fa;
   --muted: #7f849c;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-fast: 0.1s;
+  --duration-base: 0.15s;
+  --duration-slow: 0.2s;
 }
 
 :root[data-theme="amoled"] {
@@ -237,7 +242,6 @@ aside {
     font-family: inherit;
     text-decoration: none;
     position: relative;
-    --direction: -1;
 
     &:hover {
       color: var(--text);
@@ -275,9 +279,9 @@ aside {
     margin-right: -6px;
     transform-origin: bottom center;
     transition:
-      background-color 0.1s,
-      color 0.1s,
-      transform 0.2s;
+      background-color var(--duration-fast),
+      color var(--duration-fast),
+      transform var(--duration-base) var(--ease-out);
 
     &:hover {
       background-color: var(--surface0);
@@ -285,7 +289,8 @@ aside {
     }
 
     &:active {
-      transform: scale(0.92);
+      transform: scale(0.97);
+      transition: transform var(--duration-fast) var(--ease-out);
     }
   }
 }
@@ -295,6 +300,24 @@ aside {
   font-size: 0.95rem;
   padding: 48px 0;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  animation: results-retrying-in var(--duration-slow) var(--ease-out) backwards;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    animation: spin 0.6s linear infinite;
+  }
+}
+
+@keyframes results-retrying-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 
 .w-notfurry {
@@ -828,8 +851,10 @@ a.infobox-hero-wide:hover img {
       transition: transform 0.2s;
     }
 
-    &:hover img {
-      transform: scale(1.05);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover img {
+        transform: scale(1.05);
+      }
     }
   }
 }
@@ -1789,7 +1814,7 @@ a.infobox-hero-wide:hover img {
   stroke: var(--blue);
   stroke-width: 3;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.3s ease;
+  transition: stroke-dashoffset var(--duration-fast) linear;
 
   &.done {
     stroke: #a6e3a1;
@@ -2507,8 +2532,10 @@ a.infobox-hero-wide:hover img {
     height: 100%;
     background: var(--blue);
     border-radius: 100px;
-    transition: width 0.2s;
-    width: 0;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--duration-slow) linear;
   }
 }
 
@@ -2576,8 +2603,10 @@ a.infobox-hero-wide:hover img {
       }
     }
 
-    &:hover img {
-      transform: scale(1.02);
+    @media (hover: hover) and (pointer: fine) {
+      &:hover img {
+        transform: scale(1.02);
+      }
     }
 
     &.selected .image-wrapper img {
@@ -3745,18 +3774,16 @@ body.images-detail-sidebar-open .images-body {
   text-align: center;
   padding: 10px;
 }
-.w-picker-out.flash {
-  animation: w-flash 0.4s ease;
+.w-picker-out {
+  color: var(--text);
+  transition:
+    transform var(--duration-slow) var(--ease-out),
+    color var(--duration-slow) var(--ease-out);
 }
-@keyframes w-flash {
-  0% {
-    color: var(--blue);
-    transform: scale(1.15);
-  }
-  100% {
-    color: var(--text);
-    transform: scale(1);
-  }
+.w-picker-out.flash {
+  color: var(--blue);
+  transform: scale(1.08);
+  transition: none;
 }
 
 /* 8ball */
@@ -3770,27 +3797,15 @@ body.images-detail-sidebar-open .images-body {
   justify-content: center;
   cursor: pointer;
   margin: 0 auto;
+  transition: transform var(--duration-slow) var(--ease-out);
 }
-.w-8ball.shake {
-  animation: w-shake 0.7s ease;
+.w-8ball.shake-a {
+  transform: translateX(-6px) rotate(-4deg);
+  transition: transform var(--duration-fast) var(--ease-out);
 }
-@keyframes w-shake {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0);
-  }
-  20% {
-    transform: translate(-6px, 4px) rotate(-5deg);
-  }
-  40% {
-    transform: translate(6px, -4px) rotate(5deg);
-  }
-  60% {
-    transform: translate(-4px, -4px) rotate(-3deg);
-  }
-  80% {
-    transform: translate(4px, 4px) rotate(3deg);
-  }
+.w-8ball.shake-b {
+  transform: translateX(6px) rotate(4deg);
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 .w-8ball-window {
   width: 72px;
@@ -4183,18 +4198,14 @@ body.images-detail-sidebar-open .images-body {
 .w-tap-pad {
   background: var(--mauve);
   padding: 28px 0;
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    filter var(--duration-base) var(--ease-out);
 }
 .w-tap-pad.hit {
-  animation: w-tap 0.15s ease;
-}
-@keyframes w-tap {
-  0% {
-    transform: scale(0.96);
-    filter: brightness(1.3);
-  }
-  100% {
-    transform: scale(1);
-  }
+  transform: scale(0.96);
+  filter: brightness(1.3);
+  transition: none;
 }
 .w-react-pad {
   background: var(--surface0);
@@ -4810,7 +4821,7 @@ body.images-detail-sidebar-open .images-body {
 .lp-chevron {
   display: inline-flex;
   color: var(--subtext);
-  transition: transform 0.15s;
+  transition: transform var(--duration-base) var(--ease-out);
 }
 .lp.open .lp-chevron {
   transform: rotate(180deg);
@@ -4827,9 +4838,24 @@ body.images-detail-sidebar-open .images-body {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
   display: none;
   overflow: hidden;
+  transform: scale(0.96);
+  transform-origin: top left;
+  opacity: 0;
+  transition:
+    transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-base) var(--ease-out),
+    display var(--duration-slow) allow-discrete;
 }
 .lp.open .lp-pop {
   display: block;
+  transform: scale(1);
+  opacity: 1;
+}
+@starting-style {
+  .lp.open .lp-pop {
+    transform: scale(0.96);
+    opacity: 0;
+  }
 }
 .lp-search {
   width: 100%;
@@ -5133,8 +5159,10 @@ body.images-detail-sidebar-open .images-body {
   height: 100%;
   border-radius: 3px;
   background-color: var(--blue);
-  width: 0;
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-slow) var(--ease-out);
 }
 .w-quiz-card {
   display: flex;
@@ -5192,10 +5220,12 @@ body.images-detail-sidebar-open .images-body {
   font-size: 0.92rem;
   line-height: 1.4;
   cursor: pointer;
-  transition: transform 0.05s;
+  transition: transform var(--duration-base) var(--ease-out);
 }
-.w-quiz-opt:hover {
-  transform: scale(1.01);
+@media (hover: hover) and (pointer: fine) {
+  .w-quiz-opt:hover {
+    transform: scale(1.03);
+  }
 }
 .w-quiz-opt:active {
   transform: scale(0.99);
@@ -5263,10 +5293,33 @@ body.images-detail-sidebar-open .images-body {
 }
 @media (prefers-reduced-motion: reduce) {
   .w-die {
-    animation: none;
+    animation: w-rm-fade var(--duration-slow) var(--ease-out) backwards;
   }
   .w-quiz-fill {
     transition: none;
+  }
+  .w-coin3d-toss.tossing {
+    animation: none;
+  }
+  .w-coin3d-inner {
+    transition: none;
+  }
+  .w-picker-out.flash {
+    transform: none;
+  }
+  .w-8ball.shake-a,
+  .w-8ball.shake-b {
+    transform: none;
+    transition: none;
+  }
+  .w-tap-pad.hit {
+    transform: none;
+  }
+}
+
+@keyframes w-rm-fade {
+  from {
+    opacity: 0;
   }
 }
 
@@ -5282,11 +5335,12 @@ body.images-detail-sidebar-open .images-body {
   src: url("/s/inter-var-v4.woff2");
 }
 
-@view-transition {
-  navigation: auto;
-}
-
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.1s;
+  animation: none;
+}
+
+::view-transition-group(tab-indicator) {
+  animation-duration: var(--duration-slow);
+  animation-timing-function: var(--ease-in-out);
 }

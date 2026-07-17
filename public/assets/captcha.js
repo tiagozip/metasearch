@@ -94,13 +94,13 @@ window.fetch = async (...args) => {
         }
 
         if (event.data.data.startsWith("PROGRESS:")) {
-          document.querySelector(".progress").style.width =
-            `${event.data.data.split(":")[1]}%`;
+          document.querySelector(".progress").style.transform =
+            `scaleX(${Number(event.data.data.split(":")[1]) / 100})`;
         }
 
         if (event.data.data.startsWith("POW:")) {
           const body = event.data.data.slice(4);
-          document.querySelector(".progress").style.width = "100%";
+          document.querySelector(".progress").style.transform = "scaleX(1)";
 
           const resp = await fetch("/p/pow", {
             method: "POST",

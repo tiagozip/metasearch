@@ -1,5 +1,5 @@
 (() => {
-  let isLoading, hasHadWebResult;
+  let isLoading, hasHadWebResult, firstWebThumb;
   const currentQuery = new URLSearchParams(window.location.search).get("q");
 
   const solveCaptcha = async (a) => {
@@ -158,6 +158,8 @@
       (a, b) => b.naturalW * b.naturalH - a.naturalW * a.naturalH,
     );
     const display = useGallery ? ranked.slice(0, 5) : ranked.slice(0, 1);
+    if (firstWebThumb && display.some((a) => a.src === firstWebThumb.src))
+      firstWebThumb.link.remove();
     const wrapUrl = linkUrl ? safeUrl(linkUrl) : "#";
     const linkWrap = (cls) => {
       const w = document.createElement(wrapUrl !== "#" ? "a" : "div");
@@ -433,6 +435,7 @@
       thumbImg.loading = "lazy";
       thumbImg.onerror = () => thumbLink.remove();
       thumbLink.append(thumbImg);
+      if (!hasHadWebResult) firstWebThumb = { link: thumbLink, src: thumb };
       article.append(thumbLink);
     }
 
@@ -2492,7 +2495,7 @@
     if (isEmpty && currentQuery && retries < 3) {
       sessionStorage.setItem(retryKey, String(retries + 1));
       document.getElementById("results-all").innerHTML =
-        '<div class="results-retrying">no results, retrying…</div>';
+        '<div class="results-retrying"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 3a9 9 0 1 0 9 9" /></svg>no results, retrying…</div>';
       setTimeout(
         () => {
           const u = new URL(location.href);

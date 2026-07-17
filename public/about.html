@@ -193,8 +193,10 @@
           transform 0.1s,
           outline-color 0.15s;
       }
-      .accent-swatch:hover {
-        transform: scale(1.12);
+      @media (hover: hover) and (pointer: fine) {
+        .accent-swatch:hover {
+          transform: scale(1.12);
+        }
       }
       .accent-swatch.selected {
         outline-color: var(--text);

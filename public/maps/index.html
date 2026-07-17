@@ -223,7 +223,7 @@
         height: 100%;
         filter: drop-shadow(0 4px 10px var(--map-shadow));
         transform-origin: bottom center;
-        animation: map-pin-drop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1);
+        animation: map-pin-drop 0.28s cubic-bezier(0.2, 1.2, 0.4, 1);
       }
       .map-pin-inner svg {
         width: 100%;
@@ -232,12 +232,8 @@
       }
       @keyframes map-pin-drop {
         0% {
-          transform: translateY(-30px) scale(0.6);
+          transform: translateY(-14px) scale(0.92);
           opacity: 0;
-        }
-        60% {
-          transform: translateY(3px) scale(1.05);
-          opacity: 1;
         }
         100% {
           transform: translateY(0) scale(1);

@@ -514,7 +514,7 @@ const quiz = ({
       const show = () => {
         if (idx >= questions.length) return showResult();
         track.style.display = "";
-        fill.style.width = `${(idx / questions.length) * 100}%`;
+        fill.style.transform = `scaleX(${idx / questions.length})`;
         const { q, opts } = questions[idx];
         pane.replaceChildren(
           h(
@@ -1399,14 +1399,19 @@ reg({
       { class: "w-8ball" },
       h("div", { class: "w-8ball-window" }, "8"),
     );
+    let shakeTo = null,
+      leanB = false;
     const ask = () => {
       ball.firstChild.textContent = "…";
-      ball.classList.add("shake");
-      setTimeout(() => {
-        ball.classList.remove("shake");
+      if (shakeTo) clearTimeout(shakeTo);
+      leanB = !leanB;
+      ball.classList.remove("shake-a", "shake-b");
+      ball.classList.add(leanB ? "shake-b" : "shake-a");
+      shakeTo = setTimeout(() => {
+        ball.classList.remove("shake-a", "shake-b");
         ball.firstChild.textContent =
           ans[Math.floor(Math.random() * ans.length)];
-      }, 700);
+      }, 260);
     };
     ball.onclick = ask;
     return card(
@@ -1470,7 +1475,10 @@ reg({
         out.textContent = items[i % items.length];
         i++;
         if (i < n) setTimeout(tick, 60 + i * 12);
-        else out.classList.add("flash");
+        else {
+          out.classList.add("flash");
+          requestAnimationFrame(() => out.classList.remove("flash"));
+        }
       };
       out.classList.remove("flash");
       tick();
@@ -3458,9 +3466,8 @@ reg({
         const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
         out.textContent = `${Math.round(60000 / avg)} bpm`;
       }
-      pad.classList.remove("hit");
-      void pad.offsetWidth;
       pad.classList.add("hit");
+      requestAnimationFrame(() => pad.classList.remove("hit"));
     };
     return card(
       "bpm tapper",
