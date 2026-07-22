@@ -58,6 +58,9 @@
 :root[data-mascot="miku"] {
   --blue: #4fd6c6;
 }
+:root[data-mascot="ralsei"] {
+  --blue: #3ecf8e;
+}
 
 html {
   text-rendering: optimizeLegibility;
