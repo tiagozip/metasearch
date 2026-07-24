@@ -3084,6 +3084,669 @@ reg({
 
 ////// date / time ///////////////////////////////////////////////////////////
 
+const TZ_ALIAS = {
+  utc: "UTC",
+  gmt: "UTC",
+  z: "UTC",
+  zulu: "UTC",
+  "greenwich mean time": "UTC",
+  pst: "America/Los_Angeles",
+  pdt: "America/Los_Angeles",
+  pt: "America/Los_Angeles",
+  mst: "America/Denver",
+  mdt: "America/Denver",
+  mt: "America/Denver",
+  cst: "America/Chicago",
+  cdt: "America/Chicago",
+  ct: "America/Chicago",
+  est: "America/New_York",
+  edt: "America/New_York",
+  et: "America/New_York",
+  akst: "America/Anchorage",
+  hst: "Pacific/Honolulu",
+  bst: "Europe/London",
+  cet: "Europe/Paris",
+  cest: "Europe/Paris",
+  eet: "Europe/Athens",
+  eest: "Europe/Athens",
+  wet: "Europe/Lisbon",
+  msk: "Europe/Moscow",
+  ist: "Asia/Kolkata",
+  gst: "Asia/Dubai",
+  pkt: "Asia/Karachi",
+  ict: "Asia/Bangkok",
+  sgt: "Asia/Singapore",
+  hkt: "Asia/Hong_Kong",
+  jst: "Asia/Tokyo",
+  kst: "Asia/Seoul",
+  aest: "Australia/Sydney",
+  aedt: "Australia/Sydney",
+  aet: "Australia/Sydney",
+  awst: "Australia/Perth",
+  acst: "Australia/Adelaide",
+  acdt: "Australia/Adelaide",
+  nzst: "Pacific/Auckland",
+  nzdt: "Pacific/Auckland",
+  brt: "America/Sao_Paulo",
+  art: "America/Argentina/Buenos_Aires",
+  wat: "Africa/Lagos",
+  cat: "Africa/Harare",
+  eat: "Africa/Nairobi",
+  sast: "Africa/Johannesburg",
+  japan: "Asia/Tokyo",
+  uk: "Europe/London",
+  gb: "Europe/London",
+  england: "Europe/London",
+  britain: "Europe/London",
+  "great britain": "Europe/London",
+  "united kingdom": "Europe/London",
+  scotland: "Europe/London",
+  wales: "Europe/London",
+  usa: "America/New_York",
+  us: "America/New_York",
+  america: "America/New_York",
+  "united states": "America/New_York",
+  states: "America/New_York",
+  canada: "America/Toronto",
+  mexico: "America/Mexico_City",
+  brazil: "America/Sao_Paulo",
+  argentina: "America/Argentina/Buenos_Aires",
+  chile: "America/Santiago",
+  colombia: "America/Bogota",
+  peru: "America/Lima",
+  venezuela: "America/Caracas",
+  cuba: "America/Havana",
+  france: "Europe/Paris",
+  germany: "Europe/Berlin",
+  spain: "Europe/Madrid",
+  italy: "Europe/Rome",
+  portugal: "Europe/Lisbon",
+  netherlands: "Europe/Amsterdam",
+  holland: "Europe/Amsterdam",
+  belgium: "Europe/Brussels",
+  switzerland: "Europe/Zurich",
+  austria: "Europe/Vienna",
+  poland: "Europe/Warsaw",
+  czechia: "Europe/Prague",
+  "czech republic": "Europe/Prague",
+  hungary: "Europe/Budapest",
+  romania: "Europe/Bucharest",
+  greece: "Europe/Athens",
+  sweden: "Europe/Stockholm",
+  norway: "Europe/Oslo",
+  denmark: "Europe/Copenhagen",
+  finland: "Europe/Helsinki",
+  iceland: "Atlantic/Reykjavik",
+  ireland: "Europe/Dublin",
+  russia: "Europe/Moscow",
+  ukraine: "Europe/Kyiv",
+  kiev: "Europe/Kyiv",
+  kyiv: "Europe/Kyiv",
+  turkey: "Europe/Istanbul",
+  israel: "Asia/Jerusalem",
+  uae: "Asia/Dubai",
+  emirates: "Asia/Dubai",
+  "abu dhabi": "Asia/Dubai",
+  "saudi arabia": "Asia/Riyadh",
+  saudi: "Asia/Riyadh",
+  doha: "Asia/Qatar",
+  india: "Asia/Kolkata",
+  pakistan: "Asia/Karachi",
+  bangladesh: "Asia/Dhaka",
+  nepal: "Asia/Kathmandu",
+  "sri lanka": "Asia/Colombo",
+  china: "Asia/Shanghai",
+  beijing: "Asia/Shanghai",
+  shenzhen: "Asia/Shanghai",
+  guangzhou: "Asia/Shanghai",
+  chengdu: "Asia/Shanghai",
+  taiwan: "Asia/Taipei",
+  korea: "Asia/Seoul",
+  "south korea": "Asia/Seoul",
+  "north korea": "Asia/Pyongyang",
+  busan: "Asia/Seoul",
+  vietnam: "Asia/Ho_Chi_Minh",
+  saigon: "Asia/Ho_Chi_Minh",
+  hanoi: "Asia/Ho_Chi_Minh",
+  "ho chi minh": "Asia/Ho_Chi_Minh",
+  "ho chi minh city": "Asia/Ho_Chi_Minh",
+  thailand: "Asia/Bangkok",
+  malaysia: "Asia/Kuala_Lumpur",
+  indonesia: "Asia/Jakarta",
+  bali: "Asia/Makassar",
+  philippines: "Asia/Manila",
+  iran: "Asia/Tehran",
+  iraq: "Asia/Baghdad",
+  australia: "Australia/Sydney",
+  canberra: "Australia/Sydney",
+  "gold coast": "Australia/Brisbane",
+  tasmania: "Australia/Hobart",
+  "new zealand": "Pacific/Auckland",
+  nz: "Pacific/Auckland",
+  wellington: "Pacific/Auckland",
+  christchurch: "Pacific/Auckland",
+  "south africa": "Africa/Johannesburg",
+  "cape town": "Africa/Johannesburg",
+  durban: "Africa/Johannesburg",
+  pretoria: "Africa/Johannesburg",
+  egypt: "Africa/Cairo",
+  nigeria: "Africa/Lagos",
+  kenya: "Africa/Nairobi",
+  morocco: "Africa/Casablanca",
+  nyc: "America/New_York",
+  ny: "America/New_York",
+  "new york city": "America/New_York",
+  manhattan: "America/New_York",
+  brooklyn: "America/New_York",
+  boston: "America/New_York",
+  philadelphia: "America/New_York",
+  philly: "America/New_York",
+  atlanta: "America/New_York",
+  miami: "America/New_York",
+  orlando: "America/New_York",
+  washington: "America/New_York",
+  "washington dc": "America/New_York",
+  dc: "America/New_York",
+  florida: "America/New_York",
+  dallas: "America/Chicago",
+  houston: "America/Chicago",
+  austin: "America/Chicago",
+  "san antonio": "America/Chicago",
+  minneapolis: "America/Chicago",
+  "new orleans": "America/Chicago",
+  "kansas city": "America/Chicago",
+  milwaukee: "America/Chicago",
+  nashville: "America/Chicago",
+  memphis: "America/Chicago",
+  "st louis": "America/Chicago",
+  texas: "America/Chicago",
+  illinois: "America/Chicago",
+  "salt lake city": "America/Denver",
+  albuquerque: "America/Denver",
+  la: "America/Los_Angeles",
+  "l.a.": "America/Los_Angeles",
+  sf: "America/Los_Angeles",
+  "san francisco": "America/Los_Angeles",
+  "san diego": "America/Los_Angeles",
+  "san jose": "America/Los_Angeles",
+  seattle: "America/Los_Angeles",
+  portland: "America/Los_Angeles",
+  "las vegas": "America/Los_Angeles",
+  vegas: "America/Los_Angeles",
+  sacramento: "America/Los_Angeles",
+  oakland: "America/Los_Angeles",
+  "silicon valley": "America/Los_Angeles",
+  "palo alto": "America/Los_Angeles",
+  cupertino: "America/Los_Angeles",
+  california: "America/Los_Angeles",
+  cali: "America/Los_Angeles",
+  nevada: "America/Los_Angeles",
+  oregon: "America/Los_Angeles",
+  hawaii: "Pacific/Honolulu",
+  alaska: "America/Anchorage",
+  ottawa: "America/Toronto",
+  calgary: "America/Edmonton",
+  munich: "Europe/Berlin",
+  frankfurt: "Europe/Berlin",
+  hamburg: "Europe/Berlin",
+  cologne: "Europe/Berlin",
+  barcelona: "Europe/Madrid",
+  valencia: "Europe/Madrid",
+  milan: "Europe/Rome",
+  milano: "Europe/Rome",
+  venice: "Europe/Rome",
+  florence: "Europe/Rome",
+  naples: "Europe/Rome",
+  lyon: "Europe/Paris",
+  marseille: "Europe/Paris",
+  nice: "Europe/Paris",
+  geneva: "Europe/Zurich",
+  bern: "Europe/Zurich",
+  basel: "Europe/Zurich",
+  manchester: "Europe/London",
+  liverpool: "Europe/London",
+  birmingham: "Europe/London",
+  glasgow: "Europe/London",
+  edinburgh: "Europe/London",
+  leeds: "Europe/London",
+  bristol: "Europe/London",
+  cardiff: "Europe/London",
+  belfast: "Europe/London",
+  "st petersburg": "Europe/Moscow",
+  "saint petersburg": "Europe/Moscow",
+  osaka: "Asia/Tokyo",
+  kyoto: "Asia/Tokyo",
+  nagoya: "Asia/Tokyo",
+  yokohama: "Asia/Tokyo",
+  sapporo: "Asia/Tokyo",
+  mumbai: "Asia/Kolkata",
+  bombay: "Asia/Kolkata",
+  delhi: "Asia/Kolkata",
+  "new delhi": "Asia/Kolkata",
+  bangalore: "Asia/Kolkata",
+  bengaluru: "Asia/Kolkata",
+  chennai: "Asia/Kolkata",
+  hyderabad: "Asia/Kolkata",
+  pune: "Asia/Kolkata",
+  calcutta: "Asia/Kolkata",
+  jeddah: "Asia/Riyadh",
+  "tel aviv": "Asia/Jerusalem",
+  rio: "America/Sao_Paulo",
+  "rio de janeiro": "America/Sao_Paulo",
+  brasilia: "America/Sao_Paulo",
+};
+
+const CLOCK_KIND = {
+  time: "time",
+  clock: "time",
+  hour: "time",
+  "o'clock": "time",
+  date: "date",
+  day: "day",
+  weekday: "day",
+  year: "year",
+  month: "month",
+};
+
+const CLOCK_FILLER = new Set([
+  "what",
+  "whats",
+  "what's",
+  "wat",
+  "is",
+  "it",
+  "the",
+  "a",
+  "an",
+  "current",
+  "currently",
+  "now",
+  "right",
+  "today",
+  "todays",
+  "today's",
+  "local",
+  "this",
+  "be",
+  "are",
+  "we",
+  "and",
+  "of",
+  "do",
+  "you",
+  "know",
+  "tell",
+  "me",
+  "please",
+  "my",
+  "exact",
+  "real",
+]);
+
+let _tzKeys;
+
+reg({
+  id: "clock",
+  match: (q) => {
+    let s = q
+      .trim()
+      .toLowerCase()
+      .replace(/[’‘`]/g, "'")
+      .replace(/[?!.]+$/, "")
+      .replace(/\s+/g, " ");
+    if (!s || s.length > 60) return null;
+    s = s.replace(/\s+(?:right now|now|at the moment|atm|currently)$/, "");
+
+    const valid = (z) => {
+      if (!z) return null;
+      try {
+        new Intl.DateTimeFormat("en", { timeZone: z }).format();
+        return z;
+      } catch {
+        return null;
+      }
+    };
+
+    const resolve = (raw) => {
+      const p = raw
+        .replace(/[.,]+$/, "")
+        .replace(/^the\s+/, "")
+        .replace(/\s+(?:time|timezone|time zone)$/, "")
+        .trim();
+      if (!p) return null;
+      if (TZ_ALIAS[p]) return valid(TZ_ALIAS[p]);
+      const off = p.match(/^(?:utc|gmt)\s*([+-])\s*(\d{1,2})(?::?00)?$/);
+      if (off) {
+        const hrs = +off[2];
+        if (hrs > 14) return null;
+        if (!hrs) return "UTC";
+        return valid(`Etc/GMT${off[1] === "+" ? "-" : "+"}${hrs}`);
+      }
+      if (!_tzKeys) {
+        _tzKeys = new Map();
+        for (const z of Intl.supportedValuesOf?.("timeZone") || []) {
+          const segs = z.toLowerCase().replaceAll("_", " ").split("/");
+          const last = segs.at(-1);
+          if (!_tzKeys.has(last)) _tzKeys.set(last, z);
+          const full = segs.join(" ");
+          if (!_tzKeys.has(full)) _tzKeys.set(full, z);
+        }
+      }
+      const hit =
+        _tzKeys.get(p) ||
+        (p.includes(",") ? _tzKeys.get(p.split(",")[0].trim()) : null);
+      if (hit) return hit;
+      if (p.length < 4) return null;
+      for (const [k, z] of _tzKeys) if (k.startsWith(`${p} `)) return z;
+      return null;
+    };
+
+    let place = null;
+    let tz = null;
+    const inM = s.match(/^(.*?)\s+in\s+(.+)$/);
+    if (inM) {
+      const z = resolve(inM[2]);
+      if (z) {
+        tz = z;
+        place = inM[2].replace(/^the\s+/, "");
+        s = inM[1];
+      }
+    }
+    if (!tz) {
+      const pre = s.match(/^(.+?)\s+(time|clock|date|hour)$/);
+      if (pre) {
+        const z = resolve(pre[1]);
+        if (z) {
+          tz = z;
+          place = pre[1];
+          s = pre[2];
+        }
+      }
+    }
+
+    const toks = s.split(" ").filter(Boolean);
+    if (!toks.length) return null;
+    let kind = null;
+    for (const t of toks) {
+      const k = CLOCK_KIND[t];
+      if (k) {
+        kind ||= k;
+        continue;
+      }
+      if (!CLOCK_FILLER.has(t)) return null;
+    }
+    if (!kind) return null;
+    if (!place && toks.length === 1 && kind !== "time") return null;
+    return {
+      kind,
+      place,
+      tz: tz || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+    };
+  },
+  build: ({ kind, place, tz }) => {
+    const stored = localStorage.getItem("ms-clock-h12");
+    let h12 = stored
+      ? stored === "1"
+      : !!new Intl.DateTimeFormat(undefined, {
+          hour: "numeric",
+        }).resolvedOptions().hour12;
+
+    const partsF = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      hourCycle: "h23",
+      weekday: "long",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+    });
+    const dateF = new Intl.DateTimeFormat("en-GB", {
+      timeZone: tz,
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    const monthF = new Intl.DateTimeFormat("en-GB", {
+      timeZone: tz,
+      month: "long",
+    });
+    const abbrF = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      timeZoneName: "short",
+    });
+
+    const dial = h("div", {
+      class: "w-clock-dial-wrap",
+      html: `<svg viewBox="0 0 100 100" class="w-clock-dial" aria-hidden="true">
+<circle class="w-clock-face" cx="50" cy="50" r="47"/>
+${Array.from(
+  { length: 12 },
+  (_, i) =>
+    `<line class="w-clock-tick${i % 3 === 0 ? " major" : ""}" x1="50" y1="${i % 3 === 0 ? 7 : 8}" x2="50" y2="${i % 3 === 0 ? 15 : 13}" transform="rotate(${i * 30} 50 50)"/>`,
+).join("\n")}
+<line class="w-clock-hand hour" x1="50" y1="57" x2="50" y2="29"/>
+<line class="w-clock-hand min" x1="50" y1="59" x2="50" y2="17"/>
+<line class="w-clock-hand sec" x1="50" y1="62" x2="50" y2="13"/>
+<circle class="w-clock-pin" cx="50" cy="50" r="2.6"/>
+</svg>`,
+    });
+    const hourHand = dial.querySelector(".hour");
+    const minHand = dial.querySelector(".min");
+    const secHand = dial.querySelector(".sec");
+
+    const big = h("span", { class: "w-clock-digits" });
+    const secs = h("span", { class: "w-clock-secs w-mono" });
+    const ampm = h("span", { class: "w-clock-ampm" });
+    const sub = h("div", { class: "w-clock-sub" });
+    const zone = h("div", { class: "w-clock-zone w-mono" });
+    const diff = h("div", { class: "w-clock-diff" });
+
+    const setChars = (el, str) => {
+      if (el.dataset.v === str) return;
+      const prev = el.dataset.v || "";
+      el.dataset.v = str;
+      if (el.childElementCount !== str.length) {
+        el.replaceChildren(
+          ...[...str].map((c) => h("span", { class: "w-clock-ch" }, c)),
+        );
+        return;
+      }
+      [...str].forEach((c, i) => {
+        if (prev[i] === c) return;
+        const sp = el.children[i];
+        sp.textContent = c;
+        sp.classList.remove("tick");
+        void sp.offsetWidth;
+        sp.classList.add("tick");
+      });
+    };
+
+    const clock = (hour, minute, second) => {
+      const hh = h12 ? hour % 12 || 12 : hour;
+      return `${h12 ? hh : String(hh).padStart(2, "0")}:${minute}${second == null ? "" : `:${second}`}${h12 ? (hour < 12 ? " am" : " pm") : ""}`;
+    };
+
+    let offMin = 0;
+    let copyText = "";
+    let iv = null;
+    const tick = () => {
+      if (iv && !dial.isConnected) return clearInterval(iv);
+      const now = new Date();
+      const p = {};
+      for (const { type, value } of partsF.formatToParts(now)) p[type] = value;
+      const hour = +p.hour;
+      const minute = String(+p.minute).padStart(2, "0");
+      const second = String(+p.second).padStart(2, "0");
+      offMin = Math.round(
+        (Date.UTC(+p.year, +p.month - 1, +p.day, hour, +p.minute, +p.second) -
+          Math.floor(now.getTime() / 1000) * 1000) /
+          60000,
+      );
+      const dateStr = dateF.format(now);
+      const timeStr = clock(hour, minute);
+
+      if (kind === "time") {
+        setChars(big, timeStr.replace(/ [ap]m$/, ""));
+        setChars(secs, `:${second}`);
+        ampm.textContent = h12 ? (hour < 12 ? "am" : "pm") : "";
+        sub.textContent = dateStr;
+      } else {
+        secs.textContent = "";
+        ampm.textContent = "";
+        setChars(
+          big,
+          kind === "year"
+            ? p.year
+            : kind === "month"
+              ? monthF.format(now)
+              : kind === "day"
+                ? p.weekday
+                : dateStr.replace(p.weekday, "").replace(/^[,\s]+/, ""),
+        );
+        sub.textContent =
+          kind === "date"
+            ? `${p.weekday} · ${clock(hour, minute, second)}`
+            : `${dateStr} · ${clock(hour, minute, second)}`;
+      }
+
+      const sign = offMin < 0 ? "-" : "+";
+      const oh = Math.floor(Math.abs(offMin) / 60);
+      const om = Math.abs(offMin) % 60;
+      const offStr = offMin
+        ? `UTC${sign}${oh}${om ? `:${String(om).padStart(2, "0")}` : ""}`
+        : "UTC";
+      const abbr = abbrF
+        .formatToParts(now)
+        .find((x) => x.type === "timeZoneName")?.value;
+      zone.textContent = [
+        tz.replaceAll("_", " "),
+        abbr && !/^(?:GMT|UTC)/.test(abbr) ? abbr : null,
+        offStr,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+      const localOff = -now.getTimezoneOffset();
+      const delta = offMin - localOff;
+      if (!place || delta === 0) {
+        diff.textContent = place
+          ? "same time as you"
+          : offMin
+            ? `${clock(now.getUTCHours(), String(now.getUTCMinutes()).padStart(2, "0"))} UTC`
+            : "";
+      } else {
+        const dh = Math.floor(Math.abs(delta) / 60);
+        const dm = Math.abs(delta) % 60;
+        const span = [
+          dh ? `${dh} hour${dh === 1 ? "" : "s"}` : null,
+          dm ? `${dm} min` : null,
+        ]
+          .filter(Boolean)
+          .join(" ");
+        const localDay = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+        const zoneDay = new Date(+p.year, +p.month - 1, +p.day);
+        const dayGap = Math.round((zoneDay - localDay) / 86400000);
+        const when =
+          dayGap > 0
+            ? " · tomorrow there"
+            : dayGap < 0
+              ? " · yesterday there"
+              : "";
+        diff.textContent = `${span} ${delta > 0 ? "ahead of" : "behind"} you · ${clock(now.getHours(), String(now.getMinutes()).padStart(2, "0"))} your time${when}`;
+      }
+
+      copyText = `${clock(hour, minute, second)} · ${dateStr} · ${tz}`;
+    };
+
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const hands = () => {
+      const z = new Date(Date.now() + offMin * 60000);
+      const s = reduced
+        ? z.getUTCSeconds()
+        : z.getUTCSeconds() + z.getUTCMilliseconds() / 1000;
+      const m = z.getUTCMinutes() + s / 60;
+      const hr = (z.getUTCHours() % 12) + m / 60;
+      secHand.setAttribute("transform", `rotate(${s * 6} 50 50)`);
+      minHand.setAttribute("transform", `rotate(${m * 6} 50 50)`);
+      hourHand.setAttribute("transform", `rotate(${hr * 30} 50 50)`);
+    };
+
+    let last = 0;
+    const frame = (t) => {
+      if (!dial.isConnected) return;
+      if (t - last > 32) {
+        last = t;
+        hands();
+      }
+      requestAnimationFrame(frame);
+    };
+
+    const unit = h("button", {
+      class: "w-clock-unit",
+      title: "toggle 12/24 hour",
+      onclick: () => {
+        h12 = !h12;
+        localStorage.setItem("ms-clock-h12", h12 ? "1" : "0");
+        unit.textContent = h12 ? "24h" : "12h";
+        big.dataset.v = "";
+        tick();
+      },
+    });
+    unit.textContent = h12 ? "24h" : "12h";
+
+    tick();
+    hands();
+    iv = setInterval(() => {
+      tick();
+      if (reduced) hands();
+    }, 1000);
+    if (!reduced) requestAnimationFrame(frame);
+
+    const noun =
+      kind === "year"
+        ? "year"
+        : kind === "month"
+          ? "month"
+          : kind === "date" || kind === "day"
+            ? "date"
+            : "time";
+    return card(
+      place ? `${noun} in ${place}` : `current ${noun}`,
+      null,
+      h(
+        "div",
+        { class: "w-clock-hero" },
+        dial,
+        h(
+          "div",
+          { class: "w-clock-main" },
+          h("div", { class: "w-clock-big w-mono" }, big, secs, ampm),
+          sub,
+          zone,
+        ),
+      ),
+      h(
+        "div",
+        { class: "w-clock-foot" },
+        diff,
+        h(
+          "div",
+          { class: "w-clock-actions" },
+          unit,
+          copyBtn(() => copyText),
+        ),
+      ),
+    );
+  },
+});
+
 reg({
   id: "age",
   match: (q) => {

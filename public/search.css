@@ -310,8 +310,8 @@ aside {
   animation: results-retrying-in var(--duration-slow) var(--ease-out) backwards;
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 22px;
+    height: 22px;
     animation: spin 0.6s linear infinite;
   }
 }
@@ -4133,6 +4133,176 @@ body.images-detail-sidebar-open .images-body {
   font-weight: 700;
   text-align: center;
   color: var(--text);
+}
+
+/* clock */
+.w-clock-hero {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.w-clock-dial-wrap {
+  flex: none;
+  width: 104px;
+  height: 104px;
+  animation: w-clock-in 0.5s var(--ease-out) backwards;
+}
+.w-clock-dial {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.w-clock-face {
+  fill: var(--bg);
+  stroke: var(--surface0);
+  stroke-width: 2;
+}
+.w-clock-tick {
+  stroke: var(--surface1);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+.w-clock-tick.major {
+  stroke: var(--subtext);
+  stroke-width: 2.6;
+}
+.w-clock-hand {
+  stroke: var(--text);
+  stroke-linecap: round;
+}
+.w-clock-hand.hour {
+  stroke-width: 4.4;
+}
+.w-clock-hand.min {
+  stroke-width: 3;
+}
+.w-clock-hand.sec {
+  stroke: var(--blue);
+  stroke-width: 1.6;
+}
+.w-clock-pin {
+  fill: var(--blue);
+}
+.w-clock-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.w-clock-big {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 2.9rem;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.w-clock-digits {
+  display: inline-flex;
+}
+.w-clock-ch {
+  display: inline-block;
+}
+.w-clock-ch.tick {
+  animation: w-clock-ch-in 0.38s var(--ease-out);
+}
+.w-clock-secs {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--subtext);
+}
+.w-clock-ampm {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--subtext);
+}
+.w-clock-sub {
+  font-size: 1rem;
+  color: var(--text);
+}
+.w-clock-zone {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.w-clock-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--surface0);
+  padding-top: 12px;
+}
+.w-clock-diff {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.88rem;
+  color: var(--subtext);
+}
+.w-clock-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.w-clock-unit {
+  background: var(--surface0);
+  border: none;
+  border-radius: 6px;
+  color: var(--subtext);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 9px;
+  cursor: pointer;
+  transition:
+    background var(--duration-base),
+    color var(--duration-base),
+    transform var(--duration-fast) var(--ease-out);
+}
+.w-clock-unit:hover {
+  background: var(--surface1);
+  color: var(--text);
+}
+.w-clock-unit:active {
+  transform: scale(0.94);
+}
+
+@keyframes w-clock-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+@keyframes w-clock-ch-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.3em);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .w-clock-dial-wrap,
+  .w-clock-ch.tick {
+    animation: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .w-clock-hero {
+    gap: 16px;
+  }
+  .w-clock-dial-wrap {
+    width: 78px;
+    height: 78px;
+  }
+  .w-clock-big {
+    font-size: 2.2rem;
+  }
+  .w-clock-secs {
+    font-size: 1rem;
+  }
 }
 
 /* world clock */
