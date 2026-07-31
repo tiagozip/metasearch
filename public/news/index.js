@@ -4,15 +4,9 @@
     return solveCaptcha(a);
   };
 
-  const safeUrl = (url) => {
-    if (!url) return "#";
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol === "http:" || parsed.protocol === "https:")
-        return url;
-    } catch {}
-    return "#";
-  };
+  // safeUrl / safeTel / sanitizeFragment / setSafeHtml
+  // inlined from public/assets/sanitize.js by src/templates.js
+  /**sanitize**/
 
   let isLoading = false;
   let hasMoreResults = true;
@@ -82,7 +76,7 @@
 
     const titleEl = document.createElement("h2");
     titleEl.className = "news-result-title";
-    titleEl.innerHTML = title;
+    titleEl.textContent = title;
     content.append(titleEl);
 
     if (description) {

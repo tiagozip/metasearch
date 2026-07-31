@@ -4,15 +4,9 @@
     return solveCaptcha(a);
   };
 
-  const safeUrl = (url) => {
-    if (!url) return "#";
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol === "http:" || parsed.protocol === "https:")
-        return url;
-    } catch {}
-    return "#";
-  };
+  // safeUrl / safeTel / sanitizeFragment / setSafeHtml
+  // inlined from public/assets/sanitize.js by src/templates.js
+  /**sanitize**/
 
   const readCookie = (name) => {
     try {
@@ -246,7 +240,7 @@
 
     const sourceEl = document.createElement("a");
     sourceEl.className = "image-detail-source";
-    sourceEl.href = img.url;
+    sourceEl.href = safeUrl(img.url);
     sourceEl.target = "_blank";
     sourceEl.rel = "noopener";
     sourceEl.textContent = (img.meta_url?.hostname || "").replace(/^www\./, "");

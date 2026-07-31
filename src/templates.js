@@ -26,12 +26,21 @@ async function load(key, path, fn) {
 const injectCss = async (html) =>
   html.replace("/**css**/", await load("css", "/search.css"));
 
+// the result bundles are served from /p/:jwt, not fetched as separate modules,
+// so the shared sanitizer is inlined into each of them at build/serve time.
+// function-form replace keeps `$&`-style sequences in the source literal.
+const injectSanitize = async (js) => {
+  const src = await load("sanitize", "/assets/sanitize.js");
+  return js.replace("/**sanitize**/", () => src);
+};
+
 export const css = () => load("css", "/search.css");
 export const web = () => load("web", "/web/index.html", injectCss);
-export const webJs = () => load("webJs", "/web/index.js");
+export const webJs = () => load("webJs", "/web/index.js", injectSanitize);
 export const images = () => load("images", "/images/index.html", injectCss);
-export const imagesJs = () => load("imagesJs", "/images/index.js");
+export const imagesJs = () =>
+  load("imagesJs", "/images/index.js", injectSanitize);
 export const news = () => load("news", "/news/index.html", injectCss);
-export const newsJs = () => load("newsJs", "/news/index.js");
+export const newsJs = () => load("newsJs", "/news/index.js", injectSanitize);
 export const maps = () => load("maps", "/maps/index.html", injectCss);
-export const mapsJs = () => load("mapsJs", "/maps/index.js");
+export const mapsJs = () => load("mapsJs", "/maps/index.js", injectSanitize);

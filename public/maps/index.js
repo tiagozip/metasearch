@@ -1,4 +1,8 @@
 (() => {
+  // safeUrl / safeTel / sanitizeFragment / setSafeHtml
+  // inlined from public/assets/sanitize.js by src/templates.js
+  /**sanitize**/
+
   const ctx = __results_template__;
   const urlQuery = new URLSearchParams(window.location.search).get("q") || "";
   const initialQuery = ctx?.initialQuery || urlQuery || "";
@@ -546,13 +550,15 @@
       if (!hasCity) parts.push(`in ${p.city}`);
     }
     const subtitle = parts.join(" ") || s.place || "";
+    // p.website comes straight from an openstreetmap tag anyone can edit
+    const site = safeUrl(p.website);
     return `
       <div class="mp-title-block">
         <h2 class="mp-title">${name}</h2>
         ${subtitle ? `<div class="mp-subtitle">${esc(subtitle)}</div>` : ""}
         ${
-          p.website
-            ? `<a class="mp-title-link" href="${esc(p.website)}" target="_blank" rel="noopener">${ICONS.globe}<span>${esc(hostOf(p.website))}</span></a>`
+          site !== "#"
+            ? `<a class="mp-title-link" href="${esc(site)}" target="_blank" rel="noopener">${ICONS.globe}<span>${esc(hostOf(site))}</span></a>`
             : ""
         }
       </div>
@@ -584,11 +590,12 @@
 
   function renderActions(p, lat, lng) {
     const actions = [];
-    if (p.website) {
+    const site = safeUrl(p.website);
+    if (site !== "#") {
       actions.push({
         icon: "globe",
         label: "Website",
-        href: p.website,
+        href: site,
         external: true,
       });
     }
@@ -598,8 +605,9 @@
       href: `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
       external: true,
     });
-    if (p.phone) {
-      actions.push({ icon: "phone", label: "Call", href: `tel:${p.phone}` });
+    const tel = safeTel(p.phone);
+    if (tel) {
+      actions.push({ icon: "phone", label: "Call", href: tel });
     }
     if (!actions.length) return "";
     return `<div class="mp-actions">${actions
@@ -615,9 +623,13 @@
     if (p.address) rows.push(iconRow("pin", null, esc(p.address)));
     if (p.phoneDisplay || p.phone) {
       const display = p.phoneDisplay || p.phone;
-      const tel = p.phone || display;
+      const tel = safeTel(p.phone || display);
       rows.push(
-        iconRow("phone", null, `<a href="tel:${esc(tel)}">${esc(display)}</a>`),
+        iconRow(
+          "phone",
+          null,
+          tel ? `<a href="${esc(tel)}">${esc(display)}</a>` : esc(display),
+        ),
       );
     }
     return rows.length
@@ -661,11 +673,12 @@
 
   function renderDescription(p) {
     if (!p.description) return "";
-    const url = p.url;
+    const url = safeUrl(p.url);
     const engine = p.engine || "source";
-    const more = url
-      ? ` <a class="mp-review-more" href="${esc(url)}" target="_blank" rel="noopener">More on ${esc(engine)}</a>`
-      : "";
+    const more =
+      url !== "#"
+        ? ` <a class="mp-review-more" href="${esc(url)}" target="_blank" rel="noopener">More on ${esc(engine)}</a>`
+        : "";
     return `<div class="mp-review" style="border-bottom:none;padding-top:0"><div class="mp-review-text">${esc(p.description)}${more}</div></div>`;
   }
 
@@ -686,12 +699,16 @@
               day: "numeric",
             })
           : "";
-        const avatar = r.user.image
-          ? `<div class="mp-review-avatar"><img src="${esc(r.user.image)}" alt="" loading="lazy"/></div>`
-          : `<div class="mp-review-avatar">${esc(initials)}</div>`;
-        const moreLink = p.url
-          ? ` <a class="mp-review-more" href="${esc(p.url)}" target="_blank" rel="noopener">More on ${esc(p.engine || "source")}</a>`
-          : "";
+        const avatarSrc = safeUrl(r.user.image);
+        const avatar =
+          avatarSrc !== "#"
+            ? `<div class="mp-review-avatar"><img src="${esc(avatarSrc)}" alt="" loading="lazy" referrerpolicy="no-referrer"/></div>`
+            : `<div class="mp-review-avatar">${esc(initials)}</div>`;
+        const reviewUrl = safeUrl(p.url);
+        const moreLink =
+          reviewUrl !== "#"
+            ? ` <a class="mp-review-more" href="${esc(reviewUrl)}" target="_blank" rel="noopener">More on ${esc(p.engine || "source")}</a>`
+            : "";
         return `
           <div class="mp-review">
             ${renderStars(r.rating)}

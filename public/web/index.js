@@ -7,15 +7,9 @@
     return solveCaptcha(a);
   };
 
-  const safeUrl = (url) => {
-    if (!url) return "#";
-    try {
-      const parsed = new URL(url);
-      if (parsed.protocol === "http:" || parsed.protocol === "https:")
-        return url;
-    } catch {}
-    return "#";
-  };
+  // safeUrl / safeTel / sanitizeFragment / setSafeHtml
+  // inlined from public/assets/sanitize.js by src/templates.js
+  /**sanitize**/
 
   const analyzeImage = (pick) =>
     new Promise((resolve) => {
@@ -376,7 +370,7 @@
 
     const desc = document.createElement("p");
     desc.className = "result-desc";
-    desc.innerHTML = r.description || "";
+    setSafeHtml(desc, r.description);
 
     const content = document.createElement("div");
     content.className = "result-content";
@@ -411,7 +405,7 @@
         if (c.description) {
           const desc = document.createElement("div");
           desc.className = "link-cluster-desc";
-          desc.innerHTML = c.description;
+          setSafeHtml(desc, c.description);
           item.append(desc);
         }
 
@@ -813,7 +807,7 @@
       tag.className = "thread-label";
       tag.textContent = label;
       const p = document.createElement("p");
-      if (html) p.innerHTML = text;
+      if (html) setSafeHtml(p, text);
       else p.textContent = text;
       node.append(tag, p);
       thread.append(node);
@@ -861,7 +855,7 @@
 
     const answerDiv = document.createElement("div");
     answerDiv.className = "faq-answer";
-    answerDiv.innerHTML = r.answer || "";
+    setSafeHtml(answerDiv, r.answer);
     details.append(answerDiv);
 
     const source = document.createElement("div");
@@ -979,11 +973,11 @@
         const answerEl = document.createElement("div");
         answerEl.className = "infobox-answer";
         answerEl.classList.add("selected-answer");
-        answerEl.innerHTML = info.data.answer.text;
+        setSafeHtml(answerEl, info.data.answer.text);
 
         const upvoteEl = document.createElement("span");
         upvoteEl.className = "title";
-        upvoteEl.innerHTML = `<b>selected answer</b> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6 -6l6 6" /></svg> ${info.data.answer.upvoteCount || 0}`;
+        upvoteEl.innerHTML = `<b>selected answer</b> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6 -6l6 6" /></svg> ${Number(info.data.answer.upvoteCount) || 0}`;
         answerEl.prepend(upvoteEl);
         questionEl.append(answerEl);
       }
@@ -992,11 +986,12 @@
         if (answer.text === info.data.answer?.text) return;
         const answerEl = document.createElement("div");
         answerEl.className = "infobox-answer";
-        answerEl.innerHTML = answer.text;
+        setSafeHtml(answerEl, answer.text);
 
         const upvoteEl = document.createElement("span");
         upvoteEl.className = "title";
-        upvoteEl.innerHTML = `<b>${answer.author}</b> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6 -6l6 6" /></svg> ${answer.upvoteCount || 0}`;
+        upvoteEl.innerHTML = `<b></b> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-up"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6 -6l6 6" /></svg> ${Number(answer.upvoteCount) || 0}`;
+        upvoteEl.querySelector("b").textContent = answer.author ?? "";
         answerEl.prepend(upvoteEl);
         questionEl.append(answerEl);
       });
@@ -1069,7 +1064,7 @@
             if (isHeader) {
               const dt = document.createElement("dt");
               dt.className = "infobox-attr-header";
-              dt.innerHTML = attr[0];
+              setSafeHtml(dt, attr[0]);
               if (i >= VISIBLE_COUNT) dt.classList.add("hidden");
               dl.append(dt);
             } else if (attr[1] !== null) {
@@ -1092,7 +1087,7 @@
                 };
                 dd.append(img);
               } else {
-                dd.innerHTML = attr[1];
+                setSafeHtml(dd, attr[1]);
               }
               row.append(dt, dd);
               dl.append(row);
@@ -1109,7 +1104,7 @@
         for (const profile of profiles) {
           const link = document.createElement("a");
           link.className = "infobox-profile";
-          link.href = profile.url;
+          link.href = safeUrl(profile.url);
           link.target = "_blank";
           link.rel = "noopener";
 
