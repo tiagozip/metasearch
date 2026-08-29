@@ -2470,6 +2470,48 @@
   const data = __results_template__;
   let hasMoreResults = data.more_results_available !== false;
 
+  {
+    const optionsBtn = document.querySelector("#options-btn");
+    const optionsPopup = document.querySelector("#options-popup");
+    const engineSelect = document.querySelector("#engine-select");
+
+    const tookEl = document.querySelector("#took-ms");
+    if (tookEl && typeof data.took === "number")
+      tookEl.textContent = `took ${data.took}ms`;
+
+    if (engineSelect) {
+      engineSelect.value =
+        data.engine ||
+        document.cookie.match(/(?:^|;\s*)engine=(brave|kagi)\b/)?.[1] ||
+        "brave";
+      engineSelect.addEventListener("change", () => {
+        document.cookie = `engine=${engineSelect.value}; path=/; max-age=31536000; samesite=lax`;
+        location.reload();
+      });
+    }
+
+    optionsBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isVisible = optionsPopup.classList.contains("visible");
+      optionsPopup.classList.toggle("visible");
+      if (!isVisible) {
+        const rect = optionsBtn.getBoundingClientRect();
+        optionsPopup.style.position = "absolute";
+        optionsPopup.style.left = `${rect.left - 217}px`;
+      }
+    });
+
+    document.addEventListener("mousedown", (e) => {
+      if (
+        optionsPopup &&
+        !optionsPopup.contains(e.target) &&
+        e.target !== optionsBtn
+      ) {
+        optionsPopup.classList.remove("visible");
+      }
+    });
+  }
+
   if (data.captchaHtml) {
     solveCaptcha(data.captchaHtml).then(() => {
       setTimeout(() => {
@@ -2490,9 +2532,21 @@
       !r.videos?.results?.length &&
       !r.rich?.length;
     const retryKey = `ms-retry:${currentQuery}`;
+    const fbKey = `ms-engfb:${currentQuery}`;
     const retries = Number(sessionStorage.getItem(retryKey) || 0);
 
-    if (isEmpty && currentQuery && retries < 3) {
+    if (
+      isEmpty &&
+      currentQuery &&
+      retries >= 3 &&
+      !sessionStorage.getItem(fbKey)
+    ) {
+      const other = data.engine === "kagi" ? "brave" : "kagi";
+      sessionStorage.setItem(fbKey, other);
+      sessionStorage.setItem(retryKey, "4");
+      document.cookie = `engine_fb=${other}; path=/; max-age=90; samesite=lax`;
+      location.reload();
+    } else if (isEmpty && currentQuery && retries < 3) {
       sessionStorage.setItem(retryKey, String(retries + 1));
       document.getElementById("results-all").innerHTML =
         '<div class="results-retrying" role="status" aria-label="retrying"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 3a9 9 0 1 0 9 9" /></svg></div>';
@@ -2506,12 +2560,23 @@
       );
     } else {
       sessionStorage.removeItem(retryKey);
+      let banner = null;
+      const fb = sessionStorage.getItem(fbKey);
+      if (fb && fb === data.engine && !isEmpty) {
+        sessionStorage.removeItem(fbKey);
+        banner = document.createElement("div");
+        banner.className = "engine-banner";
+        banner.textContent = `switched to ${fb} after 3 fails`;
+      }
       import("/s/widgets.js")
         .then(({ renderLocalWidgets }) => {
           const widget = renderLocalWidgets(currentQuery);
           if (widget) document.getElementById("results-all").prepend(widget);
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => {
+          if (banner) document.getElementById("results-all").prepend(banner);
+        });
     }
   }
 

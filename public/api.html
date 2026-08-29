@@ -394,13 +394,7 @@
       <main>
         <h1>JSON API</h1>
         <p>
-          query the web, images, and news over a single public endpoint and get back clean,
-          structured JSON: the exact same data that powers the results pages, with none of the HTML.
-        </p>
-
-        <p>
-          the API is <b>public</b>: no key, no signup, no auth header. there are no rate limits or
-          pagination caps either, so be a good citizen, the upstream is shared.
+          query the web, images, and news over a single public json endpoint with no api key, cors or ratelimits.
         </p>
 
         <h2 class="bigh2">making a request</h2>
@@ -675,15 +669,6 @@ console.log(data.results);</code></pre>
 
         <h3>curl</h3>
         <pre><code>curl "https://search.tiago.zip/suggest?q=weath"</code></pre>
-
-        <h2 class="bigh2">notes</h2>
-        <ul>
-          <li><b>CORS</b> is open, so the endpoint is reachable directly from the browser.</li>
-          <li><b>no rate limits</b> are enforced by the API itself. be a good citizen: the upstream is shared.</li>
-          <li><b>no logging.</b> queries sent through the API are not stored, same as the website.</li>
-        </ul>
-
-        <p>made and hosted in the EU 🇪🇺</p>
       </main>
     </div>
   </body>

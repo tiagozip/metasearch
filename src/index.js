@@ -3,14 +3,13 @@ import { Elysia, t } from "elysia";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { jwtVerify, SignJWT } from "jose";
 import { ImageResponse } from "takumi-js/response";
-import bang from "./bangs.js";
 import { coloCity } from "./colos.js";
 import { decode } from "./galileo.js";
+import { resolveSearchPage } from "./query.js";
 import braveFetch from "./search/braveFetch.js";
-import searchImages from "./search/images.js";
 import * as maps from "./search/maps.js";
 import searchMixed from "./search/mixed.js";
-import searchNews from "./search/news.js";
+import { runSearch } from "./search/run.js";
 import * as templates from "./templates.js";
 import {
   enrichTranslation,
@@ -28,6 +27,11 @@ const CACHE = {
 };
 
 const getSecret = () => new TextEncoder().encode(env.JWT_SECRET);
+
+const pickEngine = (cookieHeader) =>
+  /(?:^|;\s*)engine_fb=(brave|kagi)\b/.exec(cookieHeader || "")?.[1] ||
+  /(?:^|;\s*)engine=(brave|kagi)\b/.exec(cookieHeader || "")?.[1] ||
+  (env.SEARCH_ENGINE || "brave").toString().toLowerCase();
 
 const sign = async (payload, expiry) => {
   return await new SignJWT(payload)
@@ -388,6 +392,16 @@ export default new Elysia({ adapter: CloudflareAdapter })
       };
     }
 
+    const engine = (payload.engine || env.SEARCH_ENGINE || "brave")
+      .toString()
+      .toLowerCase();
+    if (engine !== "brave" && engine !== "kagi") {
+      set.status = 400;
+      return {
+        error: `invalid engine "${engine}" (allowed: brave, kagi)`,
+      };
+    }
+
     const page = Math.floor(Number(payload.page ?? 0));
     if (!Number.isFinite(page) || page < 0) {
       set.status = 400;
@@ -396,18 +410,20 @@ export default new Elysia({ adapter: CloudflareAdapter })
 
     let data;
     try {
-      data =
-        type === "images"
-          ? await searchImages(query, page)
-          : type === "news"
-            ? await searchNews(query, page)
-            : await searchMixed(query, page);
+      data = await runSearch({
+        query,
+        type,
+        page,
+        engine,
+        lens: payload.lens,
+        cookie: payload.cookie || env.KAGI_COOKIE,
+      });
     } catch (e) {
       set.status = 502;
       return { error: "search failed", detail: String(e?.message || e) };
     }
 
-    return { query, type, page, ...data };
+    return { query, type, page, engine, ...data };
   })
   .get("/suggest", async ({ query, set }) => {
     const q = (query?.q || "").toString().replaceAll("\n", " ").trim();
@@ -463,13 +479,14 @@ export default new Elysia({ adapter: CloudflareAdapter })
     set.headers["cache-control"] = CACHE.tts;
     return { suggestions };
   })
-  .get("/translate", async ({ set }) => {
-    set.headers["cache-control"] = CACHE.med;
-    const resp = await env.ASSETS.fetch(
-      new Request("https://assets/translate.html"),
-    );
-    return new Response(resp.body, resp);
-  })
+  .get(
+    "/translate",
+    () =>
+      new Response(null, {
+        status: 301,
+        headers: { location: "/?q=translate" },
+      }),
+  )
   .post("/translate", async ({ body, set }) => {
     set.headers["content-type"] = "application/json";
     set.headers["cache-control"] = "no-store";
@@ -720,19 +737,28 @@ export default new Elysia({ adapter: CloudflareAdapter })
       return html.replace("%%colo%%", coloCity(request.cf?.colo));
     }
 
-    if (q) {
-      const bangUrl = bang(q);
-      if (bangUrl) {
-        return redirect(bangUrl);
-      }
+    const { pageType, redirectUrl, firstResult } = resolveSearchPage(q, type);
+    if (q && redirectUrl) {
+      return redirect(redirectUrl);
+    }
+    if (q && firstResult) {
+      try {
+        const data = await runSearch({
+          query: q,
+          type: pageType || "web",
+          engine: pickEngine(request.headers.get("cookie")),
+          cookie: env.KAGI_COOKIE,
+        });
+        if (data.first_result?.url) return redirect(data.first_result.url);
+      } catch {}
     }
 
     let template;
-    if (type === "maps") {
+    if (pageType === "maps") {
       template = await templates.maps();
-    } else if (type === "images") {
+    } else if (pageType === "images") {
       template = await templates.images();
-    } else if (type === "news") {
+    } else if (pageType === "news") {
       template = await templates.news();
     } else {
       template = await templates.web();
@@ -743,13 +769,16 @@ export default new Elysia({ adapter: CloudflareAdapter })
     const qSafe = q || "";
     const pageTitle = qSafe
       ? qSafe.replaceAll("<", "&lt;").replaceAll(">", "&gt;")
-      : type === "maps"
+      : pageType === "maps"
         ? "maps"
         : "search";
 
     const html = template
       .replace("%%pageTitle%%", pageTitle)
-      .replace("%%jsJwt%%", await sign({ s: qSafe, t: type }, "10m"))
+      .replace(
+        "%%jsJwt%%",
+        await sign({ s: qSafe, t: pageType || type }, "10m"),
+      )
       .replaceAll(
         "%%inputValue%%",
         qSafe
@@ -919,7 +948,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
 
     return { title, artist, image: state.ogImage, lyrics };
   })
-  .get("/p/:q", async ({ set, params }) => {
+  .get("/p/:q", async ({ set, params, headers }) => {
     let payload;
     try {
       ({ payload } = await jwtVerify(params?.q || "", getSecret()));
@@ -941,13 +970,28 @@ export default new Elysia({ adapter: CloudflareAdapter })
       results = { initialQuery: payload.s || null };
     } else if (payload.t === "images") {
       template = await templates.imagesJs();
-      results = await searchImages(payload.s);
+      results = await runSearch({
+        query: payload.s,
+        type: "images",
+        engine: pickEngine(headers?.cookie),
+        cookie: env.KAGI_COOKIE,
+      });
     } else if (payload.t === "news") {
       template = await templates.newsJs();
-      results = await searchNews(payload.s);
+      results = await runSearch({
+        query: payload.s,
+        type: "news",
+        engine: pickEngine(headers?.cookie),
+        cookie: env.KAGI_COOKIE,
+      });
     } else {
       template = await templates.webJs();
-      results = await searchMixed(payload.s);
+      results = await runSearch({
+        query: payload.s,
+        type: "web",
+        engine: pickEngine(headers?.cookie),
+        cookie: env.KAGI_COOKIE,
+      });
     }
 
     const js = template
@@ -1021,11 +1065,13 @@ export default new Elysia({ adapter: CloudflareAdapter })
       set.headers["content-type"] = "application/json";
       set.headers["cache-control"] = CACHE.short;
 
-      const results = isImages
-        ? await searchImages(q, page)
-        : isNews
-          ? await searchNews(q, page)
-          : await searchMixed(q, page);
+      const results = await runSearch({
+        query: q,
+        type: isImages ? "images" : isNews ? "news" : "web",
+        page,
+        engine: pickEngine(headers?.cookie),
+        cookie: env.KAGI_COOKIE,
+      });
 
       if (results?.more_results_available) {
         set.headers["x-galileo-upk"] = await sign(
