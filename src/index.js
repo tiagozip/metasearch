@@ -416,7 +416,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         page,
         engine,
         lens: payload.lens,
-        cookie: payload.cookie || env.KAGI_COOKIE,
+        db: env.KAGI_DB,
       });
     } catch (e) {
       set.status = 502;
@@ -747,7 +747,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
           query: q,
           type: pageType || "web",
           engine: pickEngine(request.headers.get("cookie")),
-          cookie: env.KAGI_COOKIE,
+          db: env.KAGI_DB,
         });
         if (data.first_result?.url) return redirect(data.first_result.url);
       } catch {}
@@ -974,7 +974,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         query: payload.s,
         type: "images",
         engine: pickEngine(headers?.cookie),
-        cookie: env.KAGI_COOKIE,
+        db: env.KAGI_DB,
       });
     } else if (payload.t === "news") {
       template = await templates.newsJs();
@@ -982,7 +982,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         query: payload.s,
         type: "news",
         engine: pickEngine(headers?.cookie),
-        cookie: env.KAGI_COOKIE,
+        db: env.KAGI_DB,
       });
     } else {
       template = await templates.webJs();
@@ -990,7 +990,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         query: payload.s,
         type: "web",
         engine: pickEngine(headers?.cookie),
-        cookie: env.KAGI_COOKIE,
+        db: env.KAGI_DB,
       });
     }
 
@@ -1070,7 +1070,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         type: isImages ? "images" : isNews ? "news" : "web",
         page,
         engine: pickEngine(headers?.cookie),
-        cookie: env.KAGI_COOKIE,
+        db: env.KAGI_DB,
       });
 
       if (results?.more_results_available) {

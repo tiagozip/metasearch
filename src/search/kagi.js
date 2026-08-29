@@ -1,47 +1,39 @@
 import { parseKagiHtml, searchKagi } from "../../../kagibot/search.js";
-import { mintTrialSession } from "../../../kagibot/session.js";
 
 export { parseKagiHtml };
 
-const bank = [];
-const BANK_MAX = 5;
-const MINT_COOLDOWN = 5 * 60 * 1000;
-let lastMintAt = 0;
+const DEAD_AT = 3;
+const MAX_TRIES = 4;
 
-async function mintIntoBank(force) {
-  if (!force && Date.now() - lastMintAt < MINT_COOLDOWN) return null;
-  lastMintAt = Date.now();
-  const minted = await mintTrialSession();
-  bank.push(minted.cookie);
-  if (bank.length > BANK_MAX) bank.shift();
-  return minted.cookie;
+async function pickSession(db) {
+  const row = await db
+    .prepare(
+      `SELECT id, cookie FROM sessions
+       WHERE dead = 0
+       ORDER BY last_used_at ASC NULLS FIRST, fails ASC, id ASC
+       LIMIT 1`,
+    )
+    .first();
+  return row || null;
 }
 
-export async function resolveKagiCookie(explicit) {
-  if (explicit) return explicit;
-  if (bank.length) return bank[bank.length - 1];
-  return await mintIntoBank(true);
+async function markUsed(db, id) {
+  await db
+    .prepare("UPDATE sessions SET last_used_at = ?, fails = 0 WHERE id = ?")
+    .bind(Date.now(), id)
+    .run();
 }
 
-export default async function searchKagiWeb(query, page = 0, cookie) {
-  const session = await resolveKagiCookie(cookie);
-  let data;
-  try {
-    data = await searchKagi(query, { cookie: session, page });
-  } catch (e) {
-    const i = bank.indexOf(session);
-    if (i !== -1) bank.splice(i, 1);
-    let fresh;
-    try {
-      fresh = bank.length ? bank[bank.length - 1] : await mintIntoBank(true);
-    } catch {
-      throw e;
-    }
-    if (!fresh || fresh === session) throw e;
-    data = await searchKagi(query, { cookie: fresh, page });
-  }
-  if (!cookie && bank.length < 2) mintIntoBank().catch(() => {});
-  const items = data.results || [];
+async function markFail(db, id) {
+  await db
+    .prepare(
+      "UPDATE sessions SET fails = fails + 1, dead = CASE WHEN fails + 1 >= ? THEN 1 ELSE 0 END WHERE id = ?",
+    )
+    .bind(DEAD_AT, id)
+    .run();
+}
+
+function shape(items) {
   return {
     more_results_available: items.length >= 8,
     results: {
@@ -83,4 +75,34 @@ export default async function searchKagiWeb(query, page = 0, cookie) {
       mixed: items.map((_, index) => ({ type: "web", index })),
     },
   };
+}
+
+export default async function searchKagiWeb(query, page = 0, db) {
+  if (!db) throw new Error("kagi session store unavailable");
+
+  const tried = new Set();
+  let lastErr = new Error("no live kagi sessions in bank");
+
+  for (let i = 0; i < MAX_TRIES; i++) {
+    const session = await pickSession(db);
+    if (!session || tried.has(session.id)) break;
+    tried.add(session.id);
+
+    try {
+      const data = await searchKagi(query, { cookie: session.cookie, page });
+      const items = data.results || [];
+      if (!items.length) {
+        lastErr = new Error("kagi session returned 0 results (likely dead)");
+        await markFail(db, session.id);
+        continue;
+      }
+      await markUsed(db, session.id);
+      return shape(items);
+    } catch (e) {
+      lastErr = e;
+      await markFail(db, session.id);
+    }
+  }
+
+  throw lastErr;
 }

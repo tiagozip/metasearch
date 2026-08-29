@@ -21,7 +21,7 @@ export async function runSearch({
   page = 0,
   engine = "brave",
   lens,
-  cookie,
+  db,
 } = {}) {
   const parsed = parseQuery(query, { lens });
   if (parsed.redirectUrl) {
@@ -39,7 +39,7 @@ export async function runSearch({
   try {
     if (tab === "images") data = await searchImages(q, page);
     else if (tab === "news") data = await searchNews(q, page);
-    else if (useKagi) data = await searchKagiWeb(q, page, cookie);
+    else if (useKagi) data = await searchKagiWeb(q, page, db);
     else data = await searchMixed(q, page);
   } catch (e) {
     searchError = String(e?.message || e);

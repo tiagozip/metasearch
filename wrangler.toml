@@ -10,3 +10,8 @@ not_found_handling = "none"
 
 # set secrets via: wrangler secret put JWT_SECRET
 # [vars]
+
+[[d1_databases]]
+binding = "KAGI_DB"
+database_name = "kagi-sessions"
+database_id = "74fab9be-4e84-4fa7-875d-5b42d3b2c513"

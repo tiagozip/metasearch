@@ -11,7 +11,8 @@
     "lint": "biome check",
     "format": "biome check --write",
     "bangs": "node scripts/fetch-bangs.js",
-    "postinstall": "rm -rf node_modules/file-type"
+    "postinstall": "rm -rf node_modules/file-type",
+    "mint-kagi": "node scripts/mint-kagi-sessions.js"
   },
   "dependencies": {
     "acorn": "^8.15.0",
