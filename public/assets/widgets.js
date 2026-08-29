@@ -1,3 +1,12 @@
+import {
+  convertFile,
+  extOf,
+  humanSize,
+  kindOf,
+  outExtFor,
+  parseConvertQuery,
+  targetsFor,
+} from "./convert.js";
 import { currencyLabel, parseCurrencyQuery, sortCodes } from "./currency.js";
 import {
   browserTargetLang,
@@ -7098,6 +7107,183 @@ const parseTranslateQuery = (q) => {
   return tailLang(t, ["in"]);
 };
 
+////// files //////////////////////////////////////////////////////////////////
+
+const UPLOAD = `<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4v12"/></svg>`;
+
+const CONV_CHECK = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10"/></svg>`;
+const LOCK = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z"/><path d="M8 11v-4a4 4 0 1 1 8 0v4"/></svg>`;
+
+reg({
+  id: "convert",
+  match: parseConvertQuery,
+  build: ({ from, to }) => {
+    let file = null;
+    let want = to;
+    let busy = false;
+    let outUrl = null;
+
+    const picker = h("input", { type: "file", class: "w-drop-input" });
+    const dropText = h("div", { class: "w-drop-text" });
+    const dropHint = h("div", { class: "w-drop-hint" });
+    const drop = h(
+      "label",
+      { class: "w-drop" },
+      picker,
+      h("span", { class: "w-drop-icon", html: UPLOAD }),
+      dropText,
+      dropHint,
+    );
+
+    const fromChip = h("span", { class: "w-conv-chip" });
+    const toSel = h("select", { class: "w-select w-conv-sel" });
+    const go = h("button", { class: "w-btn primary" }, "convert");
+    const status = h("div", { class: "w-conv-status" });
+    const bar = h("i");
+    const barWrap = h("div", { class: "w-conv-bar" }, bar);
+    const result = h("div", { class: "w-conv-result" });
+
+    const fill = () => {
+      const src = file ? extOf(file.name) : from;
+      const targets = src ? targetsFor(src) : [];
+      fromChip.textContent = src ? `.${src}` : "any file";
+      toSel.replaceChildren();
+      if (targets.length) {
+        for (const t of targets)
+          toSel.append(h("option", { value: t }, `.${t}`));
+        toSel.value = targets.includes(want) ? want : targets[0];
+        want = toSel.value;
+        toSel.disabled = false;
+      } else {
+        toSel.append(h("option", { value: "" }, "pick a file first"));
+        toSel.disabled = true;
+      }
+      dropText.textContent = from
+        ? `drop a .${from} file, or click to browse`
+        : "drop a file here, or click to browse";
+      dropHint.textContent = "audio, video and images";
+      drop.classList.toggle("has", Boolean(file));
+      go.disabled = busy || !file || !toSel.value;
+    };
+
+    const setFile = (f) => {
+      if (!f) return;
+      file = f;
+      status.classList.remove("err");
+      if (!kindOf(extOf(f.name))) {
+        status.textContent = `.${extOf(f.name)} is not supported`;
+        status.classList.add("err");
+      } else {
+        const big = f.size > 100 * 1024 * 1024;
+        status.textContent = `${f.name} · ${humanSize(f.size)}${big ? " · this may take a while" : ""}`;
+      }
+      result.replaceChildren();
+      go.classList.add("primary");
+      fill();
+    };
+
+    picker.onchange = () => setFile(picker.files[0]);
+    drop.ondragover = (e) => {
+      e.preventDefault();
+      drop.classList.add("over");
+    };
+    drop.ondragleave = () => drop.classList.remove("over");
+    drop.ondrop = (e) => {
+      e.preventDefault();
+      drop.classList.remove("over");
+      setFile(e.dataTransfer.files[0]);
+    };
+    toSel.onchange = () => {
+      want = toSel.value;
+    };
+
+    go.onclick = async () => {
+      if (busy || !file) return;
+      busy = true;
+      go.disabled = true;
+      go.classList.add("primary");
+      result.replaceChildren();
+      status.classList.remove("err");
+      bar.style.width = "0%";
+      barWrap.classList.add("on", "indet");
+      const target = toSel.value;
+
+      try {
+        const blob = await convertFile(file, target, {
+          onStatus: (s) => {
+            status.textContent = s;
+          },
+          onProgress: (p) => {
+            barWrap.classList.remove("indet");
+            bar.style.width = `${Math.round(p * 100)}%`;
+          },
+        });
+        const name = `${file.name.replace(/\.[^.]+$/, "")}.${outExtFor(target)}`;
+        if (outUrl) URL.revokeObjectURL(outUrl);
+        outUrl = URL.createObjectURL(blob);
+        status.textContent = "";
+        const dl = h(
+          "a",
+          { class: "w-btn primary", href: outUrl, download: name },
+          "download",
+        );
+        result.append(
+          ...[
+            kindOf(target) === "image"
+              ? h("img", { class: "w-conv-thumb", src: outUrl, alt: "" })
+              : h("span", { class: "w-conv-check", html: CONV_CHECK }),
+            h(
+              "div",
+              { class: "w-conv-meta" },
+              h("div", { class: "w-conv-name" }, name),
+              h("div", { class: "w-conv-size" }, humanSize(blob.size)),
+            ),
+            dl,
+          ],
+        );
+        go.classList.remove("primary");
+        dl.click();
+      } catch (e) {
+        status.textContent = String(e?.message || e).slice(0, 200);
+        status.classList.add("err");
+      } finally {
+        busy = false;
+        barWrap.classList.remove("on", "indet");
+        fill();
+      }
+    };
+
+    fill();
+
+    return h(
+      "section",
+      { class: "rich-result w w-conv" },
+      drop,
+      h(
+        "div",
+        { class: "w-conv-bottom" },
+        h(
+          "div",
+          { class: "w-conv-row" },
+          fromChip,
+          h("span", { class: "w-conv-arrow" }, "→"),
+          toSel,
+          go,
+        ),
+        barWrap,
+        status,
+        result,
+        h(
+          "div",
+          { class: "w-conv-note" },
+          h("span", { html: LOCK }),
+          "converted on your device, nothing is uploaded",
+        ),
+      ),
+    );
+  },
+});
+
 const CLEAR = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`;
 
 reg({
@@ -7239,11 +7425,6 @@ reg({
     const status = h("span", { class: "w-tr-status" });
     const count = h("span", { class: "w-tr-count" });
     const dict = h("div", { class: "w-tr-dict" });
-    const link = h(
-      "a",
-      { class: "w-tr-link", href: "/translate" },
-      "full translator ↗",
-    );
 
     const setOut = (value) => {
       if (value == null)
@@ -7356,7 +7537,7 @@ reg({
       ctrl?.abort();
       const value = src.value.trim();
       clearExtras();
-      syncLink();
+      
       if (!value) {
         setOut(null);
         out.classList.remove("err");
@@ -7402,7 +7583,7 @@ reg({
         status.textContent = "";
         if (slP.value === "auto") slP.setDetected(det);
         syncSwap();
-        syncLink();
+        
         renderExtras(data);
         let word = null;
         if (langBase(tlP.value) === "en" && single(data.translatedText))
@@ -7459,7 +7640,7 @@ reg({
     setOut(null);
     syncCount();
     syncSwap();
-    syncLink();
+    
     if (text) run();
 
     return h(
@@ -7469,7 +7650,6 @@ reg({
         "div",
         { class: "w-tr-head" },
         h("div", { class: "w-title" }, "translate"),
-        link,
       ),
       h(
         "div",
