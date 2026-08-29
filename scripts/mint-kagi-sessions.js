@@ -38,13 +38,15 @@ function insertBatch(cookies) {
   if (res.status !== 0) throw new Error(res.stderr || "d1 insert failed");
 }
 
+const ATTEMPT_CAP = TARGET * Number(process.env.ATTEMPT_MULT || 5);
 let minted = 0;
 let failed = 0;
+let attempts = 0;
 const pending = [];
 
 async function worker() {
-  while (minted + failed < TARGET) {
-    if (minted >= TARGET) break;
+  while (minted < TARGET && attempts < ATTEMPT_CAP) {
+    attempts++;
     try {
       const cookie = await mintOne();
       pending.push(cookie);
