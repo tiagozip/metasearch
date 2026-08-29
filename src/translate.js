@@ -1,5 +1,7 @@
+import { env } from "cloudflare:workers";
+
 const ENDPOINT = "https://translate-pa.googleapis.com/v1/translateHtml";
-const API_KEY = "AIzaSyATBXajvzQLTDHEQbcpq0Ihe0vWDHmO520";
+const API_KEY = env.GOOGLE_TRANSLATE_API_KEY;
 
 const LANG_RE = /^[a-z]{2,3}(?:-[A-Za-z]{2,4})?$/;
 
