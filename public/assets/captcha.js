@@ -1,135 +1,96 @@
-export const solveCaptcha = (captcha) => {
-  return new Promise((resolve) => {
-    document.body.innerHTML = `<div class="captcha-loader"><h1>brave is checking if you're human, one moment…</h1><div class="progress-bar" role="progressbar" aria-label="verification progress"><div class="progress"></div></div></div>`;
+const LOCK_KEY = "ms-pow-at";
+const LOCK_MS = 60 * 1000;
 
-    const frame = document.createElement("iframe");
-    frame.style.width = "10px";
-    frame.style.height = "10px";
-    frame.style.position = "fixed";
-    frame.style.top = "-7px";
-    frame.style.left = "-7px";
-    frame.style.opacity = ".01";
+const solve = async (onProgress) => {
+  const challenge = await fetch("/pow/challenge", { cache: "no-store" })
+    .then((r) => r.json())
+    .catch(() => null);
+  if (!challenge) return false;
+  if (!challenge.needed) return true;
 
-    const flowId = captcha.flowId;
-    let solving = false;
+  const { set_token, tokens, zero_count, params, solution_limit } = challenge;
+  const count = Math.max(
+    1,
+    Math.min(6, (navigator.hardwareConcurrency || 2) - 1),
+  );
+  const started = performance.now();
+  const solutions = {};
+  let done = 0;
 
-    const blob = new Blob(
-      [
-        `${captcha.raw.replace(`"."`, `"https://search.brave.com/search"`)}<script>let foundButton;
-
-    setInterval(function () {
-      const button = document.querySelector("#pow-captcha-top button.button.type--hero");
-
-      if (!foundButton && button) {
-        foundButton = true;
-        button.click();
-        window.parent.postMessage({ type: "POW_FRAME_MESSAGE", data: "SOLVING" }, "*");
-      }
-
-      const progressEl = document.querySelector("#pow-captcha-content #pow-captcha-progress");
-      if (progressEl) {
-        window.parent.postMessage({ type: "POW_FRAME_MESSAGE", data: "PROGRESS:" + progressEl.value }, "*");
-      }
-    }, 50);
-
-    const originalFetch = window.fetch;
-
-window.fetch = async (...args) => {
-  if (args[0].includes("api/tokens/keys")) {
-    window.parent.postMessage({ type: "POW_FRAME_MESSAGE", data: "GET_KEYS" }, "*");
-    return new Promise((resolve) => {
-      window.addEventListener("message", function handler(e) {
-        if (e.data.type === "KEYS_RESPONSE") {
-          window.removeEventListener("message", handler);
-          resolve(new Response(JSON.stringify(e.data.keys), { status: 200, headers: { "Content-Type": "application/json" } }));
-        }
+  const results = await Promise.all(
+    Array.from({ length: count }, (_, i) => {
+      const share = tokens.filter((_, j) => j % count === i);
+      if (!share.length) return true;
+      return new Promise((resolve) => {
+        const worker = new Worker("/s/pow-worker.js");
+        let left = share.length;
+        const finish = (ok) => {
+          worker.terminate();
+          resolve(ok);
+        };
+        worker.onmessage = ({ data }) => {
+          if (!data.salt) return finish(false);
+          solutions[data.token] = data.salt;
+          onProgress?.(++done / tokens.length);
+          if (--left === 0) finish(true);
+        };
+        worker.onerror = () => finish(false);
+        worker.postMessage({
+          tokens: share,
+          zeroCount: zero_count,
+          params,
+          limit: solution_limit,
+        });
       });
-    });
-  }
-  if (args[0].includes("api/captcha/pow")) {
-    window.parent.postMessage({ type: "POW_FRAME_MESSAGE", data: "POW:" + args[1].body }, "*");
-    return new Promise((resolve) => {
-      window.addEventListener("message", function handler(e) {
-        if (e.data.type === "POW_RESPONSE") {
-          window.removeEventListener("message", handler);
-          resolve(new Response(JSON.stringify(e.data.result), { status: e.data.status, headers: { "Content-Type": "application/json" } }));
-        }
-      });
-    });
-  }
-  return await originalFetch(...args);
-};</script>`,
-      ],
-      { type: "text/html" },
-    );
-    frame.src = URL.createObjectURL(blob);
+    }),
+  );
+  if (results.includes(false)) return false;
 
-    let revoked = false;
+  const resp = await fetch("/pow/redeem", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      set_token,
+      solutions,
+      taken_time: Math.round(performance.now() - started),
+    }),
+  }).catch(() => null);
+  return Boolean(resp?.ok);
+};
 
-    frame.addEventListener("load", async () => {
-      if (solving) {
-        console.log("ended!");
-        URL.revokeObjectURL(frame.src);
-        solving = false;
-        frame.remove();
-        await fetch(`/p/pow/end/${flowId}`, { method: "POST" });
+export const refill = async ({ force = false } = {}) => {
+  try {
+    const last = Number(localStorage.getItem(LOCK_KEY));
+    if (!force && Date.now() - last < LOCK_MS) return false;
+    localStorage.setItem(LOCK_KEY, String(Date.now()));
+  } catch {}
+  return solve();
+};
 
-        setTimeout(() => {
-          resolve();
-        }, 500);
-      }
-    });
+export const refillWhenIdle = () => {
+  const run = () => refill().catch(() => {});
+  if ("requestIdleCallback" in window)
+    requestIdleCallback(run, { timeout: 5000 });
+  else setTimeout(run, 1500);
+};
 
-    window.addEventListener("message", async (event) => {
-      if (event.data.type === "POW_FRAME_MESSAGE") {
-        if (event.data.data === "SOLVING" && !revoked) {
-          revoked = true;
-          solving = true;
-          console.log("solving");
-        }
+export const solveCaptcha = async () => {
+  document.body.innerHTML = `<div class="captcha-loader"><h1>brave wants your browser to do a quick proof of work, one moment…</h1><div class="progress-bar" role="progressbar" aria-label="proof of work progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress"></div></div></div>`;
+  const loader = document.querySelector(".captcha-loader");
+  const bar = loader.querySelector(".progress-bar");
+  const fill = loader.querySelector(".progress");
 
-        if (event.data.data === "GET_KEYS") {
-          const keys = await (await fetch(`/p/pow/keys/${flowId}`)).json();
-          frame.contentWindow.postMessage({ type: "KEYS_RESPONSE", keys }, "*");
-        }
+  const ok = await solve((ratio) => {
+    fill.style.transform = `scaleX(${ratio})`;
+    bar.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
+  }).catch(() => false);
 
-        if (event.data.data.startsWith("PROGRESS:")) {
-          document.querySelector(".progress").style.transform =
-            `scaleX(${Number(event.data.data.split(":")[1]) / 100})`;
-        }
-
-        if (event.data.data.startsWith("POW:")) {
-          const body = event.data.data.slice(4);
-          document.querySelector(".progress").style.transform = "scaleX(1)";
-
-          const resp = await fetch("/p/pow", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Galileo-Flow": flowId,
-            },
-            body,
-          });
-
-          const result = await resp.json().catch(() => ({}));
-          frame.contentWindow.postMessage(
-            { type: "POW_RESPONSE", result, status: resp.status },
-            "*",
-          );
-
-          if (!resp.ok) {
-            const loader = document.querySelector(".captcha-loader");
-            loader?.classList.add("failed");
-            const heading = loader?.querySelector("h1");
-            if (heading)
-              heading.textContent =
-                "brave couldn't verify you, reload the page to try again";
-          }
-        }
-      }
-    });
-
-    document.body.appendChild(frame);
+  if (ok) {
+    fill.style.transform = "scaleX(1)";
     return;
-  });
+  }
+  loader.classList.add("failed");
+  loader.querySelector("h1").textContent =
+    "brave didn't accept the proof of work, reload the page to try again";
+  return new Promise(() => {});
 };

@@ -2,10 +2,48 @@
   let isLoading, hasHadWebResult, firstWebThumb;
   const currentQuery = new URLSearchParams(window.location.search).get("q");
 
-  const solveCaptcha = async (a) => {
-    const { solveCaptcha } = await import("/s/captcha.js");
-    return solveCaptcha(a);
+  const captcha = () => import("/s/captcha.js");
+  const solveCaptcha = async () => (await captcha()).solveCaptcha();
+  const refillPool = async () =>
+    (await captcha()).refill({ force: true }).catch(() => false);
+  const refillWhenLow = (results) => {
+    if (results?.pow_low) captcha().then((m) => m.refillWhenIdle());
   };
+
+  new MutationObserver(() => {
+    for (const el of document.querySelectorAll(
+      ".news-gallery:not([data-scroller]), .infobox-gallery:not([data-scroller])",
+    )) {
+      el.dataset.scroller = "";
+      const wrap = document.createElement("div");
+      wrap.className = "scroller";
+      el.replaceWith(wrap);
+      wrap.append(el);
+      const arrow = (dir, label, d) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `scroller-btn ${dir}`;
+        btn.tabIndex = -1;
+        btn.setAttribute("aria-label", label);
+        btn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+        btn.onclick = () =>
+          el.scrollBy({
+            left: (dir === "prev" ? -1 : 1) * el.clientWidth * 0.8,
+            behavior: "smooth",
+          });
+        wrap.append(btn);
+      };
+      arrow("prev", "scroll left", "M15 6l-6 6l6 6");
+      arrow("next", "scroll right", "M9 6l6 6l-6 6");
+      const update = () => {
+        const max = el.scrollWidth - el.clientWidth;
+        wrap.classList.toggle("can-prev", el.scrollLeft > 2);
+        wrap.classList.toggle("can-next", el.scrollLeft < max - 2);
+      };
+      el.addEventListener("scroll", update, { passive: true });
+      new ResizeObserver(update).observe(el);
+    }
+  }).observe(document.body, { childList: true, subtree: true });
 
   const safeUrl = (url) => {
     if (!url) return "#";
@@ -1589,10 +1627,10 @@
             for (const [label, value] of metrics) {
               const metric = document.createElement("div");
               metric.className = "rich-weather-metric";
-              metric.innerHTML = `<span class="rich-weather-metric-val">${value}</span><span class="rich-weather-metric-label">${label}</span>`;
+              metric.innerHTML = `<span class="rich-weather-metric-label">${label}</span><span class="rich-weather-metric-val">${value}</span>`;
               stats.append(metric);
             }
-            header.append(stats);
+            current.append(stats);
           }
         }
         section.append(header);
@@ -2728,6 +2766,7 @@
 
   const data = __results_template__;
   let hasMoreResults = data.more_results_available !== false;
+  refillWhenLow(data);
 
   const kagiEnabled = __kagi_enabled__;
   if (kagiEnabled) {
@@ -2769,8 +2808,8 @@
     document.querySelector("#options-popup")?.remove();
   }
 
-  if (data.captchaHtml) {
-    solveCaptcha(data.captchaHtml).then(() => {
+  if (data.pow_required) {
+    solveCaptcha().then(() => {
       setTimeout(() => {
         location.reload();
       }, 1000);
@@ -2859,11 +2898,12 @@
       pk = res.headers.get("x-galileo-upk") || pk;
       const newData = await res.json();
 
-      if (newData.captchaHtml) {
-        await solveCaptcha(newData.captchaHtml);
-        loadMoreResults();
+      if (newData.pow_required) {
+        if (await refillPool()) setTimeout(loadMoreResults);
+        else hasMoreResults = false;
         return;
       }
+      refillWhenLow(newData);
 
       if (newData.error || !newData.results?.web?.results?.length) {
         hasMoreResults = false;
@@ -2907,7 +2947,7 @@
     },
   );
 
-  if (currentQuery && hasMoreResults && !data.captchaHtml) {
+  if (currentQuery && hasMoreResults && !data.pow_required) {
     observer.observe(sentinel);
   }
 

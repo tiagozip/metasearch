@@ -10,6 +10,7 @@
       "**",
       "!**/*.svg",
       "!src/bangs-data.json",
+      "!public/assets/argon2.js",
       "!public/assets/chart.js",
       "!public/assets/fflate.min.js",
       "!public/assets/map.js",

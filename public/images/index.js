@@ -1,7 +1,10 @@
 (() => {
-  const solveCaptcha = async (a) => {
-    const { solveCaptcha } = await import("/s/captcha.js");
-    return solveCaptcha(a);
+  const captcha = () => import("/s/captcha.js");
+  const solveCaptcha = async () => (await captcha()).solveCaptcha();
+  const refillPool = async () =>
+    (await captcha()).refill({ force: true }).catch(() => false);
+  const refillWhenLow = (results) => {
+    if (results?.pow_low) captcha().then((m) => m.refillWhenIdle());
   };
 
   const safeUrl = (url) => {
@@ -857,11 +860,12 @@
       pk = res.headers.get("x-galileo-upk") || pk;
       const newData = await res.json();
 
-      if (newData.captchaHtml) {
-        await solveCaptcha(newData.captchaHtml);
-        loadMoreImages();
+      if (newData.pow_required) {
+        if (await refillPool()) setTimeout(loadMoreImages);
+        else hasMoreResults = false;
         return;
       }
+      refillWhenLow(newData);
 
       if (newData.error || !newData.results?.length) {
         hasMoreResults = false;
@@ -975,9 +979,10 @@
 
     const data = __results_template__;
     hasMoreResults = data.more_results_available !== false;
+    refillWhenLow(data);
 
-    if (data.captchaHtml) {
-      solveCaptcha(data.captchaHtml).then(() => {
+    if (data.pow_required) {
+      solveCaptcha().then(() => {
         location.reload();
       });
       return;

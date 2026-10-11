@@ -1,28 +1,11 @@
-import { parseExpressionAt } from "acorn";
+import braveData from "./braveData.js";
 import braveFetch from "./braveFetch.js";
 
-const simplify = (node) => {
-  if (!node) return null;
-
-  switch (node.type) {
-    case "Literal":
-      return node.value;
-    case "ObjectExpression": {
-      const obj = {};
-      for (const prop of node.properties) {
-        const key = prop.key.name || prop.key.value;
-        obj[key] = simplify(prop.value);
-      }
-      return obj;
-    }
-    case "ArrayExpression":
-      return node.elements.map(simplify);
-    default:
-      return null;
-  }
-};
-
-export default async function search(query, page = 0, { attempts } = {}) {
+export default async function search(
+  query,
+  page = 0,
+  { attempts, clearance } = {},
+) {
   const resp = await braveFetch(
     `https://search.brave.com/search?q=${encodeURIComponent(
       query,
@@ -36,22 +19,17 @@ export default async function search(query, page = 0, { attempts } = {}) {
       method: "GET",
       sniffBlockPage: true,
       attempts,
+      clearance,
     },
   );
 
   const raw = await resp.text();
 
-  const script =
-    `[{i:${raw.split(`[{type:"data",data:`).slice(1).join(`[{type:"data",data:`).split("</script>")[0]}`
-      .split("\n")[0]
-      .trim()
-      .replace(/,$/, "");
-
   try {
-    const exprAst = parseExpressionAt(script, 0, { ecmaVersion: 2020 });
-    const simplified = simplify(exprAst.elements[1]).data;
+    const simplified = braveData(raw);
 
     return {
+      pow_low: resp.powLow,
       badResults:
         simplified.badResults || simplified.body.response.query.bad_results,
       more_results_available:
@@ -358,7 +336,8 @@ export default async function search(query, page = 0, { attempts } = {}) {
 
         locations: simplified.body.response.locations,
 
-        recepies: simplified.body.response.recepies,
+        recepies:
+          simplified.body.response.recipes || simplified.body.response.recepies,
         images: simplified.body.response.images,
 
         mixed: simplified.body.response.mixed?.main || [],

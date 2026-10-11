@@ -7,6 +7,7 @@ import { coloCity } from "./colos.js";
 import { decode } from "./galileo.js";
 import { resolveSearchPage } from "./query.js";
 import braveFetch from "./search/braveFetch.js";
+import { getChallenge, redeem } from "./search/bravePow.js";
 import * as maps from "./search/maps.js";
 import searchMixed from "./search/mixed.js";
 import { runSearch } from "./search/run.js";
@@ -36,6 +37,16 @@ const engineOrder = (primary) =>
     : kagiEnabled() || (env.KAGI_FALLBACK === "true" && Boolean(env.KAGI_DB))
       ? ["brave", "kagi"]
       : ["brave"];
+
+const braveClearance = (tokens = true) =>
+  env.KAGI_DB ? { db: env.KAGI_DB, tokens } : undefined;
+
+const powLimited = async (request) => {
+  if (!env.POW_LIMIT) return false;
+  const key = request.headers.get("cf-connecting-ip") || "anon";
+  const { success } = await env.POW_LIMIT.limit({ key });
+  return !success;
+};
 
 const pickEngine = (cookieHeader) => {
   if (!kagiEnabled()) return "brave";
@@ -430,6 +441,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         engines: engineOrder(engine),
         lens: payload.lens,
         db: env.KAGI_DB,
+        clearance: braveClearance(false),
       });
     } catch (e) {
       set.status = 502;
@@ -765,6 +777,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
           type: pageType || "web",
           engines: engineOrder(pickEngine(request.headers.get("cookie"))),
           db: env.KAGI_DB,
+          clearance: braveClearance(),
         });
         if (data.first_result?.url) return redirect(data.first_result.url);
       } catch {}
@@ -992,6 +1005,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
         type: "images",
         engines: engineOrder(pickEngine(headers?.cookie)),
         db: env.KAGI_DB,
+        clearance: braveClearance(),
+        interactive: true,
       });
     } else if (payload.t === "news") {
       template = await templates.newsJs();
@@ -1000,6 +1015,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
         type: "news",
         engines: engineOrder(pickEngine(headers?.cookie)),
         db: env.KAGI_DB,
+        clearance: braveClearance(),
+        interactive: true,
       });
     } else {
       template = await templates.webJs();
@@ -1008,6 +1025,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
         type: "web",
         engines: engineOrder(pickEngine(headers?.cookie)),
         db: env.KAGI_DB,
+        clearance: braveClearance(),
+        interactive: true,
       });
     }
 
@@ -1096,6 +1115,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
           ? [payload.e]
           : engineOrder(pickEngine(headers?.cookie)),
         db: env.KAGI_DB,
+        clearance: braveClearance(),
+        interactive: true,
       });
 
       if (results?.more_results_available) {
@@ -1110,12 +1131,38 @@ export default new Elysia({ adapter: CloudflareAdapter })
         );
       }
 
+      if (results?.search_error) set.headers["cache-control"] = "no-store";
+
       return results;
     },
     {
       body: t.String(),
     },
   )
+  .get("/pow/challenge", async ({ request, set }) => {
+    set.headers["cache-control"] = "no-store";
+    if (!env.KAGI_DB) return { needed: false };
+    if (await powLimited(request)) {
+      set.status = 429;
+      return { error: "slow down" };
+    }
+    const challenge = await getChallenge();
+    return challenge ? { needed: true, ...challenge } : { needed: false };
+  })
+  .post("/pow/redeem", async ({ request, set, body }) => {
+    set.headers["cache-control"] = "no-store";
+    if (!env.KAGI_DB) {
+      set.status = 404;
+      return { error: "token pool is not configured" };
+    }
+    if (await powLimited(request)) {
+      set.status = 429;
+      return { error: "slow down" };
+    }
+    const { status, ...result } = await redeem(env.KAGI_DB, body);
+    set.status = status;
+    return result;
+  })
   .post("/m", async ({ body, set, headers }) => {
     const [token] = body;
 

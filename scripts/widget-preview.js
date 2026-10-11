@@ -212,33 +212,45 @@ const MOCK = {
   more_results_available: false,
 };
 
-async function searchPage() {
-  let html = await Bun.file(`${ROOT}web/index.html`).text();
+async function searchPage(q) {
+  const html = await Bun.file(`${ROOT}web/index.html`).text();
   const css = await Bun.file(`${ROOT}search.css`).text();
-  html = html
+  const value = q || "";
+  return html
     .replace("/**css**/", css)
-    .replaceAll("%%pageTitle%%", "mock")
-    .replaceAll("%%inputValue%%", "")
-    .replaceAll("%%inputValueEncoded%%", "")
-    .replace("/p/%%jsJwt%%", "/page-js");
-  return html;
+    .replaceAll("%%pageTitle%%", value || "mock")
+    .replaceAll("%%inputValue%%", value)
+    .replaceAll("%%inputValueEncoded%%", encodeURIComponent(value))
+    .replace("/p/%%jsJwt%%", `/page-js?q=${encodeURIComponent(value)}`);
 }
-async function searchJs() {
-  let js = await Bun.file(`${ROOT}web/index.js`).text();
-  js = js
-    .replace("__results_template__", JSON.stringify(MOCK))
+async function prodData(q) {
+  const page = await fetch(`${PROD}/?q=${encodeURIComponent(q)}`).then((r) =>
+    r.text(),
+  );
+  const src = page.match(/\/p\/[\w.-]+/)?.[0];
+  if (!src) return MOCK;
+  const js = await fetch(`${PROD}${src}`).then((r) => r.text());
+  const start = js.indexOf("const data = ") + 13;
+  const end = js.indexOf("\n  let hasMoreResults", start);
+  return JSON.parse(js.slice(start, end).replace(/;\s*$/, ""));
+}
+async function searchJs(q) {
+  const js = await Bun.file(`${ROOT}web/index.js`).text();
+  const data = q ? await prodData(q) : MOCK;
+  return js
+    .replace("__results_template__", JSON.stringify(data))
     .replace("__kagi_enabled__", "false")
     .replace('"__results_pk__"', '"mock"')
     .replace('"__results_cl__"', '"mock"')
     .replaceAll("%%galileo_pass%%", "");
-  return js;
 }
 
 Bun.serve({
   port: PORT,
   idleTimeout: 60,
   async fetch(req) {
-    const { pathname } = new URL(req.url);
+    const { pathname, searchParams } = new URL(req.url);
+    const q = searchParams.get("q");
     if (pathname === "/" || pathname === "/index.html") {
       const html = await Bun.file(
         new URL("./widget-preview.html", import.meta.url).pathname,
@@ -259,11 +271,11 @@ Bun.serve({
       });
     }
     if (pathname === "/page")
-      return new Response(await searchPage(), {
+      return new Response(await searchPage(q), {
         headers: { "content-type": "text/html" },
       });
     if (pathname === "/page-js")
-      return new Response(await searchJs(), {
+      return new Response(await searchJs(q), {
         headers: { "content-type": "application/javascript" },
       });
     if (pathname.startsWith("/fx/")) {
@@ -279,7 +291,13 @@ Bun.serve({
     let path = null;
     if (pathname.startsWith("/s/")) path = `${ROOT}assets/${pathname.slice(3)}`;
     else if (pathname === "/search.css") path = `${ROOT}search.css`;
-    if (!path) return new Response("not found", { status: 404 });
+    if (!path) {
+      const up = await fetch(`${PROD}${pathname}${new URL(req.url).search}`);
+      return new Response(await up.arrayBuffer(), {
+        status: up.status,
+        headers: { "content-type": up.headers.get("content-type") || "" },
+      });
+    }
     const f = file(path);
     if (!(await f.exists()))
       return new Response(`missing ${path}`, { status: 404 });

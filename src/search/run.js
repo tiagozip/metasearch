@@ -37,6 +37,8 @@ export async function runSearch({
   engines = ["brave"],
   lens,
   db,
+  clearance,
+  interactive = false,
 } = {}) {
   const parsed = parseQuery(query, { lens });
   if (parsed.redirectUrl) {
@@ -56,14 +58,16 @@ export async function runSearch({
   let data;
   let used = order[0];
   const errors = [];
+  let powRequired = false;
   for (const eng of order) {
     try {
       let attempt;
-      if (tab === "images") attempt = await searchImages(q, page, { attempts });
+      if (tab === "images")
+        attempt = await searchImages(q, page, { attempts, clearance });
       else if (tab === "news")
-        attempt = await searchNews(q, page, { attempts });
+        attempt = await searchNews(q, page, { attempts, clearance });
       else if (eng === "kagi") attempt = await searchKagiWeb(q, page, db);
-      else attempt = await searchMixed(q, page, { attempts });
+      else attempt = await searchMixed(q, page, { attempts, clearance });
       const ok = hasAnything(attempt, tab);
       if (ok || !data) {
         data = attempt;
@@ -72,6 +76,10 @@ export async function runSearch({
       if (ok) break;
     } catch (e) {
       errors.push({ engine: eng, error: e });
+      if (interactive && e?.pow && !data) {
+        powRequired = true;
+        break;
+      }
     }
   }
   const failed = !data;
@@ -105,6 +113,7 @@ export async function runSearch({
             : "didn't answer",
         }
       : {}),
+    ...(powRequired ? { pow_required: true } : {}),
     ...(failed
       ? {
           search_error: errors
