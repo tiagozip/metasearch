@@ -1000,18 +1000,6 @@
   };
 
   const undyne = (() => {
-    const enabled = (() => {
-      try {
-        return (
-          localStorage.getItem("undyne") === "1" &&
-          !navigator.connection?.saveData &&
-          typeof Worker === "function"
-        );
-      } catch {
-        return false;
-      }
-    })();
-    if (!enabled) return null;
     let worker;
     let seq = 0;
     const pending = new Map();
@@ -1021,28 +1009,39 @@
       worker?.terminate();
       worker = null;
     };
-    return (answer, question) => {
-      worker ??= (() => {
-        const w = new Worker("/s/undyne.js", { type: "module" });
-        w.onmessage = ({ data }) => {
-          const p = pending.get(data.id);
-          pending.delete(data.id);
-          if (data.error) p?.reject(new Error(data.error));
-          else p?.resolve(data.spans);
-        };
-        w.onerror = (e) => fail(new Error(e.message || "undyne failed"));
-        return w;
-      })();
-      return new Promise((resolve, reject) => {
+    const allowed = () => {
+      const c = navigator.connection;
+      return (
+        typeof Worker === "function" &&
+        !c?.saveData &&
+        c?.type !== "cellular" &&
+        !["slow-2g", "2g", "3g"].includes(c?.effectiveType)
+      );
+    };
+    const start = () => {
+      if (worker || !allowed()) return worker;
+      worker = new Worker("/s/undyne.js", { type: "module" });
+      worker.onmessage = ({ data }) => {
+        const p = pending.get(data.id);
+        pending.delete(data.id);
+        if (data.error) p?.reject(new Error(data.error));
+        else p?.resolve(data.spans);
+      };
+      worker.onerror = (e) => fail(new Error(e.message || "undyne failed"));
+      return worker;
+    };
+    const run = (answer, question) =>
+      new Promise((resolve, reject) => {
+        if (!start()) return resolve([]);
         const id = ++seq;
         pending.set(id, { resolve, reject });
         worker.postMessage({ id, answer, question });
       });
-    };
+    return { start, run };
   })();
 
   const highlightFaqAnswer = async (el, question) => {
-    if (!undyne || "highlighted" in el.dataset) return;
+    if ("highlighted" in el.dataset) return;
     el.dataset.highlighted = "";
     const segs = [];
     let text = "";
@@ -1073,7 +1072,7 @@
     ).length;
     if (words.length < 6 || english / words.length < 0.12) return;
 
-    const spans = await undyne(text, question).catch(() => []);
+    const spans = await undyne.run(text, question).catch(() => []);
     for (const [ri, [b, e]] of spans.toReversed().entries()) {
       const first = segs.find(([n, s]) => b >= s && b < s + n.data.length);
       const last = segs.findLast(([n, s]) => e > s && e <= s + n.data.length);
@@ -1224,6 +1223,9 @@
     const list = document.createElement("div");
     list.className = "faq-list";
     const group = { current: null };
+    for (const type of ["pointerover", "focusin"]) {
+      list.addEventListener(type, () => undyne.start(), { once: true });
+    }
     for (const item of faq.results.slice(0, 5)) {
       list.append(renderFaqResult(item, group));
     }
