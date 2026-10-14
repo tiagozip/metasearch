@@ -15,6 +15,7 @@
       "!public/assets/fflate.min.js",
       "!public/assets/map.js",
       "!public/assets/qrcode.js",
+      "!public/assets/ort*.mjs",
       "!public/assets/sugar-high.js"
     ]
   },

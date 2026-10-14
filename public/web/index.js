@@ -999,6 +999,117 @@
     return article;
   };
 
+  const undyne = (() => {
+    const enabled = (() => {
+      try {
+        return (
+          localStorage.getItem("undyne") === "1" &&
+          !navigator.connection?.saveData &&
+          typeof Worker === "function"
+        );
+      } catch {
+        return false;
+      }
+    })();
+    if (!enabled) return null;
+    let worker;
+    let seq = 0;
+    const pending = new Map();
+    const fail = (err) => {
+      for (const { reject } of pending.values()) reject(err);
+      pending.clear();
+      worker?.terminate();
+      worker = null;
+    };
+    return (answer, question) => {
+      worker ??= (() => {
+        const w = new Worker("/s/undyne.js", { type: "module" });
+        w.onmessage = ({ data }) => {
+          const p = pending.get(data.id);
+          pending.delete(data.id);
+          if (data.error) p?.reject(new Error(data.error));
+          else p?.resolve(data.spans);
+        };
+        w.onerror = (e) => fail(new Error(e.message || "undyne failed"));
+        return w;
+      })();
+      return new Promise((resolve, reject) => {
+        const id = ++seq;
+        pending.set(id, { resolve, reject });
+        worker.postMessage({ id, answer, question });
+      });
+    };
+  })();
+
+  const highlightFaqAnswer = async (el, question) => {
+    if (!undyne || "highlighted" in el.dataset) return;
+    el.dataset.highlighted = "";
+    const segs = [];
+    let text = "";
+    const walk = (node) => {
+      for (const child of node.childNodes) {
+        if (child.nodeType === Node.TEXT_NODE) {
+          segs.push([child, text.length]);
+          text += child.data;
+          continue;
+        }
+        if (child.nodeName === "BR") {
+          text += "\n";
+          continue;
+        }
+        if (child.nodeName === "SPAN") continue;
+        const block = /^(P|LI|UL|OL)$/.test(child.nodeName);
+        if (block && text && !text.endsWith("\n")) text += "\n";
+        walk(child);
+        if (block && !text.endsWith("\n")) text += "\n";
+      }
+    };
+    walk(el);
+    const words = text.toLowerCase().match(/\p{L}+/gu) || [];
+    const english = words.filter((w) =>
+      /^(the|is|of|and|to|a|in|it|that|for|are|with|as|was|be|on|or|by|can|this)$/.test(
+        w,
+      ),
+    ).length;
+    if (words.length < 6 || english / words.length < 0.12) return;
+
+    const spans = await undyne(text, question).catch(() => []);
+    for (const [ri, [b, e]] of spans.toReversed().entries()) {
+      const first = segs.find(([n, s]) => b >= s && b < s + n.data.length);
+      const last = segs.findLast(([n, s]) => e > s && e <= s + n.data.length);
+      if (!first || !last) continue;
+      const range = document.createRange();
+      if (b === first[1]) {
+        let node = first[0];
+        while (
+          /^(STRONG|B|EM|A)$/.test(node.parentNode.nodeName) &&
+          !node.previousSibling
+        ) {
+          node = node.parentNode;
+        }
+        range.setStartBefore(node);
+      } else {
+        range.setStart(first[0], b - first[1]);
+      }
+      if (e === last[1] + last[0].data.length) {
+        let node = last[0];
+        while (
+          /^(STRONG|B|EM|A)$/.test(node.parentNode.nodeName) &&
+          !node.nextSibling
+        ) {
+          node = node.parentNode;
+        }
+        range.setEndAfter(node);
+      } else {
+        range.setEnd(last[0], e - last[1]);
+      }
+      const mark = document.createElement("mark");
+      mark.style.setProperty("--i", spans.length - 1 - ri);
+      mark.append(range.extractContents());
+      range.insertNode(mark);
+    }
+  };
+
   const renderFaqResult = (r, group) => {
     const item = document.createElement("div");
     item.className = "faq-item";
@@ -1092,6 +1203,7 @@
       }
       group.current = open ? item : null;
       setOpen(open);
+      if (open) highlightFaqAnswer(answerDiv, r.question || "");
     });
     item.__setOpen = setOpen;
 

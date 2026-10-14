@@ -3156,6 +3156,45 @@ aside {
   span {
     display: none;
   }
+
+  mark {
+    --mark-bg: color-mix(in srgb, var(--blue) 22%, transparent);
+    color: var(--text);
+    background:
+      linear-gradient(var(--mark-bg), var(--mark-bg)) no-repeat 0 0 / 100% 100%;
+    padding: 0 2px;
+    margin: 0 -2px;
+    border-radius: 3px;
+
+    @media (prefers-reduced-motion: no-preference) {
+      animation: faq-mark-sweep 0.55s var(--ease-out)
+        calc(var(--i, 0) * 70ms + 80ms) backwards;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: faq-mark-fade 0.3s ease backwards;
+    }
+  }
+}
+
+@property --mark-bg {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: transparent;
+}
+
+@keyframes faq-mark-sweep {
+  from {
+    background-size: 0% 100%;
+    color: inherit;
+  }
+}
+
+@keyframes faq-mark-fade {
+  from {
+    --mark-bg: transparent;
+    color: inherit;
+  }
 }
 
 .faq-source {
