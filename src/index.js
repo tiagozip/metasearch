@@ -24,6 +24,8 @@ const CACHE = {
   med: "public, max-age=3600",
   day: "public, max-age=86400",
   forever: "public, max-age=5184000",
+  immutable: "public, max-age=31536000, immutable",
+  revalidate: "public, no-cache",
   tts: "public, max-age=120",
 };
 
@@ -707,16 +709,19 @@ export default new Elysia({ adapter: CloudflareAdapter })
       },
     );
   })
-  .get("/s/flags/:file", async ({ set, params }) => {
+  .get("/s/flags/:file", async ({ set, params, request }) => {
     if (!/^[a-z-]{2,8}\.svg$/.test(params.file)) {
       set.status = 404;
       return "no";
     }
-    set.headers["cache-control"] = CACHE.forever;
     const resp = await env.ASSETS.fetch(
-      new Request(`https://assets/assets/flags/${params.file}`),
+      new Request(`https://assets/assets/flags/${params.file}`, {
+        headers: request.headers,
+      }),
     );
-    return new Response(resp.body, resp);
+    const out = new Response(resp.body, resp);
+    out.headers.set("cache-control", CACHE.forever);
+    return out;
   })
   .get("/", async ({ query, set, redirect, request }) => {
     const q = query?.q?.replaceAll?.("\n", " ")?.trim();
@@ -1219,14 +1224,24 @@ export default new Elysia({ adapter: CloudflareAdapter })
     }
     return await maps.enrichPlace(q, lat, lng);
   })
-  .get("/s/:file", async ({ set, params }) => {
+  .get("/s/:file", async ({ params, request }) => {
     if (params.file.includes("/") || params.file.includes("..")) return "no";
 
-    set.headers["cache-control"] = CACHE.forever;
     const resp = await env.ASSETS.fetch(
-      new Request(`https://assets/assets/${params.file}`),
+      new Request(`https://assets/assets/${params.file}`, {
+        headers: request.headers,
+      }),
     );
-    return new Response(resp.body, resp);
+    const out = new Response(resp.body, resp);
+    out.headers.set(
+      "cache-control",
+      /^(undyne-int8\.onnx|undyne-vocab\.txt|ort-wasm-simd-threaded\.(wasm|mjs)|ort\.wasm\.min\.mjs|inter-var-v4\.woff2)$/.test(
+        params.file,
+      )
+        ? CACHE.immutable
+        : CACHE.revalidate,
+    );
+    return out;
   })
   .all("/*", async () => {
     const resp = await env.ASSETS.fetch(new Request("https://assets/404.html"));
