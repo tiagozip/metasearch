@@ -38,13 +38,12 @@ const engineOrder = (primary) =>
       ? ["brave", "kagi"]
       : ["brave"];
 
-const braveClearance = (tokens = true) =>
-  env.KAGI_DB ? { db: env.KAGI_DB, tokens } : undefined;
+const braveClearance = () => (env.KAGI_DB ? { db: env.KAGI_DB } : undefined);
 
-const powLimited = async (request) => {
-  if (!env.POW_LIMIT) return false;
+const limited = async (limiter, request) => {
+  if (!limiter) return false;
   const key = request.headers.get("cf-connecting-ip") || "anon";
-  const { success } = await env.POW_LIMIT.limit({ key });
+  const { success } = await limiter.limit({ key });
   return !success;
 };
 
@@ -378,10 +377,15 @@ export default new Elysia({ adapter: CloudflareAdapter })
     set.headers["access-control-max-age"] = "86400";
     return null;
   })
-  .post("/api", async ({ body, set }) => {
+  .post("/api", async ({ body, set, request }) => {
     set.headers["content-type"] = "application/json";
     set.headers["access-control-allow-origin"] = "*";
     set.headers["cache-control"] = "no-store";
+
+    if (await limited(env.API_LIMIT, request)) {
+      set.status = 429;
+      return { error: "slow down" };
+    }
 
     let payload = body;
     if (typeof payload === "string") {
@@ -441,7 +445,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         engines: engineOrder(engine),
         lens: payload.lens,
         db: env.KAGI_DB,
-        clearance: braveClearance(false),
+        clearance: braveClearance(),
       });
     } catch (e) {
       set.status = 502;
@@ -1142,7 +1146,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
   .get("/pow/challenge", async ({ request, set }) => {
     set.headers["cache-control"] = "no-store";
     if (!env.KAGI_DB) return { needed: false };
-    if (await powLimited(request)) {
+    if (await limited(env.POW_LIMIT, request)) {
       set.status = 429;
       return { error: "slow down" };
     }
@@ -1155,7 +1159,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
       set.status = 404;
       return { error: "token pool is not configured" };
     }
-    if (await powLimited(request)) {
+    if (await limited(env.POW_LIMIT, request)) {
       set.status = 429;
       return { error: "slow down" };
     }
