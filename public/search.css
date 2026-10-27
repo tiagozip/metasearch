@@ -4397,6 +4397,10 @@ body.images-detail-sidebar-open .images-body {
   }
 }
 
+.links-only :is(.faq-section, .discussions-section, .sidebar-videos) {
+  display: none;
+}
+
 @keyframes w-swap-in {
   from {
     opacity: 0;

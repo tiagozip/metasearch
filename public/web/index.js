@@ -2882,45 +2882,46 @@
   let hasMoreResults = data.more_results_available !== false;
   refillWhenLow(data);
 
-  const kagiEnabled = __kagi_enabled__;
-  if (kagiEnabled) {
-    const optionsBtn = document.querySelector("#options-btn");
-    const optionsPopup = document.querySelector("#options-popup");
-    const engineSelect = document.querySelector("#engine-select");
+  const optionsBtn = document.querySelector("#options-btn");
+  const optionsPopup = document.querySelector("#options-popup");
+  const linksOnly = document.querySelector("#links-only");
 
+  linksOnly.checked = /(?:^|;\s*)links_only=1\b/.test(document.cookie);
+  document.body.classList.toggle("links-only", linksOnly.checked);
+  linksOnly.addEventListener("change", () => {
+    document.body.classList.toggle("links-only", linksOnly.checked);
+    document.cookie = `links_only=${linksOnly.checked ? 1 : 0}; path=/; max-age=31536000; samesite=lax`;
+  });
+
+  if (__kagi_enabled__) {
+    const engineSelect = document.querySelector("#engine-select");
     const tookEl = document.querySelector("#took-ms");
-    if (tookEl && typeof data.took === "number")
+    if (typeof data.took === "number")
       tookEl.textContent = `took ${data.took}ms`;
 
-    if (engineSelect) {
-      engineSelect.value =
-        data.engine ||
-        document.cookie.match(/(?:^|;\s*)engine=(brave|kagi)\b/)?.[1] ||
-        "brave";
-      engineSelect.addEventListener("change", () => {
-        document.cookie = `engine=${engineSelect.value}; path=/; max-age=31536000; samesite=lax`;
-        location.reload();
-      });
-    }
-
-    optionsBtn?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      optionsPopup.classList.toggle("visible");
-    });
-
-    document.addEventListener("mousedown", (e) => {
-      if (
-        optionsPopup &&
-        !optionsPopup.contains(e.target) &&
-        e.target !== optionsBtn
-      ) {
-        optionsPopup.classList.remove("visible");
-      }
+    engineSelect.value =
+      data.engine ||
+      document.cookie.match(/(?:^|;\s*)engine=(brave|kagi)\b/)?.[1] ||
+      "brave";
+    engineSelect.addEventListener("change", () => {
+      document.cookie = `engine=${engineSelect.value}; path=/; max-age=31536000; samesite=lax`;
+      location.reload();
     });
   } else {
-    document.querySelector("#options-btn")?.remove();
-    document.querySelector("#options-popup")?.remove();
+    document.querySelector("#engine-option").remove();
+    document.querySelector("#took-ms").remove();
   }
+
+  optionsBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    optionsPopup.classList.toggle("visible");
+  });
+
+  document.addEventListener("mousedown", (e) => {
+    if (!optionsPopup.contains(e.target) && e.target !== optionsBtn) {
+      optionsPopup.classList.remove("visible");
+    }
+  });
 
   if (data.pow_required) {
     solveCaptcha().then(() => {
