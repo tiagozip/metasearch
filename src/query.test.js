@@ -114,3 +114,20 @@ test("custom lens include/exclude sites and keywords", () => {
   expect(parsed.engineQuery).toContain("review");
   expect(parsed.engineQuery).toContain("-spam");
 });
+
+test("negated operators stay negated in the engine query", () => {
+  const p = parseQuery("cats -site:wikipedia.org");
+  expect(p.operators.site).toEqual([]);
+  expect(p.engineQuery).toBe("cats -site:wikipedia.org");
+  expect(parseQuery('cats -site:"en.wikipedia.org"').engineQuery).toBe(
+    'cats -site:"en.wikipedia.org"',
+  );
+  expect(parseQuery("cats site:reddit.com").engineQuery).toBe(
+    "cats site:reddit.com",
+  );
+  expect(parseQuery('cats -"big cats"').engineQuery).toBe('cats -"big cats"');
+  expect(parseQuery("rust -filetype:pdf -intitle:jobs").engineQuery).toBe(
+    "rust -filetype:pdf -intitle:jobs",
+  );
+  expect(parseQuery("foo.site:bar").engineQuery).toBe("foo.site:bar");
+});

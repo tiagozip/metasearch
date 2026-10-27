@@ -81,19 +81,20 @@ function parseOperators(raw) {
   };
   let rest = String(raw || "");
   rest = rest.replace(
-    /\b(site|filetype|intitle|inurl):"([^"]*)"/gi,
-    (_, op, val) => {
-      if (val) operators[op.toLowerCase()].push(val);
-      return " ";
+    /(^|\s)(-?)(site|filetype|intitle|inurl):(?:"([^"]*)"|(\S+))/gi,
+    (_, lead, neg, op, quoted, bare) => {
+      const val = quoted ?? bare;
+      if (!val) return lead;
+      const name = op.toLowerCase();
+      if (neg) operators.exclude.push(`${name}:${quoted ? `"${val}"` : val}`);
+      else operators[name].push(val);
+      return `${lead} `;
     },
   );
-  rest = rest.replace(
-    /\b(site|filetype|intitle|inurl):(\S+)/gi,
-    (_, op, val) => {
-      if (val) operators[op.toLowerCase()].push(val);
-      return " ";
-    },
-  );
+  rest = rest.replace(/(^|\s)-"([^"]*)"/g, (_, lead, q) => {
+    if (q) operators.exclude.push(`"${q}"`);
+    return `${lead} `;
+  });
   rest = rest.replace(/"([^"]*)"/g, (_, q) => {
     if (q) operators.quotes.push(q);
     return " ";
