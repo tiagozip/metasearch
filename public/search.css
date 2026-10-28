@@ -12487,3 +12487,40 @@ body.images-detail-sidebar-open .images-body {
   animation-duration: var(--duration-slow);
   animation-timing-function: var(--ease-in-out);
 }
+
+.ms-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 1000;
+  padding: 8px 14px;
+  border-radius: var(--r-chip);
+  background: var(--surface0);
+  color: var(--text);
+  font-size: 14px;
+  box-shadow: var(--lift-2);
+  pointer-events: none;
+  animation: ms-toast 1600ms var(--ease-out) both;
+}
+
+@keyframes ms-toast {
+  0% {
+    opacity: 0;
+    translate: -50% 8px;
+  }
+  12%,
+  85% {
+    opacity: 1;
+    translate: -50% 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ms-toast {
+    animation: none;
+  }
+}

@@ -5,7 +5,7 @@ import { jwtVerify, SignJWT } from "jose";
 import { ImageResponse } from "takumi-js/response";
 import { coloCity } from "./colos.js";
 import { decode } from "./galileo.js";
-import { cfgScript, cookieSafe, parseCfg, TIMES } from "./prefs.js";
+import { cfgScript, cookieSafe, parseCfg, parseLens, TIMES } from "./prefs.js";
 import { LENSES, resolveSearchPage } from "./query.js";
 import braveFetch from "./search/braveFetch.js";
 import { getChallenge, redeem } from "./search/bravePow.js";
@@ -738,7 +738,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
     const lens =
       typeof query?.lens === "string" && Object.hasOwn(LENSES, query.lens)
         ? query.lens
-        : undefined;
+        : parseLens(query?.cl) || undefined;
     const engine =
       cfg?.engine && kagiEnabled()
         ? cfg.engine
@@ -747,7 +747,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
     const time = TIMES.includes(query?.tf) ? query.tf : undefined;
 
     set.headers["content-type"] = "text/html";
-    set.headers.Link = `</s/inter-var-v4.woff2>; rel="preload"; as="font"`;
+    set.headers.Link = `</s/inter-var-v4.woff2>; rel="preload"; as="font"; crossorigin`;
 
     const ua = request.headers.get("user-agent") || "";
     const isUnfurler =
@@ -1292,7 +1292,9 @@ export default new Elysia({ adapter: CloudflareAdapter })
         params.file,
       )
         ? CACHE.immutable
-        : CACHE.revalidate,
+        : /\.(webp|png|svg|ico)$/.test(params.file)
+          ? CACHE.day
+          : CACHE.revalidate,
     );
     return out;
   })

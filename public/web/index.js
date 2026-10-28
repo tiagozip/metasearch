@@ -10,13 +10,34 @@
     }
   };
   const domainRules = () => {
+    let raw;
     try {
-      return JSON.parse(pref("ms-domains") || "{}");
+      raw = JSON.parse(pref("ms-domains") || "{}");
     } catch {
-      return {};
+      raw = {};
     }
+    const exact = {};
+    const patterns = [];
+    for (const [p, rule] of Object.entries(raw)) {
+      if (/^\/.+\/$/s.test(p)) {
+        try {
+          patterns.push({ re: new RegExp(p.slice(1, -1), "i"), rule });
+        } catch {}
+      } else if (p.includes("*")) {
+        const body = p
+          .split("*")
+          .map((x) => x.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+          .join(".*");
+        patterns.push({
+          re: new RegExp(`^(?:.+\\.)?${body}$`),
+          host: true,
+          rule,
+        });
+      } else exact[p] = rule;
+    }
+    return { exact, patterns };
   };
-  const ruleFor = (url, rules) => {
+  const ruleFor = (url, { exact, patterns }) => {
     let host;
     try {
       host = new URL(url).hostname.replace(/^www\./, "");
@@ -24,8 +45,9 @@
       return;
     }
     for (let d = host; d.includes("."); d = d.slice(d.indexOf(".") + 1)) {
-      if (Object.hasOwn(rules, d)) return rules[d];
+      if (Object.hasOwn(exact, d)) return exact[d];
     }
+    return patterns.find((p) => p.re.test(p.host ? host : url))?.rule;
   };
   const arrange = (list = []) => {
     const rules = domainRules();
@@ -2939,11 +2961,13 @@
   };
 
   const data = __results_template__;
+  let blockedCount = 0;
   for (const key of ["web", "discussions", "news", "videos"]) {
     const list = data.results?.[key]?.results;
-    if (Array.isArray(list))
-      data.results[key].results =
-        key === "web" ? arrange(list) : dropBlocked(list);
+    if (!Array.isArray(list)) continue;
+    data.results[key].results =
+      key === "web" ? arrange(list) : dropBlocked(list);
+    blockedCount += list.length - data.results[key].results.length;
   }
   let hasMoreResults = data.more_results_available !== false;
   refillWhenLow(data);
@@ -2981,26 +3005,74 @@
     .querySelector("#options-popup")
     .addEventListener("change", syncMenuValues);
 
-  for (const [param, id] of [
-    ["tf", "#time-select"],
-    ["lens", "#lens-select"],
-  ]) {
-    const select = document.querySelector(id);
-    const current = new URLSearchParams(location.search).get(param) || "";
-    select.value = current;
-    select.addEventListener("change", () => {
-      const u = new URL(location.href);
-      if (select.value) u.searchParams.set(param, select.value);
-      else u.searchParams.delete(param);
-      location.assign(u);
-    });
-    if (!current) continue;
+  const search = new URLSearchParams(location.search);
+  const keepParam = (name, value) => {
     const hidden = document.createElement("input");
     hidden.type = "hidden";
-    hidden.name = param;
-    hidden.value = current;
+    hidden.name = name;
+    hidden.value = value;
     document.querySelector("header form").append(hidden);
-  }
+  };
+  const navigateWith = (changes) => {
+    const u = new URL(location.href);
+    for (const [k, v] of Object.entries(changes)) {
+      if (v) u.searchParams.set(k, v);
+      else u.searchParams.delete(k);
+    }
+    location.assign(u);
+  };
+
+  const timeSelect = document.querySelector("#time-select");
+  timeSelect.value = search.get("tf") || "";
+  timeSelect.addEventListener("change", () =>
+    navigateWith({ tf: timeSelect.value }),
+  );
+  if (search.get("tf")) keepParam("tf", search.get("tf"));
+
+  const lensSelect = document.querySelector("#lens-select");
+  const lensValue = search.get("cl")
+    ? `cl:${search.get("cl")}`
+    : search.get("lens") || "";
+  const encodeLens = (l) =>
+    btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify(l))))
+      .replaceAll("+", "-")
+      .replaceAll("/", "_")
+      .replace(/=+$/, "");
+  const fillLenses = () => {
+    lensSelect.querySelector("optgroup")?.remove();
+    let lenses = [];
+    try {
+      lenses = JSON.parse(pref("ms-lenses") || "[]");
+    } catch {}
+    const group = document.createElement("optgroup");
+    group.label = "your lenses";
+    const values = lenses.map((l) => `cl:${encodeLens(l)}`);
+    for (const [i, l] of lenses.entries())
+      group.append(new Option(l.n, values[i]));
+    if (lensValue.startsWith("cl:") && !values.includes(lensValue))
+      group.append(new Option("shared lens", lensValue));
+    group.append(new Option("new lens", "new"));
+    lensSelect.append(group);
+    lensSelect.value = lensValue;
+    syncMenuValues();
+  };
+  fillLenses();
+  addEventListener("ms-prefs", fillLenses);
+  lensSelect.addEventListener("change", () => {
+    const v = lensSelect.value;
+    if (v === "new") {
+      lensSelect.value = lensValue;
+      syncMenuValues();
+      optionsPopup.classList.remove("visible");
+      import("/s/settings.js").then((m) => m.openSettings("new-lens"));
+      return;
+    }
+    navigateWith(
+      v.startsWith("cl:") ? { cl: v.slice(3), lens: "" } : { lens: v, cl: "" },
+    );
+  });
+  if (search.get("lens")) keepParam("lens", search.get("lens"));
+  if (search.get("cl")) keepParam("cl", search.get("cl"));
 
   document.querySelector("#open-settings").addEventListener("click", () => {
     optionsPopup.classList.remove("visible");
@@ -3070,12 +3142,16 @@
       title.className = "results-empty-title";
       title.textContent = failed
         ? "search failed"
-        : `no results for "${currentQuery}"`;
+        : blockedCount
+          ? `your domain rules blocked all ${blockedCount} results`
+          : `no results for "${currentQuery}"`;
       const detail = document.createElement("p");
       detail.className = "results-empty-detail";
       detail.textContent = failed
         ? data.search_error
-        : "try fewer or different words";
+        : blockedCount
+          ? "change them in settings, or try different words"
+          : "try fewer or different words";
       box.append(title, detail);
       if (failed) {
         const retry = document.createElement("button");
@@ -3228,25 +3304,51 @@
       document.querySelectorAll(".tabs .tab")[2].click();
     }
 
+    const visibleResults = () =>
+      [...document.querySelectorAll(".result-title")].filter((r) =>
+        r.checkVisibility(),
+      );
+
+    if (event.key === "y" && lastKey === "y" && quick) {
+      const results = visibleResults();
+      const target = results.includes(document.activeElement)
+        ? document.activeElement
+        : results.find((r) => r.getBoundingClientRect().top >= 0);
+      keyState.key = "";
+      if (!target?.href) return;
+      (navigator.clipboard?.writeText(target.href) ?? Promise.reject())
+        .then(
+          () => "link copied",
+          () => "couldn't copy the link",
+        )
+        .then((text) => {
+          document.querySelector(".ms-toast")?.remove();
+          const toast = Object.assign(document.createElement("div"), {
+            className: "ms-toast",
+            role: "status",
+            textContent: text,
+          });
+          document.body.append(toast);
+          setTimeout(() => toast.remove(), 1600);
+        });
+      return;
+    }
+
     if (["j", "k", "ArrowUp", "ArrowDown"].includes(event.key)) {
-      const results = Array.from(document.querySelectorAll(".result-title"));
+      const results = visibleResults();
       if (!results.length) return;
 
-      const active = document.activeElement;
-      let index = results.indexOf(active);
-
-      if (event.key === "j" || event.key === "ArrowDown") {
-        if (index === -1 || index === results.length - 1) {
-          index = 0;
-        } else {
-          index++;
-        }
-      } else if (event.key === "k" || event.key === "ArrowUp") {
-        if (index <= 0) {
-          index = results.length - 1;
-        } else {
-          index--;
-        }
+      const down = event.key === "j" || event.key === "ArrowDown";
+      let index = results.indexOf(document.activeElement);
+      if (index === -1) {
+        index = down
+          ? results.findIndex((r) => r.getBoundingClientRect().top >= 0)
+          : results.findLastIndex(
+              (r) => r.getBoundingClientRect().bottom <= innerHeight,
+            );
+        if (index === -1) index = down ? 0 : results.length - 1;
+      } else {
+        index = (index + (down ? 1 : -1) + results.length) % results.length;
       }
 
       results[index].focus();

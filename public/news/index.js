@@ -271,27 +271,51 @@
       document.querySelectorAll(".tabs .tab")[2].click();
     }
 
-    if (["j", "k", "ArrowUp", "ArrowDown"].includes(event.key)) {
-      const results = Array.from(
-        document.querySelectorAll(".news-result-link"),
+    const visibleResults = () =>
+      [...document.querySelectorAll(".news-result-link")].filter((r) =>
+        r.checkVisibility(),
       );
+
+    if (event.key === "y" && lastKey === "y" && quick) {
+      const results = visibleResults();
+      const target = results.includes(document.activeElement)
+        ? document.activeElement
+        : results.find((r) => r.getBoundingClientRect().top >= 0);
+      keyState.key = "";
+      if (!target?.href) return;
+      (navigator.clipboard?.writeText(target.href) ?? Promise.reject())
+        .then(
+          () => "link copied",
+          () => "couldn't copy the link",
+        )
+        .then((text) => {
+          document.querySelector(".ms-toast")?.remove();
+          const toast = Object.assign(document.createElement("div"), {
+            className: "ms-toast",
+            role: "status",
+            textContent: text,
+          });
+          document.body.append(toast);
+          setTimeout(() => toast.remove(), 1600);
+        });
+      return;
+    }
+
+    if (["j", "k", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      const results = visibleResults();
       if (!results.length) return;
 
-      const active = document.activeElement;
-      let index = results.indexOf(active);
-
-      if (event.key === "k" || event.key === "ArrowDown") {
-        if (index === -1 || index === results.length - 1) {
-          index = 0;
-        } else {
-          index++;
-        }
-      } else if (event.key === "j" || event.key === "ArrowUp") {
-        if (index <= 0) {
-          index = results.length - 1;
-        } else {
-          index--;
-        }
+      const down = event.key === "j" || event.key === "ArrowDown";
+      let index = results.indexOf(document.activeElement);
+      if (index === -1) {
+        index = down
+          ? results.findIndex((r) => r.getBoundingClientRect().top >= 0)
+          : results.findLastIndex(
+              (r) => r.getBoundingClientRect().bottom <= innerHeight,
+            );
+        if (index === -1) index = down ? 0 : results.length - 1;
+      } else {
+        index = (index + (down ? 1 : -1) + results.length) % results.length;
       }
 
       results[index].focus();

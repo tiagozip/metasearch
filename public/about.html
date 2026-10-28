@@ -13,7 +13,7 @@
         if (m && m !== "teto") {
           d.dataset.mascot = m;
           addEventListener("DOMContentLoaded", () => {
-            const s = `/s/${m}.png`,
+            const s = `/s/${m}.webp`,
               f = document.querySelector("link[rel~=icon]");
             if (f) f.href = s;
             document.querySelectorAll('img[src*="teto"]').forEach((i) => {
@@ -26,7 +26,7 @@
       } catch {}
     </script>
     <script
-      defer
+      async
       data-domain="search.tiago.zip"
       src="https://palantir.estrogen.delivery/Pn7xQk2.privacy.js"
     ></script>

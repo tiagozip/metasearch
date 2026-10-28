@@ -13,7 +13,7 @@
         if (m && m !== "teto") {
           d.dataset.mascot = m;
           addEventListener("DOMContentLoaded", () => {
-            const s = `/s/${m}.png`,
+            const s = `/s/${m}.webp`,
               f = document.querySelector("link[rel~=icon]");
             if (f) f.href = s;
             document.querySelectorAll('img[src*="teto"]').forEach((i) => {
@@ -25,7 +25,7 @@
       } catch {}
     </script>
     <script
-      defer
+      async
       data-domain="search.tiago.zip"
       src="https://palantir.estrogen.delivery/Pn7xQk2.privacy.js"
     ></script>
@@ -315,7 +315,7 @@
         animation-duration: 0.1s;
       }
     </style>
-    <link rel="preload" href="/s/inter-var-v4.woff2" as="font" type="font/woff2" />
+    <link rel="preload" href="/s/inter-var-v4.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="color-scheme" content="dark" />
     <meta http-equiv="x-ua-compatible" content="IE=edge,chrome=1" />
     <meta name="robots" content="index,follow" />
@@ -360,7 +360,7 @@
   <body>
     <header>
       <img
-        src="/s/teto_big.webp"
+        src="/s/teto.webp"
         width="110"
         height="110"
         alt="teto"
@@ -408,7 +408,7 @@
           badge.rel = "noopener noreferrer";
           badge.classList.add("meowing-badge");
           badge.innerHTML = `
-          <img src="/s/teto_big.webp" alt="teto" draggable="false" style="width: 32px;">
+          <img src="/s/teto.webp" alt="teto" draggable="false" style="width: 32px;">
           <span style="margin-left: 12px;">unofficial mirror of</span><b style="margin-left: 4px; font-weight: 500; color: white;">metasearch</b>
           `;
           document.querySelector("header").appendChild(badge);
@@ -463,7 +463,7 @@
         const ctx = canvas.getContext("2d");
         const img = new Image();
         const mascot = document.documentElement.dataset.mascot;
-        img.src = mascot ? `/s/${mascot}.png` : "/s/teto.png";
+        img.src = mascot ? `/s/${mascot}.webp` : "/s/teto.webp";
 
         const dpr = window.devicePixelRatio || 1;
         const resize = () => {

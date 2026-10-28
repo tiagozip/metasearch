@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script defer data-domain="search.tiago.zip" src="https://palantir.estrogen.delivery/Pn7xQk2.privacy.js"></script>
+    <script async data-domain="search.tiago.zip" src="https://palantir.estrogen.delivery/Pn7xQk2.privacy.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>404 // search!</title>
     <meta name="theme-color" content="#1F1E2E" />
@@ -19,7 +19,7 @@
         if (m && m !== "teto") {
           d.dataset.mascot = m;
           addEventListener("DOMContentLoaded", () => {
-            const s = `/s/${m}.png`,
+            const s = `/s/${m}.webp`,
               f = document.querySelector("link[rel~=icon]");
             if (f) f.href = s;
             document.querySelectorAll('img[src*="teto"]').forEach((i) => {
@@ -315,7 +315,7 @@
         animation-duration: 0.1s;
       }
     </style>
-    <link rel="preload" href="/s/inter-var-v4.woff2" as="font" type="font/woff2" />
+    <link rel="preload" href="/s/inter-var-v4.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="color-scheme" content="dark" />
     <meta http-equiv="x-ua-compatible" content="IE=edge,chrome=1" />
     <meta name="robots" content="index,follow" />
@@ -359,7 +359,7 @@
   </head>
   <body>
     <main>
-      <img src="/s/teto_big.webp" width="150" height="150" alt="teto" class="teto" draggable="false" />
+      <img src="/s/teto.webp" width="150" height="150" alt="teto" class="teto" draggable="false" />
       <h1>page not found :c</h1>
       <p class="lost">there's nothing at <code id="lost-path">this address</code></p>
       <form action="/">
@@ -459,7 +459,7 @@
         const ctx = canvas.getContext("2d");
         const img = new Image();
         const mascot = document.documentElement.dataset.mascot;
-        img.src = mascot ? `/s/${mascot}.png` : "/s/teto.png";
+        img.src = mascot ? `/s/${mascot}.webp` : "/s/teto.webp";
 
         const dpr = window.devicePixelRatio || 1;
         const resize = () => {

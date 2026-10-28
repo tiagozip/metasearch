@@ -60,6 +60,13 @@ export const prefs = {
       return {};
     }
   },
+  get lenses() {
+    try {
+      return JSON.parse(store.get("ms-lenses") || "[]");
+    } catch {
+      return [];
+    }
+  },
 };
 
 const changed = () => {
@@ -97,6 +104,7 @@ const settingsLink = () => {
     ...(prefs.highlight ? {} : { h: 0 }),
     ...(prefs.bold ? {} : { b: 0 }),
     ...(Object.keys(domains).length ? { d: domains } : {}),
+    ...(prefs.lenses.length ? { c: prefs.lenses } : {}),
   };
   const bytes = new TextEncoder().encode(JSON.stringify(cfg));
   const b64 = btoa(String.fromCharCode(...bytes))
@@ -227,8 +235,8 @@ const resultsSection = () =>
       changed();
     }),
     toggle(
-      "highlight answers",
-      "mark the main point in people also ask",
+      "highlight answers in people also ask",
+      "marks the main point of each answer",
       prefs.highlight,
       (on) => {
         store.set("ms-highlight", on ? "" : "0");
@@ -236,8 +244,8 @@ const resultsSection = () =>
       },
     ),
     toggle(
-      "bold matching words",
-      "in result descriptions",
+      "bold words in descriptions",
+      "the words the search engine marks as relevant",
       prefs.bold,
       (on) => {
         store.set("ms-bold", on ? "" : "0");
@@ -245,6 +253,210 @@ const resultsSection = () =>
       },
     ),
   );
+
+const SITE = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
+
+const hostOf = (raw) => {
+  let host = raw.trim().toLowerCase();
+  try {
+    host = new URL(host.includes("://") ? host : `https://${host}`).hostname;
+  } catch {}
+  return host.replace(/^www\./, "");
+};
+
+const readRule = (raw) => {
+  const value = raw.trim();
+  if (!value) return { empty: true };
+  if (/^\/.+\/$/s.test(value)) {
+    if (value.length > 202)
+      return { error: "keep regexes under 200 characters" };
+    try {
+      const re = new RegExp(value.slice(1, -1), "i");
+      return { pattern: value, kind: "regex", test: (url) => re.test(url) };
+    } catch {
+      return { error: "this regex has a syntax error" };
+    }
+  }
+  if (value.includes("*")) {
+    const pattern = value.toLowerCase();
+    if (!/^[a-z0-9*.-]{1,253}$/.test(pattern) || !/[a-z0-9]/.test(pattern))
+      return {
+        error: "wildcards can only use letters, numbers, dots, dashes and *",
+      };
+    const body = pattern
+      .split("*")
+      .map((x) => x.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+      .join(".*");
+    const re = new RegExp(`^(?:.+\\.)?${body}$`);
+    return { pattern, kind: "wildcard", test: (url) => re.test(hostOf(url)) };
+  }
+  const pattern = hostOf(value);
+  if (!SITE.test(pattern)) return { error: "that doesn't look like a domain" };
+  return {
+    pattern,
+    kind: "domain",
+    test: (url) => {
+      const h = hostOf(url);
+      return h === pattern || h.endsWith(`.${pattern}`);
+    },
+  };
+};
+
+const field = (label, control, hint) => {
+  const id = `mss-f-${Math.random().toString(36).slice(2, 8)}`;
+  const labelable = control.matches("input, select, textarea");
+  const caption = el(labelable ? "label" : "span", {
+    className: "mss-field-label",
+    id: `${id}-label`,
+    textContent: label,
+  });
+  if (labelable) {
+    control.id = id;
+    caption.htmlFor = id;
+  } else control.setAttribute("aria-labelledby", caption.id);
+  const children = [caption, control];
+  if (hint) {
+    hint.id = `${id}-hint`;
+    control.setAttribute("aria-describedby", hint.id);
+    children.push(hint);
+  }
+  return el("div", { className: "mss-field-block" }, ...children);
+};
+
+const modal = ({ title, fields, submit, onSubmit }) => {
+  const cancel = el("button", {
+    type: "button",
+    className: "mss-btn mss-btn-quiet",
+    textContent: "cancel",
+  });
+  const form = el(
+    "form",
+    { className: "mss-modal-form", noValidate: true },
+    el("h3", { className: "mss-modal-title", textContent: title }),
+    ...fields,
+    el(
+      "div",
+      { className: "mss-modal-actions" },
+      cancel,
+      el("button", {
+        type: "submit",
+        className: "mss-btn mss-btn-primary",
+        textContent: submit,
+      }),
+    ),
+  );
+  const box = el("dialog", { className: "mss-modal", ariaLabel: title }, form);
+  cancel.addEventListener("click", () => box.close());
+  box.addEventListener("click", (e) => {
+    if (e.target === box) box.close();
+  });
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (onSubmit()) box.close();
+  });
+  box.addEventListener("close", () => setTimeout(() => box.remove(), 200));
+  document.body.append(box);
+  box.showModal();
+  return box;
+};
+
+const editRule = (current, onSave) => {
+  const input = el("input", {
+    type: "text",
+    inputMode: "url",
+    value: current?.pattern || "",
+    placeholder: "pinterest.*",
+    autocomplete: "off",
+    spellcheck: false,
+  });
+  const hint = el("p", { className: "mss-hint" });
+  const tryInput = el("input", {
+    type: "text",
+    inputMode: "url",
+    placeholder: "https://www.pinterest.co.uk/pin/123",
+    autocomplete: "off",
+    spellcheck: false,
+  });
+  const tryResult = el("p", { className: "mss-hint", role: "status" });
+  let action = current?.rule || "block";
+
+  const update = () => {
+    const r = readRule(input.value);
+    input.setAttribute("aria-invalid", String(Boolean(r.error)));
+    hint.dataset.state = r.error ? "error" : "";
+    hint.textContent =
+      r.error ||
+      {
+        domain: `covers ${r.pattern} and all of its subdomains`,
+        wildcard:
+          "* stands for anything, so pinterest.* covers pinterest.com and pinterest.co.uk",
+        regex: "checked against the full url, ignoring case",
+      }[r.kind] ||
+      "a domain like pinterest.com, a wildcard like pinterest.* or a regex between slashes like /reddit\\.com\\/r\\/funny/";
+    const url = tryInput.value.trim();
+    tryResult.dataset.state = "";
+    if (!url || !r.test) {
+      tryResult.textContent = "";
+      return;
+    }
+    const full = url.includes("://") ? url : `https://${url}`;
+    const hit = r.test(full);
+    tryResult.dataset.state = hit ? "match" : "";
+    tryResult.textContent = hit
+      ? `this rule would ${action} it`
+      : "this rule doesn't touch it";
+  };
+  input.addEventListener("input", update);
+  tryInput.addEventListener("input", update);
+  update();
+
+  modal({
+    title: current ? "edit rule" : "add a rule",
+    fields: [
+      field("site or pattern", input, hint),
+      field(
+        "action",
+        segmented(
+          "action",
+          [
+            ["block", "block"],
+            ["raise", "raise"],
+            ["lower", "lower"],
+          ],
+          action,
+          (v) => {
+            action = v;
+            update();
+          },
+        ),
+      ),
+      field("try it on a url", tryInput, tryResult),
+    ],
+    submit: current ? "save rule" : "add rule",
+    onSubmit: () => {
+      const r = readRule(input.value);
+      if (!r.pattern) {
+        input.setAttribute("aria-invalid", "true");
+        if (r.empty) {
+          hint.dataset.state = "error";
+          hint.textContent = "type a domain, a wildcard or a regex";
+        }
+        input.focus();
+        return false;
+      }
+      onSave(r.pattern, action);
+      return true;
+    },
+  });
+  input.focus();
+};
+
+const glyph = (kind) =>
+  el("span", {
+    className: "mss-favicon mss-glyph",
+    textContent: kind === "regex" ? "/" : "*",
+    ariaHidden: "true",
+  });
 
 const domainsSection = () => {
   const list = el("ul", { className: "mss-domains" });
@@ -258,32 +470,36 @@ const domainsSection = () => {
       a.localeCompare(b),
     );
     list.replaceChildren(
-      ...entries.map(([host, rule]) => {
+      ...entries.map(([pattern, rule]) => {
+        const kind = readRule(pattern).kind;
         const remove = el("button", {
           type: "button",
           className: "mss-remove",
-          ariaLabel: `remove ${host}`,
+          ariaLabel: `remove ${pattern}`,
           title: "remove",
         });
         remove.innerHTML =
           '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
         remove.addEventListener("click", () => {
           const d = prefs.domains;
-          delete d[host];
+          delete d[pattern];
           save(d);
         });
-        const icon = el("img", {
-          className: "mss-favicon",
-          src: `https://external-content.duckduckgo.com/ip3/${host}.ico`,
-          alt: "",
-          loading: "lazy",
-        });
-        icon.onerror = () =>
-          icon.replaceWith(el("span", { className: "mss-favicon" }));
+        let icon;
+        if (kind === "domain") {
+          icon = el("img", {
+            className: "mss-favicon",
+            src: `https://external-content.duckduckgo.com/ip3/${pattern}.ico`,
+            alt: "",
+            loading: "lazy",
+          });
+          icon.onerror = () =>
+            icon.replaceWith(el("span", { className: "mss-favicon" }));
+        } else icon = glyph(kind);
         const label = el("span", { textContent: rule });
         const picker = el(
           "select",
-          { ariaLabel: `rule for ${host}` },
+          { ariaLabel: `rule for ${pattern}` },
           ...Object.keys(RULE_KEYS).map((r) =>
             el("option", { value: r, textContent: r, selected: r === rule }),
           ),
@@ -300,76 +516,233 @@ const domainsSection = () => {
           label.textContent = picker.value;
           store.set(
             "ms-domains",
-            JSON.stringify({ ...prefs.domains, [host]: picker.value }),
+            JSON.stringify({ ...prefs.domains, [pattern]: picker.value }),
           );
           changed();
         });
-        return el(
-          "li",
-          { className: "mss-row" },
-          icon,
-          el("span", { className: "mss-host", textContent: host, title: host }),
-          ruleEl,
-          remove,
+        const edit = el("button", {
+          type: "button",
+          className: "mss-host",
+          textContent: pattern,
+          title: `edit ${pattern}`,
+        });
+        edit.addEventListener("click", () =>
+          editRule(
+            { pattern, rule: prefs.domains[pattern] || rule },
+            (p, r) => {
+              const d = prefs.domains;
+              delete d[pattern];
+              save({ ...d, [p]: r });
+            },
+          ),
         );
+        return el("li", { className: "mss-row" }, icon, edit, ruleEl, remove);
       }),
     );
     list.hidden = !entries.length;
   };
 
-  const input = el("input", {
-    type: "text",
-    inputMode: "url",
-    placeholder: "pinterest.com",
-    autocomplete: "off",
-    spellcheck: false,
-    id: "mss-domain",
+  const add = el("button", {
+    type: "button",
+    className: "mss-row mss-add",
   });
-  const rule = el(
-    "select",
-    { ariaLabel: "rule", className: "mss-select" },
-    ...Object.keys(RULE_KEYS).map((r) =>
-      el("option", { value: r, textContent: r }),
-    ),
+  add.innerHTML =
+    '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>add a rule</span>';
+  add.addEventListener("click", () =>
+    editRule(null, (p, r) => save({ ...prefs.domains, [p]: r })),
   );
-  const form = el(
-    "form",
-    { className: "mss-field" },
-    input,
-    rule,
-    el("button", { type: "submit", className: "mss-btn", textContent: "add" }),
-  );
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    let host = input.value.trim().toLowerCase();
-    try {
-      host = new URL(host.includes("://") ? host : `https://${host}`).hostname;
-    } catch {}
-    host = host.replace(/^www\./, "");
-    const ok = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(host);
-    input.setAttribute("aria-invalid", String(!ok));
-    if (!ok) return input.focus();
-    save({ ...prefs.domains, [host]: rule.value });
-    input.value = "";
-  });
-  input.addEventListener("input", () => input.removeAttribute("aria-invalid"));
   render();
 
   return section(
     "domains",
     el(
-      "div",
-      { className: "mss-row mss-stack" },
-      el("label", {
-        className: "mss-desc",
-        htmlFor: "mss-domain",
-        textContent:
-          "block a site, or move it up or down in your results. subdomains count too.",
-      }),
-      form,
+      "p",
+      { className: "mss-row mss-desc mss-intro" },
+      "block sites or move them up or down in your results. wildcards like pinterest.* and regexes work too.",
     ),
     list,
+    add,
   );
+};
+
+const FILETYPES = ["pdf", "docx", "pptx", "xlsx", "epub", "txt"];
+
+const readSites = (raw) => {
+  const parts = raw.split(/[\s,]+/).filter(Boolean);
+  const sites = [...new Set(parts.map(hostOf))];
+  const bad = sites.filter((s) => !SITE.test(s));
+  return { sites: sites.filter((s) => SITE.test(s)).slice(0, 30), bad };
+};
+
+const editLens = (current, onSave) => {
+  const name = el("input", {
+    type: "text",
+    value: current?.n || "",
+    placeholder: "small web",
+    maxLength: 32,
+    autocomplete: "off",
+  });
+  const only = el("textarea", {
+    rows: 3,
+    value: (current?.i || []).join("\n"),
+    placeholder: "lobste.rs\nnews.ycombinator.com",
+    spellcheck: false,
+  });
+  const skip = el("textarea", {
+    rows: 2,
+    value: (current?.x || []).join("\n"),
+    placeholder: "medium.com",
+    spellcheck: false,
+  });
+  const words = el("input", {
+    type: "text",
+    value: current?.k || "",
+    placeholder: "rust -javascript",
+    autocomplete: "off",
+    spellcheck: false,
+  });
+  const type = el(
+    "select",
+    { className: "mss-select" },
+    el("option", { value: "", textContent: "any" }),
+    ...FILETYPES.map((f) =>
+      el("option", { value: f, textContent: f, selected: current?.f === f }),
+    ),
+  );
+  const error = el("p", { className: "mss-hint", role: "alert" });
+  error.dataset.state = "error";
+
+  modal({
+    title: current ? "edit lens" : "new lens",
+    fields: [
+      field("name", name),
+      field(
+        "only search these sites",
+        only,
+        el("p", {
+          className: "mss-hint",
+          textContent: "one per line, subdomains included",
+        }),
+      ),
+      field("never show these sites", skip),
+      field(
+        "add these words",
+        words,
+        el("p", {
+          className: "mss-hint",
+          textContent: "put a - before a word to leave it out",
+        }),
+      ),
+      field("file type", type),
+      error,
+    ],
+    submit: current ? "save lens" : "create lens",
+    onSubmit: () => {
+      for (const c of [name, only, skip, words])
+        c.removeAttribute("aria-invalid");
+      const fail = (control, text) => {
+        control.setAttribute("aria-invalid", "true");
+        error.textContent = text;
+        control.focus();
+        return false;
+      };
+      const n = name.value.trim().replace(/\s+/g, " ");
+      if (!n) return fail(name, "give the lens a name");
+      const i = readSites(only.value);
+      if (i.bad.length) return fail(only, `not a site: ${i.bad.join(", ")}`);
+      const x = readSites(skip.value);
+      if (x.bad.length) return fail(skip, `not a site: ${x.bad.join(", ")}`);
+      const k = words.value.trim().split(/\s+/).filter(Boolean);
+      const badWord = k.find((w) => !/^-?[\p{L}\p{N}_.'+#-]{1,40}$/u.test(w));
+      if (badWord)
+        return fail(words, `words can't contain symbols like in "${badWord}"`);
+      const lens = {
+        n,
+        i: i.sites,
+        x: x.sites,
+        k: k.slice(0, 10).join(" "),
+        f: type.value,
+      };
+      if (!(lens.i.length || lens.x.length || lens.k || lens.f))
+        return fail(only, "add at least one site, word or file type");
+      onSave(lens);
+      return true;
+    },
+  });
+  name.focus();
+};
+
+const lensSummary = (l) =>
+  [
+    l.i.length ? `${l.i.length} ${l.i.length === 1 ? "site" : "sites"}` : "",
+    l.x.length ? `${l.x.length} left out` : "",
+    l.k ? `"${l.k}"` : "",
+    l.f ? `${l.f} only` : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+const lensesSection = () => {
+  const list = el("ul", { className: "mss-domains" });
+  const save = (lenses) => {
+    store.set("ms-lenses", lenses.length ? JSON.stringify(lenses) : "");
+    render();
+    changed();
+  };
+  const render = () => {
+    const lenses = prefs.lenses;
+    list.replaceChildren(
+      ...lenses.map((l, index) => {
+        const edit = el(
+          "button",
+          { type: "button", className: "mss-lens", title: `edit ${l.n}` },
+          el("span", { className: "mss-label", textContent: l.n }),
+          el("span", { className: "mss-desc", textContent: lensSummary(l) }),
+        );
+        edit.addEventListener("click", () =>
+          editLens(l, (next) => {
+            const all = prefs.lenses;
+            all[index] = next;
+            save(all);
+          }),
+        );
+        const remove = el("button", {
+          type: "button",
+          className: "mss-remove",
+          ariaLabel: `remove ${l.n}`,
+          title: "remove",
+        });
+        remove.innerHTML =
+          '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+        remove.addEventListener("click", () =>
+          save(prefs.lenses.filter((_, i) => i !== index)),
+        );
+        return el("li", { className: "mss-row" }, edit, remove);
+      }),
+    );
+    list.hidden = !lenses.length;
+  };
+  render();
+
+  const add = el("button", { type: "button", className: "mss-row mss-add" });
+  add.innerHTML =
+    '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>new lens</span>';
+  const create = () =>
+    editLens(null, (lens) => save([...prefs.lenses, lens].slice(0, 20)));
+  add.addEventListener("click", create);
+
+  const node = section(
+    "lenses",
+    el(
+      "p",
+      { className: "mss-row mss-desc mss-intro" },
+      "your own lenses show up in the lens menu on the results page, next to the built-in ones.",
+    ),
+    list,
+    add,
+  );
+  node.create = create;
+  return node;
 };
 
 const appearanceSection = () => {
@@ -379,7 +752,7 @@ const appearanceSection = () => {
     const tile = el(
       "button",
       { type: "button", className: "mss-mascot", title: m },
-      el("img", { src: `/s/${m}.png`, alt: "" }),
+      el("img", { src: `/s/${m}.webp`, alt: "" }),
       el("span", { textContent: m }),
     );
     tile.addEventListener("click", () => {
@@ -388,7 +761,7 @@ const appearanceSection = () => {
       else d.dataset.mascot = m;
       store.set("ms-mascot", m === "teto" ? "" : m);
       for (const f of document.querySelectorAll("link[rel~=icon]"))
-        f.href = `/s/${m}.png`;
+        f.href = `/s/${m}.webp`;
       sync();
       changed();
     });
@@ -543,6 +916,7 @@ const linkSection = () => {
       "ms-highlight",
       "ms-bold",
       "ms-domains",
+      "ms-lenses",
     ])
       store.set(k, "");
     for (const k of ["links_only", "safesearch", "engine"])
@@ -608,6 +982,7 @@ const build = () => {
         searchSection(),
         resultsSection(),
         domainsSection(),
+        lensesSection(),
         appearanceSection(),
         linkSection(),
       ].map((node, i) => {
@@ -639,7 +1014,7 @@ const build = () => {
   document.body.append(dialog);
 };
 
-export async function openSettings() {
+export async function openSettings(target) {
   if (dialog?.open) return;
   await loadCss();
   dialog?.remove();
@@ -658,4 +1033,11 @@ export async function openSettings() {
   if (gap > 0) dialog.style.setProperty("--mss-gutter", `${gap}px`);
   dialog.showModal();
   dialog.focus();
+  if (target === "new-lens") {
+    const lenses = [...dialog.querySelectorAll(".mss-section")].find(
+      (n) => n.create,
+    );
+    lenses.scrollIntoView({ block: "start" });
+    lenses.create();
+  }
 }

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="/public/assets/teto_big.webp" width="100" height="100" alt="Teto">
+  <img src="/public/assets/teto.webp" width="100" height="100" alt="Teto">
   <br>
 
   <p align="center">
