@@ -4,7 +4,7 @@ import braveFetch from "./braveFetch.js";
 export default async function searchImages(
   query,
   page = 0,
-  { attempts, clearance } = {},
+  { attempts, clearance, safe } = {},
 ) {
   const resp = await braveFetch(
     `https://search.brave.com/images?q=${encodeURIComponent(query)}${page ? `&offset=${page}` : ""}&source=web`,
@@ -18,6 +18,7 @@ export default async function searchImages(
       sniffBlockPage: true,
       attempts,
       clearance,
+      safe,
     },
   );
 

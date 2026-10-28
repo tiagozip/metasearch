@@ -24,12 +24,38 @@ export const LENSES = {
   pdfs: {
     filetype: "pdf",
   },
+  academic: {
+    includeSites: [
+      "arxiv.org",
+      "scholar.archive.org",
+      "semanticscholar.org",
+      "pubmed.ncbi.nlm.nih.gov",
+      "ncbi.nlm.nih.gov",
+      "biorxiv.org",
+      "researchgate.net",
+      "jstor.org",
+    ],
+  },
+  programming: {
+    includeSites: [
+      "stackoverflow.com",
+      "github.com",
+      "developer.mozilla.org",
+      "docs.python.org",
+      "doc.rust-lang.org",
+      "learn.microsoft.com",
+      "dev.to",
+      "news.ycombinator.com",
+    ],
+  },
 };
 
 function resolveLens(lens) {
   if (!lens) return null;
   if (typeof lens === "string") {
-    return LENSES[lens.toLowerCase()] || null;
+    return Object.hasOwn(LENSES, lens.toLowerCase())
+      ? LENSES[lens.toLowerCase()]
+      : null;
   }
   if (typeof lens === "object") return lens;
   return null;

@@ -1004,21 +1004,36 @@
     observer.observe(document.querySelector("#load-more-sentinel"));
   })();
 
+  const keyState = { key: "", at: 0 };
   document.addEventListener("keydown", (event) => {
     const input = document.querySelector(".search-bar input");
     if (document.activeElement === input) return;
 
-    if (event.key === "/") {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+    const lastKey = keyState.key;
+    const quick = Date.now() - keyState.at < 600;
+    keyState.key = event.key;
+    keyState.at = Date.now();
+
+    if (
+      ["/", "i", "a", "S"].includes(event.key) ||
+      (event.key === "c" && lastKey === "c" && quick)
+    ) {
+      if (event.key === "S" || event.key === "c") input.value = "";
       input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
+      const at = event.key === "i" ? 0 : input.value.length;
+      input.setSelectionRange(at, at);
+      keyState.key = "";
       event.preventDefault();
+      return;
     }
 
     if (event.key === "w") {
       document.querySelectorAll(".tabs .tab")[0].click();
     }
 
-    if (event.key === "i") {
+    if (event.key === "p") {
       document.querySelectorAll(".tabs .tab")[1].click();
     }
 

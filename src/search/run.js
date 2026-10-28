@@ -39,7 +39,13 @@ export async function runSearch({
   db,
   clearance,
   interactive = false,
+  safe,
+  time,
 } = {}) {
+  const filters = {
+    safe: ["off", "moderate", "strict"].includes(safe) ? safe : undefined,
+    time: ["pd", "pw", "pm", "py"].includes(time) ? time : undefined,
+  };
   const parsed = parseQuery(query, { lens });
   if (parsed.redirectUrl) {
     return { query, type, page, redirect: parsed.redirectUrl, parsed };
@@ -63,11 +69,24 @@ export async function runSearch({
     try {
       let attempt;
       if (tab === "images")
-        attempt = await searchImages(q, page, { attempts, clearance });
+        attempt = await searchImages(q, page, {
+          attempts,
+          clearance,
+          safe: filters.safe,
+        });
       else if (tab === "news")
-        attempt = await searchNews(q, page, { attempts, clearance });
+        attempt = await searchNews(q, page, {
+          attempts,
+          clearance,
+          ...filters,
+        });
       else if (eng === "kagi") attempt = await searchKagiWeb(q, page, db);
-      else attempt = await searchMixed(q, page, { attempts, clearance });
+      else
+        attempt = await searchMixed(q, page, {
+          attempts,
+          clearance,
+          ...filters,
+        });
       const ok = hasAnything(attempt, tab);
       if (ok || !data) {
         data = attempt;

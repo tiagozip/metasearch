@@ -2,6 +2,61 @@
   let isLoading, hasHadWebResult, firstWebThumb;
   const currentQuery = new URLSearchParams(window.location.search).get("q");
 
+  const pref = (k) => {
+    try {
+      return localStorage.getItem(k) || "";
+    } catch {
+      return "";
+    }
+  };
+  const domainRules = () => {
+    try {
+      return JSON.parse(pref("ms-domains") || "{}");
+    } catch {
+      return {};
+    }
+  };
+  const ruleFor = (url, rules) => {
+    let host;
+    try {
+      host = new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      return;
+    }
+    for (let d = host; d.includes("."); d = d.slice(d.indexOf(".") + 1)) {
+      if (Object.hasOwn(rules, d)) return rules[d];
+    }
+  };
+  const arrange = (list = []) => {
+    const rules = domainRules();
+    const rank = { raise: 0, lower: 2 };
+    return list
+      .map((r) => ({ r, rule: ruleFor(r.url, rules) }))
+      .filter(({ rule }) => rule !== "block")
+      .sort((a, b) => (rank[a.rule] ?? 1) - (rank[b.rule] ?? 1))
+      .map(({ r }) => r);
+  };
+  const dropBlocked = (list = []) => {
+    const rules = domainRules();
+    return list.filter((r) => ruleFor(r.url, rules) !== "block");
+  };
+
+  document.addEventListener(
+    "click",
+    (e) => {
+      const a = e.target.closest?.("#results-all a[href], #sidebar a[href]");
+      if (!a || pref("ms-newtab") !== "1") return;
+      if (
+        !/^https?:/.test(a.href) ||
+        new URL(a.href).origin === location.origin
+      )
+        return;
+      a.target = "_blank";
+      a.rel = "noopener";
+    },
+    true,
+  );
+
   const captcha = () => import("/s/captcha.js");
   const solveCaptcha = async () => (await captcha()).solveCaptcha();
   const refillPool = async () =>
@@ -548,6 +603,7 @@
 
     const article = document.createElement("article");
     article.className = "result web-result";
+    article.dataset.url = r.url || "";
     article.append(content);
 
     if (thumb && (!hasHadWebResult || urlSource.endsWith("wikipedia.org"))) {
@@ -1202,7 +1258,8 @@
       }
       group.current = open ? item : null;
       setOpen(open);
-      if (open) highlightFaqAnswer(answerDiv, r.question || "");
+      if (open && pref("ms-highlight") !== "0")
+        highlightFaqAnswer(answerDiv, r.question || "");
     });
     item.__setOpen = setOpen;
 
@@ -1224,7 +1281,13 @@
     list.className = "faq-list";
     const group = { current: null };
     for (const type of ["pointerover", "focusin"]) {
-      list.addEventListener(type, () => undyne.start(), { once: true });
+      list.addEventListener(
+        type,
+        () => {
+          if (pref("ms-highlight") !== "0") undyne.start();
+        },
+        { once: true },
+      );
     }
     for (const item of faq.results.slice(0, 5)) {
       list.append(renderFaqResult(item, group));
@@ -2715,6 +2778,8 @@
     const results = data.results;
     const mixed = results.mixed || [];
     const frag = document.createDocumentFragment();
+    const web = results.web?.results || [];
+    let webSlot = 0;
     let discussionsRendered = false;
     let faqRendered = false;
     let webRendered = 0;
@@ -2757,10 +2822,9 @@
     if (mixed.length) {
       for (const item of mixed) {
         const type = item.type;
-        const idx = item.index ?? item.all?.index;
 
-        if (type === "web" && results.web?.results?.[idx]) {
-          frag.append(renderWebResult(results.web.results[idx]));
+        if (type === "web" && web[webSlot]) {
+          frag.append(renderWebResult(web[webSlot++]));
           webRendered++;
           if (pendingDiscussions && webRendered >= MIN_WEB_BEFORE_DISCUSSIONS) {
             frag.append(pendingDiscussions);
@@ -2809,11 +2873,7 @@
         pendingDiscussions = null;
       }
     } else {
-      if (results.web?.results) {
-        results.web.results.forEach((r) => {
-          frag.append(renderWebResult(r));
-        });
-      }
+      for (const r of web) frag.append(renderWebResult(r));
       if (results.news?.results?.length) {
         const section = document.createElement("section");
         section.className = "news-section";
@@ -2879,6 +2939,12 @@
   };
 
   const data = __results_template__;
+  for (const key of ["web", "discussions", "news", "videos"]) {
+    const list = data.results?.[key]?.results;
+    if (Array.isArray(list))
+      data.results[key].results =
+        key === "web" ? arrange(list) : dropBlocked(list);
+  }
   let hasMoreResults = data.more_results_available !== false;
   refillWhenLow(data);
 
@@ -2886,11 +2952,59 @@
   const optionsPopup = document.querySelector("#options-popup");
   const linksOnly = document.querySelector("#links-only");
 
-  linksOnly.checked = /(?:^|;\s*)links_only=1\b/.test(document.cookie);
-  document.body.classList.toggle("links-only", linksOnly.checked);
-  linksOnly.addEventListener("change", () => {
+  const syncPrefs = () => {
+    linksOnly.checked = /(?:^|;\s*)links_only=1\b/.test(document.cookie);
     document.body.classList.toggle("links-only", linksOnly.checked);
+    document.body.classList.toggle("no-bold", pref("ms-bold") === "0");
+    const rules = domainRules();
+    for (const el of document.querySelectorAll(".web-result[data-url]")) {
+      el.style.display =
+        ruleFor(el.dataset.url, rules) === "block" ? "none" : "";
+    }
+  };
+  syncPrefs();
+  addEventListener("ms-prefs", syncPrefs);
+  linksOnly.addEventListener("change", () => {
     document.cookie = `links_only=${linksOnly.checked ? 1 : 0}; path=/; max-age=31536000; samesite=lax`;
+    syncPrefs();
+  });
+
+  const syncMenuValues = () => {
+    for (const select of document.querySelectorAll(".menu-select select")) {
+      select
+        .closest(".menu-select")
+        .querySelector(".menu-value-text").textContent =
+        select.selectedOptions[0]?.textContent || "";
+    }
+  };
+  document
+    .querySelector("#options-popup")
+    .addEventListener("change", syncMenuValues);
+
+  for (const [param, id] of [
+    ["tf", "#time-select"],
+    ["lens", "#lens-select"],
+  ]) {
+    const select = document.querySelector(id);
+    const current = new URLSearchParams(location.search).get(param) || "";
+    select.value = current;
+    select.addEventListener("change", () => {
+      const u = new URL(location.href);
+      if (select.value) u.searchParams.set(param, select.value);
+      else u.searchParams.delete(param);
+      location.assign(u);
+    });
+    if (!current) continue;
+    const hidden = document.createElement("input");
+    hidden.type = "hidden";
+    hidden.name = param;
+    hidden.value = current;
+    document.querySelector("header form").append(hidden);
+  }
+
+  document.querySelector("#open-settings").addEventListener("click", () => {
+    optionsPopup.classList.remove("visible");
+    import("/s/settings.js").then((m) => m.openSettings());
   });
 
   if (__kagi_enabled__) {
@@ -2900,8 +3014,9 @@
       tookEl.textContent = `took ${data.took}ms`;
 
     engineSelect.value =
-      data.engine ||
       document.cookie.match(/(?:^|;\s*)engine=(brave|kagi)\b/)?.[1] ||
+      data.fallback_from ||
+      data.engine ||
       "brave";
     engineSelect.addEventListener("change", () => {
       document.cookie = `engine=${engineSelect.value}; path=/; max-age=31536000; samesite=lax`;
@@ -2911,6 +3026,8 @@
     document.querySelector("#engine-option").remove();
     document.querySelector("#took-ms").remove();
   }
+
+  syncMenuValues();
 
   optionsBtn.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -3034,7 +3151,7 @@
 
       const webResults = newData.results.web.results;
       const batch = document.createDocumentFragment();
-      for (const r of webResults)
+      for (const r of arrange(webResults))
         batch.append(renderWebResult(r, newData.engine || data.engine));
       loadingEl.classList.remove("visible");
       document.getElementById("results-all").append(batch);
@@ -3066,6 +3183,7 @@
     observer.observe(sentinel);
   }
 
+  const keyState = { key: "", at: 0 };
   document.addEventListener("keydown", (event) => {
     const input = document.querySelector(".search-bar input");
     const ae = document.activeElement;
@@ -3078,17 +3196,31 @@
     )
       return;
 
-    if (event.key === "/") {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+    const lastKey = keyState.key;
+    const quick = Date.now() - keyState.at < 600;
+    keyState.key = event.key;
+    keyState.at = Date.now();
+
+    if (
+      ["/", "i", "a", "S"].includes(event.key) ||
+      (event.key === "c" && lastKey === "c" && quick)
+    ) {
+      if (event.key === "S" || event.key === "c") input.value = "";
       input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
+      const at = event.key === "i" ? 0 : input.value.length;
+      input.setSelectionRange(at, at);
+      keyState.key = "";
       event.preventDefault();
+      return;
     }
 
     if (event.key === "w") {
       document.querySelectorAll(".tabs .tab")[0].click();
     }
 
-    if (event.key === "i") {
+    if (event.key === "p") {
       document.querySelectorAll(".tabs .tab")[1].click();
     }
 

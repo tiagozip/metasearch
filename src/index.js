@@ -5,7 +5,8 @@ import { jwtVerify, SignJWT } from "jose";
 import { ImageResponse } from "takumi-js/response";
 import { coloCity } from "./colos.js";
 import { decode } from "./galileo.js";
-import { resolveSearchPage } from "./query.js";
+import { cfgScript, cookieSafe, parseCfg, TIMES } from "./prefs.js";
+import { LENSES, resolveSearchPage } from "./query.js";
 import braveFetch from "./search/braveFetch.js";
 import { getChallenge, redeem } from "./search/bravePow.js";
 import * as maps from "./search/maps.js";
@@ -726,6 +727,24 @@ export default new Elysia({ adapter: CloudflareAdapter })
   .get("/", async ({ query, set, redirect, request }) => {
     const q = query?.q?.replaceAll?.("\n", " ")?.trim();
     const type = query?.type;
+    const cfg = parseCfg(query?.cfg);
+    const withCfg = (html) =>
+      cfg
+        ? html.replace(
+            /<meta charset="UTF-8" \/>/i,
+            (m) => `${m}${cfgScript(cfg)}`,
+          )
+        : html;
+    const lens =
+      typeof query?.lens === "string" && Object.hasOwn(LENSES, query.lens)
+        ? query.lens
+        : undefined;
+    const engine =
+      cfg?.engine && kagiEnabled()
+        ? cfg.engine
+        : pickEngine(request.headers.get("cookie"));
+    const safe = cfg?.safe || cookieSafe(request.headers.get("cookie"));
+    const time = TIMES.includes(query?.tf) ? query.tf : undefined;
 
     set.headers["content-type"] = "text/html";
     set.headers.Link = `</s/inter-var-v4.woff2>; rel="preload"; as="font"`;
@@ -767,12 +786,12 @@ export default new Elysia({ adapter: CloudflareAdapter })
     }
 
     if (!q && type !== "maps") {
-      set.headers["cache-control"] = CACHE.day;
+      set.headers["cache-control"] = cfg ? "no-store" : CACHE.day;
       const resp = await env.ASSETS.fetch(
         new Request("https://assets/index.html"),
       );
       const html = await resp.text();
-      return html.replace("%%colo%%", coloCity(request.cf?.colo));
+      return withCfg(html.replace("%%colo%%", coloCity(request.cf?.colo)));
     }
 
     const { pageType, redirectUrl, firstResult } = resolveSearchPage(q, type);
@@ -784,7 +803,10 @@ export default new Elysia({ adapter: CloudflareAdapter })
         const data = await runSearch({
           query: q,
           type: pageType || "web",
-          engines: engineOrder(pickEngine(request.headers.get("cookie"))),
+          engines: engineOrder(engine),
+          lens,
+          safe,
+          time,
           db: env.KAGI_DB,
           clearance: braveClearance(),
         });
@@ -803,7 +825,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
       template = await templates.web();
     }
 
-    set.headers["cache-control"] = CACHE.short;
+    set.headers["cache-control"] = cfg ? "no-store" : CACHE.short;
 
     const qSafe = q || "";
     const pageTitle = qSafe
@@ -816,7 +838,17 @@ export default new Elysia({ adapter: CloudflareAdapter })
       .replace("%%pageTitle%%", pageTitle)
       .replace(
         "%%jsJwt%%",
-        await sign({ s: qSafe, t: pageType || type }, "10m"),
+        await sign(
+          {
+            s: qSafe,
+            t: pageType || type,
+            e: engine,
+            ...(lens ? { l: lens } : {}),
+            ...(safe ? { ss: safe } : {}),
+            ...(time ? { f: time } : {}),
+          },
+          "10m",
+        ),
       )
       .replaceAll(
         "%%inputValue%%",
@@ -829,7 +861,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
       .replaceAll("&pass", "")
       .replace(/<input[^>]*name="pass"[^>]*>/g, "");
 
-    return html;
+    return withCfg(html);
   })
   .get("/p", ({ request }) => {
     const colo = request.cf?.colo;
@@ -1013,6 +1045,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
         query: payload.s,
         type: "images",
         engines: engineOrder(pickEngine(headers?.cookie)),
+        safe: payload.ss || cookieSafe(headers?.cookie),
+        time: payload.f,
         db: env.KAGI_DB,
         clearance: braveClearance(),
         interactive: true,
@@ -1023,6 +1057,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
         query: payload.s,
         type: "news",
         engines: engineOrder(pickEngine(headers?.cookie)),
+        safe: payload.ss || cookieSafe(headers?.cookie),
+        time: payload.f,
         db: env.KAGI_DB,
         clearance: braveClearance(),
         interactive: true,
@@ -1032,7 +1068,10 @@ export default new Elysia({ adapter: CloudflareAdapter })
       results = await runSearch({
         query: payload.s,
         type: "web",
-        engines: engineOrder(pickEngine(headers?.cookie)),
+        engines: engineOrder(payload.e || pickEngine(headers?.cookie)),
+        lens: payload.l,
+        safe: payload.ss || cookieSafe(headers?.cookie),
+        time: payload.f,
         db: env.KAGI_DB,
         clearance: braveClearance(),
         interactive: true,
@@ -1045,7 +1084,15 @@ export default new Elysia({ adapter: CloudflareAdapter })
       .replace(
         "__results_pk__",
         await sign(
-          { q: payload.s, p: 1, t: payload.t, e: results.engine },
+          {
+            q: payload.s,
+            p: 1,
+            t: payload.t,
+            e: results.engine,
+            ...(payload.l ? { l: payload.l } : {}),
+            ...(payload.ss ? { ss: payload.ss } : {}),
+            ...(payload.f ? { f: payload.f } : {}),
+          },
           "2h",
         ),
       )
@@ -1123,6 +1170,9 @@ export default new Elysia({ adapter: CloudflareAdapter })
         engines: payload.e
           ? [payload.e]
           : engineOrder(pickEngine(headers?.cookie)),
+        lens: payload.l,
+        safe: payload.ss || cookieSafe(headers?.cookie),
+        time: payload.f,
         db: env.KAGI_DB,
         clearance: braveClearance(),
         interactive: true,
@@ -1134,6 +1184,9 @@ export default new Elysia({ adapter: CloudflareAdapter })
             q: q,
             p: page + 1,
             e: results.engine,
+            ...(payload.l ? { l: payload.l } : {}),
+            ...(payload.ss ? { ss: payload.ss } : {}),
+            ...(payload.f ? { f: payload.f } : {}),
             ...(isImages ? { t: "images" } : isNews ? { t: "news" } : {}),
           },
           "2h",

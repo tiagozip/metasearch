@@ -394,6 +394,7 @@
         <a href="https://github.com/tiagozip/metasearch" target="_blank">self-host</a> ·
         <a href="/about" target="_blank">about</a> · <a href="/api" target="_blank">api</a> ·
         <a href="/bangs" target="_blank">bangs</a> ·
+        <a href="/about#settings" id="open-settings">settings</a> ·
         <span>cf %%colo%%</span>
       </div>
 
@@ -541,6 +542,12 @@
           spawn();
         });
       })();
+    </script>
+    <script>
+      document.getElementById("open-settings").addEventListener("click", (e) => {
+        e.preventDefault();
+        import("/s/settings.js").then((m) => m.openSettings());
+      });
     </script>
     <script src="/s/omnibox.js" type="module"></script>
   </body>

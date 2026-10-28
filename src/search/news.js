@@ -4,10 +4,10 @@ import braveFetch from "./braveFetch.js";
 export default async function searchNews(
   query,
   page = 0,
-  { attempts, clearance } = {},
+  { attempts, clearance, safe, time } = {},
 ) {
   const resp = await braveFetch(
-    `https://search.brave.com/news?q=${encodeURIComponent(query)}${page ? `&offset=${page}` : ""}&source=web`,
+    `https://search.brave.com/news?q=${encodeURIComponent(query)}${page ? `&offset=${page}` : ""}${time ? `&tf=${time}` : ""}&source=web`,
     {
       headers: {
         accept:
@@ -18,6 +18,7 @@ export default async function searchNews(
       sniffBlockPage: true,
       attempts,
       clearance,
+      safe,
     },
   );
 

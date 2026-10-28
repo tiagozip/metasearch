@@ -54,7 +54,7 @@ test("resolveSearchPage maps tab bangs to pageType for GET / jwt", () => {
 test("GET / signs jwt with pageType not raw type", () => {
   const src = readFileSync(new URL("./index.js", import.meta.url), "utf8");
   expect(src).toMatch(
-    /sign\(\{\s*s:\s*qSafe,\s*t:\s*pageType\s*\|\|\s*type\s*\}/,
+    /sign\(\s*\{\s*s:\s*qSafe,\s*t:\s*pageType\s*\|\|\s*type\s*[,}]/,
   );
   expect(src).not.toMatch(/sign\(\{\s*s:\s*qSafe,\s*t:\s*type\s*\}/);
 });

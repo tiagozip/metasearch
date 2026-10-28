@@ -4,12 +4,12 @@ import braveFetch from "./braveFetch.js";
 export default async function search(
   query,
   page = 0,
-  { attempts, clearance } = {},
+  { attempts, clearance, safe, time } = {},
 ) {
   const resp = await braveFetch(
     `https://search.brave.com/search?q=${encodeURIComponent(
       query,
-    )}${page ? `&offset=${page}` : ""}&source=web`,
+    )}${page ? `&offset=${page}` : ""}${time ? `&tf=${time}` : ""}&source=web`,
     {
       headers: {
         accept:
@@ -20,6 +20,7 @@ export default async function search(
       sniffBlockPage: true,
       attempts,
       clearance,
+      safe,
     },
   );
 
