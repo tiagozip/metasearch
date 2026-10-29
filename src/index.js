@@ -1288,7 +1288,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
     const out = new Response(resp.body, resp);
     out.headers.set(
       "cache-control",
-      /^(undyne-int8\.onnx|undyne-vocab\.txt|ort-wasm-simd-threaded\.(wasm|mjs)|ort\.wasm\.min\.mjs|inter-var-v4\.woff2)$/.test(
+      /^(undyne-[\d.]+-light\.onnx|undyne-vocab\.txt|ort-wasm-simd-threaded\.(wasm|mjs)|ort\.wasm\.min\.mjs|inter-var-v4\.woff2)$/.test(
         params.file,
       )
         ? CACHE.immutable

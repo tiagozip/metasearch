@@ -13,7 +13,7 @@ ort.env.wasm.numThreads = 1;
 const ready = (async () => {
   const [vocabText, session] = await Promise.all([
     fetch("/s/undyne-vocab.txt").then((r) => r.text()),
-    ort.InferenceSession.create("/s/undyne-int8.onnx", {
+    ort.InferenceSession.create("/s/undyne-1.1-light.onnx", {
       executionProviders: ["wasm"],
     }),
   ]);
