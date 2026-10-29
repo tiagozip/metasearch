@@ -41,9 +41,9 @@
     flex-direction: column;
     translate: 0 0;
     transition:
-      translate 420ms var(--mss-ease),
-      overlay 420ms allow-discrete,
-      display 420ms allow-discrete;
+      translate 320ms var(--mss-ease),
+      overlay 320ms allow-discrete,
+      display 320ms allow-discrete;
 
     @starting-style {
       translate: 100% 0;
@@ -169,20 +169,6 @@
   }
 }
 
-@keyframes mss-in {
-  from {
-    opacity: 0;
-    translate: 16px 0;
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .mss[open] .mss-section {
-    animation: mss-in 420ms var(--mss-ease) both;
-    animation-delay: calc(80ms + var(--d) * 40ms);
-  }
-}
-
 .mss-group {
   overflow: clip;
   border-radius: 14px;
@@ -284,7 +270,7 @@
     box-shadow:
       0 1px 2px rgb(0 0 0 / 0.2),
       0 2px 6px rgb(0 0 0 / 0.12);
-    transition: translate 240ms var(--ease-spring);
+    transition: translate 180ms var(--ease-out);
   }
 }
 

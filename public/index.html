@@ -67,7 +67,7 @@
         --blue: #89b4fa;
         --muted: #7f849c;
         --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-        --ease-spring: cubic-bezier(0.22, 1.02, 0.3, 1);
+        --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
       }
 
       :root[data-theme="amoled"] {
@@ -244,11 +244,14 @@
       }
 
       .links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px 16px;
         font-size: 15px;
         margin-top: 16px;
         color: #cdd6f769;
         user-select: none;
-        text-align: center;
         line-height: 1.6;
 
         a {
@@ -391,10 +394,11 @@
         </div>
       </form>
       <div class="links">
-        <a href="https://github.com/tiagozip/metasearch" target="_blank">self-host</a> ·
-        <a href="/about" target="_blank">about</a> · <a href="/api" target="_blank">api</a> ·
-        <a href="/bangs" target="_blank">bangs</a> ·
-        <a href="/about#settings" id="open-settings">settings</a> ·
+        <a href="https://github.com/tiagozip/metasearch" target="_blank">self-host</a>
+        <a href="/about" target="_blank">about</a>
+        <a href="/api" target="_blank">api</a>
+        <a href="/bangs" target="_blank">bangs</a>
+        <a href="/about#settings" id="open-settings">settings</a>
         <span>cf %%colo%%</span>
       </div>
 

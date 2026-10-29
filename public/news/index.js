@@ -63,11 +63,6 @@
     header.append(siteNameSpan);
 
     if (age) {
-      const dot = document.createElement("span");
-      dot.className = "news-result-dot";
-      dot.textContent = "·";
-      header.append(dot);
-
       const ageSpan = document.createElement("span");
       ageSpan.className = "news-result-age";
       ageSpan.textContent = age;

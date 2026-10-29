@@ -566,7 +566,7 @@
     if (age) {
       const ageSpan = document.createElement("span");
       ageSpan.className = "age";
-      ageSpan.textContent = `· ${age}`;
+      ageSpan.textContent = age;
       source.append(ageSpan);
     }
 
@@ -968,7 +968,7 @@
     if (age) {
       const ageSpan = document.createElement("span");
       ageSpan.className = "age";
-      ageSpan.textContent = `· ${age}`;
+      ageSpan.textContent = age;
       videoMeta.append(ageSpan);
     }
 
@@ -1018,7 +1018,7 @@
     if (age) {
       const ageSpan = document.createElement("span");
       ageSpan.className = "age";
-      ageSpan.textContent = `· ${age}`;
+      ageSpan.textContent = age;
       source.append(ageSpan);
     }
 

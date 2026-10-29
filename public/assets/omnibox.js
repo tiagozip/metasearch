@@ -4,28 +4,70 @@ const MAX_ITEMS = 10;
 
 const ICON_SEARCH = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="m18.031 16.617 4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0 1 11 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 0 1-1.969 5.617m-2.006-.742A6.98 6.98 0 0 0 18 11c0-3.867-3.133-7-7-7s-7 3.133-7 7 3.133 7 7 7a6.98 6.98 0 0 0 4.875-1.975z"></path></svg>`;
 
-const ICON_ARROW = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a4 4 0 0 1 4 4v7"></path></svg>`;
+const ICON_ARROW = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path pathLength="1" d="M9 14 4 9l5-5"></path><path pathLength="1" d="M4 9h11a4 4 0 0 1 4 4v7"></path></svg>`;
 
 const EASE = "cubic-bezier(0.23, 1, 0.32, 1)";
 
 const STYLE = `
 .omnibox-host {
   position: relative;
+  isolation: isolate;
+}
+.omnibox-host.omnibox-raised {
+  z-index: 100;
+}
+.omnibox-goo {
+  position: absolute;
+  top: 0;
+  left: calc(var(--omnibox-b, 1px) * -1);
+  right: calc(var(--omnibox-b, 1px) * -1);
+  height: calc(var(--omnibox-bar, 40px) + 24px + var(--omnibox-h, 0px));
+  z-index: -1;
+  filter: url(#omnibox-goo-filter);
+  pointer-events: none;
+}
+.omnibox-blob {
+  position: absolute;
+  background: var(--surface0, #313244);
+  will-change: transform;
+}
+.omnibox-blob-bar {
+  top: 0;
+  left: var(--omnibox-b, 1px);
+  right: var(--omnibox-b, 1px);
+  height: var(--omnibox-bar, 40px);
+  border-radius: var(--omnibox-r, 9px);
+}
+.omnibox-blob-panel {
+  top: calc(var(--omnibox-bar, 40px) + 8px);
+  left: 0;
+  right: 0;
+  height: var(--omnibox-h, 0px);
+  border-radius: 12px;
+  transform-origin: 50% 0;
+  transform: translateY(-26px) scale(0.6, var(--omnibox-sy, 0.05));
+  transition:
+    transform 280ms ${EASE},
+    height 220ms ${EASE};
+}
+.omnibox-host.omnibox-open .omnibox-blob-panel {
+  transform: none;
 }
 .omnibox-panel {
   position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  z-index: 100;
-  display: none;
+  top: calc(100% + 8px);
+  left: calc(var(--omnibox-b, 1px) * -1);
+  right: calc(var(--omnibox-b, 1px) * -1);
+  z-index: 1;
+  display: flex;
+  visibility: hidden;
   flex-direction: column;
   gap: 2px;
   padding: 4px;
-  background: var(--surface0, #313244);
+  background: transparent;
   border-radius: 12px;
   box-shadow:
-    0 0 0 1px var(--surface1, #45475a),
+    inset 0 0 0 1px var(--surface1, #45475a),
     0 2px 4px rgb(0 0 0 / 0.16),
     0 16px 32px -12px rgb(0 0 0 / 0.5);
   max-height: min(70vh, 620px);
@@ -38,18 +80,22 @@ const STYLE = `
   filter: blur(4px);
   pointer-events: none;
   transition:
-    opacity 140ms ${EASE},
-    translate 140ms ${EASE},
-    filter 140ms ${EASE},
-    display 140ms allow-discrete;
+    opacity 100ms ${EASE},
+    translate 100ms ${EASE},
+    filter 100ms ${EASE},
+    visibility 0s 100ms;
 }
 .omnibox-panel.open {
-  display: flex;
+  visibility: visible;
   opacity: 1;
   translate: 0 0;
   filter: none;
   pointer-events: auto;
-  transition: none;
+  transition:
+    opacity 140ms ${EASE} 100ms,
+    translate 220ms ${EASE} 100ms,
+    filter 140ms ${EASE} 100ms,
+    visibility 0s;
 }
 .omnibox-hl {
   position: absolute;
@@ -152,9 +198,17 @@ const STYLE = `
   width: 16px;
   height: 16px;
 }
+.omnibox-arrow path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 260ms ${EASE};
+}
 .omnibox-item.active .omnibox-arrow {
   opacity: 0.8;
   translate: 0 0;
+}
+.omnibox-item.active .omnibox-arrow path {
+  stroke-dashoffset: 0;
 }
 @media (hover: hover) and (pointer: fine) {
   .omnibox-item:not(.active):hover {
@@ -164,6 +218,9 @@ const STYLE = `
   .omnibox-item:hover .omnibox-arrow {
     opacity: 0.8;
     translate: 0 0;
+  }
+  .omnibox-item:hover .omnibox-arrow path {
+    stroke-dashoffset: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -176,6 +233,13 @@ const STYLE = `
     translate: none;
     filter: none;
   }
+  .omnibox-blob-panel {
+    transition: none;
+  }
+  .omnibox-arrow path {
+    stroke-dashoffset: 0;
+    transition: none;
+  }
 }
 `;
 
@@ -185,6 +249,13 @@ const ensureStyles = () => {
   el.id = "omnibox-style";
   el.textContent = STYLE;
   document.head.append(el);
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "0");
+  svg.setAttribute("height", "0");
+  svg.setAttribute("aria-hidden", "true");
+  svg.style.position = "absolute";
+  svg.innerHTML = `<filter id="omnibox-goo-filter" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="goo"/><feComposite in="SourceGraphic" in2="goo" operator="atop"/></filter>`;
+  document.body.append(svg);
 };
 
 const renderTitle = (node, text, typed) => {
@@ -209,7 +280,21 @@ const setup = (host, input, form) => {
   panel.className = "omnibox-panel";
   panel.id = "omnibox-panel";
   panel.setAttribute("role", "listbox");
+  const goo = document.createElement("div");
+  goo.className = "omnibox-goo";
+  goo.setAttribute("aria-hidden", "true");
+  goo.innerHTML = `<div class="omnibox-blob omnibox-blob-bar"></div><div class="omnibox-blob omnibox-blob-panel"></div>`;
+  host.prepend(goo);
   host.append(panel);
+  const measure = () => {
+    const cs = getComputedStyle(host);
+    const b = Number.parseFloat(cs.borderTopWidth) || 0;
+    const r = Number.parseFloat(cs.borderTopLeftRadius) || 0;
+    host.style.setProperty("--omnibox-bar", `${host.clientHeight}px`);
+    host.style.setProperty("--omnibox-b", `${b}px`);
+    host.style.setProperty("--omnibox-r", `${Math.max(r - b, 0)}px`);
+  };
+  measure();
 
   const hl = document.createElement("div");
   hl.className = "omnibox-hl";
@@ -226,6 +311,7 @@ const setup = (host, input, form) => {
   const cache = new Map();
   let controller = null;
   let debounce = 0;
+  let lower = 0;
   let items = [];
   let rows = [];
   let active = -1;
@@ -263,6 +349,9 @@ const setup = (host, input, form) => {
   const close = () => {
     if (!panel.classList.contains("open")) return;
     panel.classList.remove("open");
+    host.classList.remove("omnibox-open");
+    clearTimeout(lower);
+    lower = setTimeout(() => host.classList.remove("omnibox-raised"), 300);
     hl.classList.remove("on");
     input.setAttribute("aria-expanded", "false");
     input.removeAttribute("aria-activedescendant");
@@ -345,6 +434,11 @@ const setup = (host, input, form) => {
     panel.classList.add("open");
     input.setAttribute("aria-expanded", "true");
     const h1 = panel.getBoundingClientRect().height;
+    measure();
+    host.style.setProperty("--omnibox-h", `${h1}px`);
+    host.style.setProperty("--omnibox-sy", `${Math.min(1, 12 / (h1 || 12))}`);
+    clearTimeout(lower);
+    host.classList.add("omnibox-open", "omnibox-raised");
     if (
       wasOpen &&
       h0 &&
