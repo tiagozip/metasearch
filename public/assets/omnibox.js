@@ -4,7 +4,7 @@ const MAX_ITEMS = 10;
 
 const ICON_SEARCH = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="m18.031 16.617 4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0 1 11 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 0 1-1.969 5.617m-2.006-.742A6.98 6.98 0 0 0 18 11c0-3.867-3.133-7-7-7s-7 3.133-7 7 3.133 7 7 7a6.98 6.98 0 0 0 4.875-1.975z"></path></svg>`;
 
-const ICON_ARROW = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path pathLength="1" d="M9 14 4 9l5-5"></path><path pathLength="1" d="M4 9h11a4 4 0 0 1 4 4v7"></path></svg>`;
+const ICON_ARROW = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a4 4 0 0 1 4 4v7"></path></svg>`;
 
 const EASE = "cubic-bezier(0.23, 1, 0.32, 1)";
 
@@ -92,9 +92,7 @@ const STYLE = `
   filter: none;
   pointer-events: auto;
   transition:
-    opacity 140ms ${EASE} 100ms,
-    translate 220ms ${EASE} 100ms,
-    filter 140ms ${EASE} 100ms,
+    opacity 120ms ${EASE},
     visibility 0s;
 }
 .omnibox-hl {
@@ -198,17 +196,9 @@ const STYLE = `
   width: 16px;
   height: 16px;
 }
-.omnibox-arrow path {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  transition: stroke-dashoffset 260ms ${EASE};
-}
 .omnibox-item.active .omnibox-arrow {
   opacity: 0.8;
   translate: 0 0;
-}
-.omnibox-item.active .omnibox-arrow path {
-  stroke-dashoffset: 0;
 }
 @media (hover: hover) and (pointer: fine) {
   .omnibox-item:not(.active):hover {
@@ -218,9 +208,6 @@ const STYLE = `
   .omnibox-item:hover .omnibox-arrow {
     opacity: 0.8;
     translate: 0 0;
-  }
-  .omnibox-item:hover .omnibox-arrow path {
-    stroke-dashoffset: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -234,10 +221,6 @@ const STYLE = `
     filter: none;
   }
   .omnibox-blob-panel {
-    transition: none;
-  }
-  .omnibox-arrow path {
-    stroke-dashoffset: 0;
     transition: none;
   }
 }
