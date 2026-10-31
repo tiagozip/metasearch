@@ -9,6 +9,7 @@
     <meta name="theme-color" content="#1F1E2E" />
     <meta property="og:color" content="#89B4FA" />
     <link rel="icon" href="/s/teto.png" />
+    <link rel="modulepreload" href="/s/widgets.js" />
 
     <meta name="color-scheme" content="dark" />
     <meta http-equiv="x-ua-compatible" content="IE=edge,chrome=1" />
@@ -197,6 +198,7 @@
       <aside id="sidebar"></aside>
     </div>
 
+    <script type="module">import{renderLocalWidgets}from"/s/widgets.js";const q=new URLSearchParams(location.search).get("q"),w=q&&renderLocalWidgets(q);if(w)document.getElementById("results-all").prepend(w)</script>
     <script src="/p/%%jsJwt%%" type="module"></script>
     <script src="/s/omnibox.js" type="module"></script>
   </body>

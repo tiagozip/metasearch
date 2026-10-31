@@ -1750,6 +1750,7 @@
         section.append(pickerContainer, info);
         frag.append(section);
       } else if (item.subtype === "weather" && item.weather) {
+        if (document.querySelector(".rich-weather")) continue;
         section.classList.add("rich-weather");
         section.setAttribute("aria-busy", "true");
         import("/s/weather.js")
@@ -3044,12 +3045,6 @@
       banner.textContent = `${data.fallback_from} ${data.fallback_reason || "didn't answer"}, showing ${data.engine} results`;
       resultsAll.prepend(banner);
     }
-    import("/s/widgets.js")
-      .then(({ renderLocalWidgets }) => {
-        const widget = renderLocalWidgets(currentQuery);
-        if (widget) resultsAll.prepend(widget);
-      })
-      .catch(() => {});
   }
 
   let pk = "__results_pk__";

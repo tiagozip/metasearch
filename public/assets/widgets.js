@@ -12169,7 +12169,6 @@ reg({
   id: "weather",
   match: parseWeatherQuery,
   build: ({ place }) => {
-    if (document.querySelector(".rich-weather")) return null;
     const section = h("section", {
       class: "rich-result rich-weather",
       "aria-busy": "true",
