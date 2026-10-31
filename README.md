@@ -79,6 +79,8 @@ bun run dev
 
 ### other instances
 
+**most of these are on older versions** without new features or kagi support. they may also be significantly slower than the official instance, and i can't vouch for their privacy or security.
+
 * [tiago.ferencmeszaros.hu](https://tiago.ferencmeszaros.hu?ref=metasearch-readme)
 * [search.dieofdeath.gay](https://search.dieofdeath.gay?ref=metasearch-readme)
 * [s.jim88.de](https://s.jim88.de/?ref=metasearch-readme)
@@ -87,8 +89,6 @@ bun run dev
 * [searchengine.killingpeopleis.fun](https://searchengine.killingpeopleis.fun?ref=metasearch-readme)
 
 if you're self-hosting metasearch yourself, please feel free to open a pr to add your instance here!
-
-please note that most of these instances will lack kagi search support.
 
 ### license
 
