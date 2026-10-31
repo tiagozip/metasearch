@@ -45,13 +45,39 @@ const STYLE = `
   height: var(--omnibox-h, 0px);
   border-radius: 12px;
   transform-origin: 50% 0;
-  transform: translateY(-26px) scale(0.6, var(--omnibox-sy, 0.05));
-  transition:
-    transform 280ms ${EASE},
-    height 220ms ${EASE};
+  transform: translateY(-10px) scaleY(var(--omnibox-sy, 0.05));
+  transition: transform 240ms ${EASE};
 }
 .omnibox-host.omnibox-open .omnibox-blob-panel {
   transform: none;
+}
+.omnibox-shade {
+  position: absolute;
+  top: calc(var(--omnibox-bar, 40px) + 8px);
+  left: calc(var(--omnibox-b, 1px) * -1);
+  right: calc(var(--omnibox-b, 1px) * -1);
+  z-index: -1;
+  height: var(--omnibox-h, 0px);
+  border-radius: 12px;
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.16),
+    0 16px 32px -12px rgb(0 0 0 / 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: 50% 0;
+  transform: translateY(-10px) scaleY(var(--omnibox-sy, 0.05));
+  transition:
+    transform 240ms ${EASE},
+    opacity 100ms ${EASE};
+}
+.omnibox-host.omnibox-open .omnibox-shade {
+  opacity: 1;
+  transform: none;
+}
+.omnibox-resizing :is(.omnibox-blob-panel, .omnibox-shade) {
+  transition:
+    transform 240ms ${EASE},
+    height 220ms ${EASE};
 }
 .omnibox-panel {
   position: absolute;
@@ -66,10 +92,7 @@ const STYLE = `
   padding: 4px;
   background: transparent;
   border-radius: 12px;
-  box-shadow:
-    inset 0 0 0 1px var(--surface1, #45475a),
-    0 2px 4px rgb(0 0 0 / 0.16),
-    0 16px 32px -12px rgb(0 0 0 / 0.5);
+  box-shadow: inset 0 0 0 1px var(--surface1, #45475a);
   max-height: min(70vh, 620px);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -78,11 +101,13 @@ const STYLE = `
   opacity: 0;
   translate: 0 -4px;
   filter: blur(4px);
+  clip-path: inset(0 0 100% 0);
   pointer-events: none;
   transition:
     opacity 100ms ${EASE},
     translate 100ms ${EASE},
     filter 100ms ${EASE},
+    clip-path 0s 100ms,
     visibility 0s 100ms;
 }
 .omnibox-panel.open {
@@ -90,9 +115,11 @@ const STYLE = `
   opacity: 1;
   translate: 0 0;
   filter: none;
+  clip-path: inset(0);
   pointer-events: auto;
   transition:
     opacity 120ms ${EASE},
+    clip-path 240ms ${EASE},
     visibility 0s;
 }
 .omnibox-hl {
@@ -219,8 +246,9 @@ const STYLE = `
   .omnibox-panel {
     translate: none;
     filter: none;
+    clip-path: none;
   }
-  .omnibox-blob-panel {
+  .omnibox-host :is(.omnibox-blob-panel, .omnibox-shade) {
     transition: none;
   }
 }
@@ -267,7 +295,10 @@ const setup = (host, input, form) => {
   goo.className = "omnibox-goo";
   goo.setAttribute("aria-hidden", "true");
   goo.innerHTML = `<div class="omnibox-blob omnibox-blob-bar"></div><div class="omnibox-blob omnibox-blob-panel"></div>`;
-  host.prepend(goo);
+  const shade = document.createElement("div");
+  shade.className = "omnibox-shade";
+  shade.setAttribute("aria-hidden", "true");
+  host.prepend(goo, shade);
   host.append(panel);
   const measure = () => {
     const cs = getComputedStyle(host);
@@ -418,6 +449,7 @@ const setup = (host, input, form) => {
     input.setAttribute("aria-expanded", "true");
     const h1 = panel.getBoundingClientRect().height;
     measure();
+    host.classList.toggle("omnibox-resizing", wasOpen);
     host.style.setProperty("--omnibox-h", `${h1}px`);
     host.style.setProperty("--omnibox-sy", `${Math.min(1, 12 / (h1 || 12))}`);
     clearTimeout(lower);
