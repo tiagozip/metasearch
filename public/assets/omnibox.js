@@ -45,7 +45,7 @@ const STYLE = `
   height: var(--omnibox-h, 0px);
   border-radius: 12px;
   transform-origin: 50% 0;
-  transform: translateY(-10px) scaleY(var(--omnibox-sy, 0.05));
+  transform: translateY(-10px) scaleY(0);
   transition: transform 240ms ${EASE};
 }
 .omnibox-host.omnibox-open .omnibox-blob-panel {
@@ -65,7 +65,7 @@ const STYLE = `
   opacity: 0;
   pointer-events: none;
   transform-origin: 50% 0;
-  transform: translateY(-10px) scaleY(var(--omnibox-sy, 0.05));
+  transform: translateY(-10px) scaleY(0);
   transition:
     transform 240ms ${EASE},
     opacity 100ms ${EASE};
@@ -451,7 +451,6 @@ const setup = (host, input, form) => {
     measure();
     host.classList.toggle("omnibox-resizing", wasOpen);
     host.style.setProperty("--omnibox-h", `${h1}px`);
-    host.style.setProperty("--omnibox-sy", `${Math.min(1, 12 / (h1 || 12))}`);
     clearTimeout(lower);
     host.classList.add("omnibox-open", "omnibox-raised");
     if (
