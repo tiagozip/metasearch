@@ -11721,74 +11721,90 @@ reg({
   id: "translate",
   match: parseTranslateQuery,
   build: ({ text = "", sl = "auto", tl = null }) => {
+    const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
     const src = h(
       "textarea",
       {
         class: "w-tr-src",
         dir: "auto",
+        rows: "1",
         maxlength: "5000",
-        placeholder: "enter text…",
+        placeholder: "type to translate",
+        "aria-label": "text to translate",
       },
       text,
     );
-    const out = h("div", {
-      class: "w-tr-out",
-      dir: "auto",
-      "aria-live": "polite",
-    });
-    const srcTl = h("div", { class: "w-tr-translit", dir: "auto" });
-    const outTl = h("div", { class: "w-tr-translit", dir: "auto" });
+    const mirror = h("span", { class: "w-tr-mirror", "aria-hidden": "true" });
+    const out = h("div", { class: "w-tr-out", "aria-live": "polite" });
+    const srcTl = h("p", { class: "w-tr-reading", dir: "auto" });
+    const outTl = h("p", { class: "w-tr-reading", dir: "auto" });
+    const dym = h("p", { class: "w-tr-dym" });
     const alts = h("div", { class: "w-tr-alts" });
-    const dym = h("div", { class: "w-tr-dym" });
-    const status = h("span", { class: "w-tr-status" });
-    const count = h("span", { class: "w-tr-count" });
     const dict = h("div", { class: "w-tr-dict" });
+    const foot = h("div", { class: "w-tr-foot" }, alts, dict);
 
-    let firstOut = true;
-    const setOut = (value) => {
-      out.classList.remove("stale", "fresh");
+    let outValue = "";
+    const syncFoot = () => {
+      foot.hidden = !alts.childElementCount && !dict.childElementCount;
+    };
+    const setOut = (value, cls = "") => {
+      out.classList.remove("pending");
       out.removeAttribute("aria-busy");
-      if (value == null)
-        return out.replaceChildren(
-          h("span", { class: "w-tr-ph" }, "translation"),
+      outValue = cls ? "" : value || "";
+      const next = h(
+        "p",
+        {
+          class: `w-tr-text${cls ? ` ${cls}` : ""}`,
+          dir: "auto",
+          lang: cls ? null : tlP.value,
+        },
+        value || "translation",
+      );
+      if (!value) next.classList.add("ph");
+      const prev = [...out.children].filter((c) => !c.dataset.leaving);
+      out.append(next);
+      for (const p of prev) {
+        if (calmMotion() || !p.isConnected) {
+          p.remove();
+          continue;
+        }
+        p.dataset.leaving = "1";
+        p.animate(
+          [
+            { opacity: 1, filter: "blur(0)" },
+            { opacity: 0, filter: "blur(4px)" },
+          ],
+          { duration: 150, easing: EASE, fill: "forwards" },
+        ).finished.then(
+          () => p.remove(),
+          () => p.remove(),
         );
-      out.textContent = value;
-      if (firstOut) {
-        firstOut = false;
-        return;
       }
-      out.offsetWidth;
-      out.classList.add("fresh");
+      if (prev.length && !calmMotion())
+        next.animate(
+          [
+            { opacity: 0, filter: "blur(4px)" },
+            { opacity: 1, filter: "blur(0)" },
+          ],
+          { duration: 300, easing: EASE },
+        );
+      return next;
     };
     const setLoading = () => {
       out.setAttribute("aria-busy", "true");
-      if (
-        out.textContent &&
-        !out.classList.contains("err") &&
-        !out.querySelector(".w-tr-ph, .w-tr-skel")
-      )
-        return out.classList.add("stale");
-      out.classList.remove("err", "fresh");
-      out.replaceChildren(
-        h("span", { class: "w-tr-skel" }),
-        h("span", { class: "w-tr-skel" }),
-      );
+      out.classList.add("pending");
     };
-    const syncCount = () => {
-      count.textContent = `${src.value.length.toLocaleString("en-US")} / 5,000`;
-      duo.classList.toggle("short", src.value.length <= 80);
+    const syncSrc = () => {
+      mirror.textContent = `${src.value} `;
       clear.hidden = !src.value;
     };
-    const outText = () =>
-      out.classList.contains("err") || out.querySelector(".w-tr-ph, .w-tr-skel")
-        ? ""
-        : out.textContent;
     const clearExtras = () => {
       srcTl.textContent = "";
       outTl.textContent = "";
       alts.replaceChildren();
       dym.replaceChildren();
       dict.replaceChildren();
+      syncFoot();
     };
 
     const slP = makeLangPicker({
@@ -11804,11 +11820,9 @@ reg({
     const swap = h("button", {
       class: "w-tr-swap",
       type: "button",
-      title: "swap languages",
       "aria-label": "swap languages",
-      html: SWAP,
+      html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="w-tr-swap-a"><path d="M3 7h18M6 10 3 7l3-3"/></g><g class="w-tr-swap-b"><path d="M21 17H3M18 20l3-3-3-3"/></g></svg>`,
     });
-    const duo = h("div", { class: "w-tr-duo" });
     const syncSwap = () => {
       swap.disabled = slP.value === "auto" && !slP.detected;
     };
@@ -11837,13 +11851,14 @@ reg({
             .slice(0, 2)
             .map((m) =>
               h(
-                "div",
+                "p",
                 { class: "w-tr-dict-meaning" },
                 h("span", { class: "w-tr-dict-pos" }, m.partOfSpeech),
                 m.definitions?.[0]?.definition || "",
               ),
             ),
         );
+        syncFoot();
       } catch {}
     };
 
@@ -11851,33 +11866,44 @@ reg({
       outTl.textContent = data.transliteration || "";
       srcTl.textContent = data.srcTransliteration || "";
       alts.replaceChildren();
-      if (data.alternatives?.length) {
-        alts.append(h("span", { class: "w-tr-alts-label" }, "alternatives"));
-        for (const a of data.alternatives)
-          alts.append(
-            h("button", {
-              class: "w-tr-alt",
-              dir: "auto",
-              html: "",
-              onclick: () => {
-                setOut(a);
-                outTl.textContent = "";
+      if (data.alternatives?.length)
+        alts.append(
+          h("span", { class: "w-tr-alts-label" }, "alternatives"),
+          ...data.alternatives.map((a) =>
+            h(
+              "button",
+              {
+                class: "w-tr-alt",
+                type: "button",
+                dir: "auto",
+                onclick: () => {
+                  setOut(a);
+                  outTl.textContent = "";
+                },
               },
-            }),
-          );
-        for (const [i, a] of data.alternatives.entries())
-          alts.children[i + 1].textContent = a;
-      }
+              a,
+            ),
+          ),
+        );
       dym.replaceChildren();
-      if (data.didYouMean) {
-        const fix = h("button", { class: "w-tr-dym-btn" }, data.didYouMean);
-        fix.onclick = () => {
-          src.value = data.didYouMean;
-          syncCount();
-          run();
-        };
-        dym.append("did you mean: ", fix);
-      }
+      if (data.didYouMean)
+        dym.append(
+          "did you mean ",
+          h(
+            "button",
+            {
+              class: "w-tr-dym-btn",
+              type: "button",
+              onclick: () => {
+                src.value = data.didYouMean;
+                syncSrc();
+                run();
+              },
+            },
+            data.didYouMean,
+          ),
+        );
+      syncFoot();
     };
 
     const run = async () => {
@@ -11887,14 +11913,11 @@ reg({
 
       if (!value) {
         setOut(null);
-        out.classList.remove("err");
-        status.textContent = "";
         slP.setDetected(null);
         syncSwap();
         return;
       }
       ctrl = new AbortController();
-      status.textContent = "translating…";
       setLoading();
       try {
         const data = await requestTranslation(
@@ -11926,9 +11949,9 @@ reg({
             return;
           }
         }
-        setOut(data.translatedText);
-        out.classList.remove("err");
-        status.textContent = "";
+        if (data.translatedText !== outValue) setOut(data.translatedText);
+        else out.classList.remove("pending");
+        out.removeAttribute("aria-busy");
         if (slP.value === "auto") slP.setDetected(det);
         syncSwap();
 
@@ -11944,131 +11967,295 @@ reg({
         if (word) renderDict(word.toLowerCase());
       } catch (e) {
         if (e.name === "AbortError") return;
-        setOut(null);
-        out.classList.add("err");
-        out.replaceChildren(
-          h("span", null, e.message || "translation failed"),
+        setOut(e.message || "translation failed", "err").append(
           h(
             "button",
             { class: "w-tr-retry", type: "button", onclick: () => run() },
             "try again",
           ),
         );
-        status.textContent = "";
       }
     };
 
-    const go = (delay = 500) => {
+    const go = (delay = 600) => {
       clearTimeout(timer);
       timer = setTimeout(run, delay);
     };
 
     src.oninput = () => {
-      syncCount();
+      syncSrc();
       go();
     };
 
+    const bodies = [];
     let turns = 0;
     swap.onclick = () => {
       const from = slP.value === "auto" ? slP.detected : slP.value;
       if (!from) return;
       const to = tlP.value;
+      const moved = outValue;
       slP.value = to;
       tlP.value = from;
-      if (outText()) src.value = outText().slice(0, 5000);
+      if (moved) src.value = moved.slice(0, 5000);
       turns += 1;
-      swap.style.setProperty("--turn", `${turns * 180}deg`);
-      duo.classList.remove("swapping");
-      duo.getBoundingClientRect();
-      duo.classList.add("swapping");
-      syncCount();
+      swap.classList.toggle("swapped", turns % 2 === 1);
+      syncSrc();
+      if (!calmMotion())
+        for (const [i, b] of bodies.entries())
+          b.animate(
+            [
+              {
+                translate: `${i ? -8 : 8}px 0`,
+                opacity: 0,
+                filter: "blur(3px)",
+              },
+              { translate: "0 0", opacity: 1, filter: "blur(0)" },
+            ],
+            { duration: 250, easing: EASE },
+          );
       run();
     };
 
     const clear = h("button", {
-      class: "w-copy w-tr-clear",
+      class: "w-copy w-tr-act",
       type: "button",
-      title: "clear",
       "aria-label": "clear text",
       html: CLEAR,
     });
     clear.onclick = () => {
       src.value = "";
-      syncCount();
+      syncSrc();
       src.focus();
       run();
     };
 
-    duo.append(
+    const srcSpeak = speakButton(
+      () => src.value,
+      () => (slP.value === "auto" ? slP.detected : slP.value),
+      "w-copy w-tr-act",
+    );
+    const outSpeak = speakButton(
+      () => outValue,
+      () => tlP.value,
+      "w-copy w-tr-act",
+    );
+    const outCopy = copyBtn(() => outValue);
+    outCopy.classList.add("w-tr-act");
+
+    const srcBody = h(
+      "div",
+      { class: "w-tr-body" },
+      h("div", { class: "w-tr-field" }, mirror, src),
+      srcTl,
+      dym,
+    );
+    const outBody = h("div", { class: "w-tr-body" }, out, outTl);
+    bodies.push(srcBody, outBody);
+
+    const grid = h(
+      "div",
+      { class: "w-tr-grid" },
       h(
-        "div",
+        "section",
         { class: "w-tr-pane" },
-        src,
-        srcTl,
-        dym,
-        clear,
         h(
           "div",
-          { class: "w-tr-pane-foot" },
-          speakButton(
-            () => src.value,
-            () => (slP.value === "auto" ? slP.detected : slP.value),
-            "w-copy",
-          ),
-          count,
+          { class: "w-tr-pane-head" },
+          slP.el,
+          h("div", { class: "w-tr-acts" }, srcSpeak, clear),
         ),
+        srcBody,
       ),
       h(
-        "div",
+        "section",
         { class: "w-tr-pane out" },
-        out,
-        outTl,
         h(
           "div",
-          { class: "w-tr-pane-foot" },
-          speakButton(outText, () => tlP.value, "w-copy"),
-          status,
-          copyBtn(outText),
+          { class: "w-tr-pane-head" },
+          tlP.el,
+          h("div", { class: "w-tr-acts" }, outSpeak, outCopy),
         ),
+        outBody,
+        swap,
       ),
+    );
+
+    const shell = h("div", { class: "w-tr-shell" }, grid, foot);
+    new ResizeObserver(() => {
+      shell.style.height = `${grid.offsetHeight + (foot.hidden ? 0 : foot.offsetHeight)}px`;
+    }).observe(grid);
+    new ResizeObserver(() => {
+      shell.style.height = `${grid.offsetHeight + (foot.hidden ? 0 : foot.offsetHeight)}px`;
+    }).observe(foot);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => shell.classList.add("settled")),
     );
 
     setOut(null);
-    syncCount();
+    syncSrc();
     syncSwap();
+    syncFoot();
 
     if (text) run();
 
-    return h(
-      "section",
-      { class: "rich-result w w-tr-card" },
-      h(
-        "div",
-        { class: "w-tr-head" },
-        h("div", { class: "w-title" }, "translate"),
-      ),
-      h(
-        "div",
-        { class: "w-tr" },
-        h(
-          "div",
-          { class: "w-tr-bar" },
-          h("div", { class: "w-tr-slot" }, slP.el),
-          swap,
-          h("div", { class: "w-tr-slot" }, tlP.el),
-        ),
-        duo,
-        alts,
-        dict,
-      ),
-    );
+    return h("section", { class: "rich-result w w-tr-card" }, shell);
   },
 });
 
-export function renderLocalWidgets(query) {
-  if (!query) return null;
-  const q = query.trim();
-  if (!q || q.length > 600) return null;
+const WX_TYPOS = new Set([
+  "whether",
+  "wether",
+  "wheather",
+  "wheater",
+  "weahter",
+  "weater",
+  "wather",
+  "weathr",
+  "wetaher",
+  "weaher",
+  "weatehr",
+  "waether",
+  "temprature",
+  "tempature",
+  "temperture",
+  "temperatur",
+  "tempreture",
+  "temparature",
+  "temperatue",
+  "forcast",
+  "forecst",
+  "foercast",
+  "forecaste",
+]);
+const WX_KEY = /^(?:weather|temperature|temp|forecast)$/;
+const WX_WHEN =
+  /^(?:(?:right\s+)?now|today|tonight|tomorrow|here|outside|near\s+me|this\s+week|(?:weather\s+)?forecast|(?:for\s+)?(?:the\s+)?week)$/;
+const WX_NOT =
+  /\b(?:channel|underground|app|apps|radar|api|map|maps|report|network|station|girl|girls|man|lyrics|song|meaning|definition|vs|or|not|icon|icons|emoji|widget|gov|com|news|alert|alerts)\b/;
+
+const wxWord = (w) => WX_KEY.test(w) || WX_TYPOS.has(w);
+
+const parseWeatherQuery = (raw) => {
+  const q = raw
+    .toLowerCase()
+    .replace(/[?!.,']/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (q.length > 60 || WX_NOT.test(q)) return null;
+  if (/^how (?:hot|cold|warm) is it(?: (?:outside|today|now))?$/.test(q))
+    return { place: "" };
+  const m = q.match(
+    /^(?:(?:whats|what is|hows|how is)\s+)?(?:the\s+)?(?:current\s+|local\s+)?(\S+)(?:\s+(.*))?$/,
+  );
+  if (m && wxWord(m[1])) {
+    const rest = (m[2] || "").trim();
+    if (!rest || WX_WHEN.test(rest)) return { place: "" };
+    const at = rest.match(/^(?:in|for|at)\s+(.+)$/);
+    const place = (at ? at[1] : rest)
+      .replace(/\s+(?:today|tonight|tomorrow|now|forecast)$/, "")
+      .trim();
+    if (!place || place.split(" ").length > 4) return null;
+    return { place };
+  }
+  const tail = q.match(
+    /^(.+?)\s+(\S+)(?:\s+(?:today|tonight|tomorrow|now|forecast))?$/,
+  );
+  if (tail && wxWord(tail[2]) && tail[1].split(" ").length <= 4)
+    return { place: tail[1].replace(/^(?:the|in)\s+/, "") };
+  return null;
+};
+
+reg({
+  id: "weather",
+  match: parseWeatherQuery,
+  build: ({ place }) => {
+    if (document.querySelector(".rich-weather")) return null;
+    const section = h("section", {
+      class: "rich-result rich-weather",
+      "aria-busy": "true",
+    });
+    const geo = place ? `/geo?q=${encodeURIComponent(place)}` : "/geo";
+    fetch(geo)
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then(async (location) => {
+        const { fillWeather } = await import("/s/weather.js");
+        await fillWeather(section, { location });
+      })
+      .catch(() => section.remove())
+      .finally(() => section.removeAttribute("aria-busy"));
+    return section;
+  },
+});
+
+const typoDistance = (a, b, max) => {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    let best = max + 1;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(
+        d[i - 1][j] + 1,
+        d[i][j - 1] + 1,
+        d[i - 1][j - 1] + cost,
+      );
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1])
+        d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      best = Math.min(best, d[i][j]);
+    }
+    if (best > max) return max + 1;
+  }
+  return d[a.length][b.length];
+};
+
+const TYPO_BLOCK = new Set([
+  "heather",
+  "leather",
+  "feather",
+  "times",
+  "timed",
+  "counted",
+  "colors",
+]);
+let triggerWords;
+const correctTypos = (q) => {
+  triggerWords ??= new Set(
+    widgets.flatMap((w) =>
+      (String(w.match).match(/\/\^[^\n]*?\/[gimsuy]*/g) || []).flatMap(
+        (re) => re.toLowerCase().match(/[a-z]{5,}/g) || [],
+      ),
+    ),
+  );
+  const tokens = q.toLowerCase().split(/\s+/);
+  if (tokens.length > 6) return null;
+  let changed = false;
+  const fixed = tokens.map((t) => {
+    if (
+      t.length < 5 ||
+      triggerWords.has(t) ||
+      TYPO_BLOCK.has(t) ||
+      !/^[a-z]+$/.test(t)
+    )
+      return t;
+    const max = t.length >= 8 ? 2 : 1;
+    let best = null;
+    let bestD = max + 1;
+    for (const word of triggerWords) {
+      const dist = typoDistance(t, word, max);
+      if (dist < bestD) {
+        best = word;
+        bestD = dist;
+      } else if (dist === bestD) best = null;
+    }
+    if (!best || bestD > max) return t;
+    changed = true;
+    return best;
+  });
+  return changed ? fixed.join(" ") : null;
+};
+
+const tryWidgets = (q) => {
   for (const w of widgets) {
     let params;
     try {
@@ -12091,6 +12278,15 @@ export function renderLocalWidgets(query) {
     }
   }
   return null;
+};
+
+export function renderLocalWidgets(query) {
+  const q = query?.trim();
+  if (!q || q.length > 600) return null;
+  const hit = tryWidgets(q);
+  if (hit) return hit;
+  const fixed = correctTypos(q);
+  return fixed ? tryWidgets(fixed) : null;
 }
 
 export const __widgetCount = widgets.length;

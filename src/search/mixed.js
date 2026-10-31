@@ -209,6 +209,8 @@ export default async function search(
                       name: r.weather.location.name,
                       country: r.weather.location.country,
                       state: r.weather.location.state,
+                      lat: r.weather.location.coords?.lat,
+                      lon: r.weather.location.coords?.lon,
                     }
                   : null,
                 current_weather: r.weather.current_weather

@@ -668,6 +668,134 @@ export default new Elysia({ adapter: CloudflareAdapter })
       },
     });
   })
+  .get("/wx", async ({ set, query }) => {
+    const lat = Number(query?.lat);
+    const lon = Number(query?.lon);
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lon) ||
+      Math.abs(lat) > 90 ||
+      Math.abs(lon) > 180
+    ) {
+      set.status = 400;
+      return { error: "invalid coordinates" };
+    }
+
+    const url = new URL("https://api.open-meteo.com/v1/forecast");
+    url.search = new URLSearchParams({
+      latitude: lat.toFixed(2),
+      longitude: lon.toFixed(2),
+      current:
+        "temperature_2m,relative_humidity_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m",
+      hourly:
+        "temperature_2m,precipitation_probability,relative_humidity_2m,weather_code,is_day,wind_speed_10m,wind_gusts_10m,wind_direction_10m",
+      daily: "weather_code,temperature_2m_max,temperature_2m_min",
+      timezone: "auto",
+      forecast_days: "7",
+    });
+
+    let resp;
+    try {
+      resp = await fetch(url, {
+        cf: { cacheTtl: 1800, cacheEverything: true },
+      });
+    } catch {
+      set.status = 502;
+      return { error: "weather fetch failed" };
+    }
+    if (!resp.ok) {
+      set.status = 502;
+      return { error: "weather upstream error" };
+    }
+
+    const { current: c, hourly: h, daily: d, timezone } = await resp.json();
+    const round = (n) => Math.round(n * 10) / 10;
+    return new Response(
+      JSON.stringify({
+        tz: timezone,
+        now: {
+          t: c.time,
+          temp: round(c.temperature_2m),
+          hum: c.relative_humidity_2m,
+          code: c.weather_code,
+          day: c.is_day === 1,
+          wind: round(c.wind_speed_10m),
+          dir: c.wind_direction_10m,
+        },
+        hours: h.time.map((t, i) => ({
+          t,
+          temp: round(h.temperature_2m[i]),
+          pop: h.precipitation_probability[i] ?? 0,
+          hum: h.relative_humidity_2m[i],
+          code: h.weather_code[i],
+          day: h.is_day[i] === 1,
+          wind: round(h.wind_speed_10m[i]),
+          gust: round(h.wind_gusts_10m[i]),
+          dir: h.wind_direction_10m[i],
+        })),
+        days: d.time.map((t, i) => ({
+          t,
+          code: d.weather_code[i],
+          hi: round(d.temperature_2m_max[i]),
+          lo: round(d.temperature_2m_min[i]),
+        })),
+      }),
+      {
+        headers: {
+          "content-type": "application/json",
+          "cache-control": "public, max-age=1800",
+        },
+      },
+    );
+  })
+  .get("/geo", async ({ set, query, request }) => {
+    const name = (query?.q || "").trim().slice(0, 80);
+    const headers = { "cache-control": "private, max-age=600" };
+    if (!name) {
+      const cf = request.cf;
+      const lat = Number(cf?.latitude);
+      const lon = Number(cf?.longitude);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        set.status = 404;
+        return { error: "location unknown" };
+      }
+      set.headers = { ...set.headers, ...headers };
+      return {
+        name: cf.city || null,
+        state: cf.region || null,
+        country: cf.country
+          ? new Intl.DisplayNames(["en"], { type: "region" }).of(cf.country)
+          : null,
+        lat,
+        lon,
+      };
+    }
+
+    const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
+    url.search = new URLSearchParams({ name, count: "1", language: "en" });
+    let place;
+    try {
+      const resp = await fetch(url, {
+        cf: { cacheTtl: 86400, cacheEverything: true },
+      });
+      place = resp.ok ? (await resp.json()).results?.[0] : null;
+    } catch {
+      set.status = 502;
+      return { error: "geocoding failed" };
+    }
+    if (!place) {
+      set.status = 404;
+      return { error: "place not found" };
+    }
+    set.headers = { ...set.headers, "cache-control": "public, max-age=86400" };
+    return {
+      name: place.name,
+      state: place.admin1 || null,
+      country: place.country || null,
+      lat: place.latitude,
+      lon: place.longitude,
+    };
+  })
   .get("/fx/:base", async ({ set, params }) => {
     const base = (params.base || "").toUpperCase();
     if (!/^[A-Z]{3}$/.test(base)) {

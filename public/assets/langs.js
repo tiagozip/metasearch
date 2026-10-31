@@ -196,8 +196,11 @@ export const browserTargetLang = () => {
   return "en";
 };
 
-const GLOBE = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a17 17 0 0 1 0 18M12 3a17 17 0 0 0 0 18"/></svg>`;
-const CHEVRON = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>`;
+const GLOBE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a17 17 0 0 1 0 18M12 3a17 17 0 0 0 0 18"/></svg>`;
+const SEARCH_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>`;
+const SEARCH_OFF = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.04 5.04a7 7 0 0 0 9.92 9.92M16.6 12.6A7 7 0 0 0 7.4 3.4M3 3l18 18"/></svg>`;
+const CHECK = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>`;
+const CHEVRON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>`;
 
 const el = (tag, cls, html) => {
   const e = document.createElement(tag);
@@ -207,17 +210,29 @@ const el = (tag, cls, html) => {
 };
 
 const flagImg = (code) => {
-  const url = flagUrl(code);
-  if (!url) return el("span", "lp-globe", GLOBE);
+  const url = code === "auto" ? null : flagUrl(code);
+  if (!url) return el("span", "lp-flag lp-globe", GLOBE);
   const img = document.createElement("img");
   img.className = "lp-flag";
   img.src = url;
   img.alt = "";
-  img.width = 20;
-  img.height = 20;
-  img.loading = "lazy";
+  img.width = 18;
+  img.height = 18;
+  img.draggable = false;
+  img.decoding = "async";
   return img;
 };
+
+const nativeName = (code) => {
+  try {
+    return new Intl.DisplayNames([code], { type: "language" }).of(code) || "";
+  } catch {
+    return "";
+  }
+};
+
+const PICKER_WIDTH = 288;
+const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function makeLangPicker({ value, detect = false, onChange }) {
   let current = value || (detect ? "auto" : "en");
@@ -226,42 +241,97 @@ export function makeLangPicker({ value, detect = false, onChange }) {
   let active = -1;
 
   const root = el("div", "lp");
+  const sizer = el("div", "lp-sizer");
+  sizer.setAttribute("aria-hidden", "true");
+  const box = el("div", "lp-box");
+  const top = el("div", "lp-top");
+  const search = document.createElement("input");
+  search.className = "lp-input";
+  search.type = "text";
+  search.placeholder = "search";
+  search.autocomplete = "off";
+  search.spellcheck = false;
+  search.setAttribute("aria-label", "search languages");
+  const searchRow = el("div", "lp-search", SEARCH_ICON);
+  searchRow.inert = true;
+  searchRow.append(search);
   const btn = el("button", "lp-btn");
   btn.type = "button";
   btn.setAttribute("aria-haspopup", "listbox");
   btn.setAttribute("aria-expanded", "false");
   const label = el("span", "lp-label");
-  const chev = el("span", "lp-chevron", CHEVRON);
-
+  btn.append(label, el("span", "lp-chevron", CHEVRON));
+  top.append(searchRow, btn);
   const pop = el("div", "lp-pop");
-  const search = document.createElement("input");
-  search.className = "lp-search";
-  search.type = "text";
-  search.placeholder = "search languages…";
-  search.autocomplete = "off";
-  search.spellcheck = false;
+  pop.inert = true;
+  const empty = el("div", "lp-empty");
+  empty.innerHTML = SEARCH_OFF;
+  empty.append("no language by that name");
   const list = el("div", "lp-list");
   list.setAttribute("role", "listbox");
-  pop.append(search, list);
-  root.append(btn, pop);
+  pop.append(empty, list);
+  box.append(top, pop);
+  root.append(sizer, box);
 
-  const renderBtn = () => {
-    label.replaceChildren();
-    if (current === "auto") {
-      label.append(
-        detected ? flagImg(detected) : el("span", "lp-globe", GLOBE),
-        el(
-          "span",
-          "lp-name",
-          detected
-            ? `${langName(detected)} <span class="lp-hint">· detected</span>`
-            : `detect<span class="lp-tail"> language</span>`,
-        ),
-      );
-    } else {
-      label.append(flagImg(current), el("span", "lp-name", langName(current)));
+  const face = () => {
+    const f = el("span", "lp-face");
+    const code = current === "auto" ? detected : current;
+    f.append(flagImg(code || "auto"));
+    const name = el("span", "lp-name");
+    name.textContent = code ? langName(code) : "detect language";
+    f.append(name);
+    if (current === "auto" && detected) {
+      const hint = el("span", "lp-hint");
+      hint.textContent = "detected";
+      f.append(hint);
     }
-    btn.replaceChildren(label, chev);
+    return f;
+  };
+
+  const fit = () => {
+    if (!sizer.offsetWidth) return;
+    label.style.width = `${sizer.firstElementChild.offsetWidth}px`;
+    if (!open) box.style.width = `${sizer.offsetWidth}px`;
+    if (!root.classList.contains("settled"))
+      requestAnimationFrame(() => root.classList.add("settled"));
+  };
+
+  const renderBtn = (animate = true) => {
+    const next = face();
+    sizer.replaceChildren(face(), el("span", "lp-chevron", CHEVRON));
+    const prev = label.lastElementChild;
+    label.append(next);
+    const name = next.querySelector(".lp-name").textContent;
+    btn.setAttribute(
+      "aria-label",
+      `${detect ? "translate from" : "translate to"}: ${name}`,
+    );
+    if (prev) {
+      if (!animate || calm() || !root.isConnected) prev.remove();
+      else {
+        prev.classList.add("lp-face-out");
+        prev
+          .animate(
+            [
+              { opacity: 1, filter: "blur(0)" },
+              { opacity: 0, filter: "blur(4px)" },
+            ],
+            { duration: 250, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+          )
+          .finished.then(
+            () => prev.remove(),
+            () => prev.remove(),
+          );
+        next.animate(
+          [
+            { opacity: 0, filter: "blur(4px)" },
+            { opacity: 1, filter: "blur(0)" },
+          ],
+          { duration: 250, easing: "cubic-bezier(0.22, 1, 0.36, 1)" },
+        );
+      }
+    }
+    fit();
   };
 
   const entries = detect
@@ -274,65 +344,71 @@ export function makeLangPicker({ value, detect = false, onChange }) {
     for (const lang of entries) {
       const item = el("button", "lp-item");
       item.type = "button";
+      item.tabIndex = -1;
       item.setAttribute("role", "option");
       item.dataset.code = lang.code;
-      item.dataset.name = lang.name;
-      item.append(
-        lang.code === "auto"
-          ? el("span", "lp-globe", GLOBE)
-          : flagImg(lang.code),
-        el("span", "lp-name", lang.name),
-      );
+      const native = lang.code === "auto" ? "" : nativeName(lang.code);
+      item.dataset.search = `${lang.name} ${lang.code} ${native}`.toLowerCase();
+      const name = el("span", "lp-name");
+      name.textContent = lang.name;
+      item.append(flagImg(lang.code), name);
+      if (native && native.toLowerCase() !== lang.name) {
+        const n = el("span", "lp-native");
+        n.lang = lang.code;
+        n.textContent = native;
+        item.append(n);
+      }
+      item.append(el("span", "lp-check", CHECK));
       item.onclick = () => pick(lang.code);
+      item.onpointermove = () => setActive(visible().indexOf(item), false);
       items.push(item);
       list.append(item);
     }
   };
 
-  const visibleItems = () => items.filter((i) => !i.hidden);
+  const visible = () => items.filter((i) => !i.hidden);
 
-  const scrollListTo = (item, center = false) => {
-    if (!item) return;
-    if (center) {
-      list.scrollTop =
-        item.offsetTop - (list.clientHeight - item.offsetHeight) / 2;
-    } else if (item.offsetTop < list.scrollTop) {
-      list.scrollTop = item.offsetTop;
-    } else if (
-      item.offsetTop + item.offsetHeight >
-      list.scrollTop + list.clientHeight
-    ) {
-      list.scrollTop = item.offsetTop + item.offsetHeight - list.clientHeight;
-    }
-  };
-
-  const setActive = (idx) => {
-    const vis = visibleItems();
+  const setActive = (idx, scroll = true) => {
+    const vis = visible();
     active = Math.max(0, Math.min(idx, vis.length - 1));
     for (const i of items) i.classList.remove("active");
     const target = vis[active];
-    if (target) {
-      target.classList.add("active");
-      scrollListTo(target);
-    }
+    if (!target) return;
+    target.classList.add("active");
+    if (!scroll) return;
+    if (target.offsetTop < list.scrollTop) list.scrollTop = target.offsetTop;
+    else if (
+      target.offsetTop + target.offsetHeight >
+      list.scrollTop + list.clientHeight
+    )
+      list.scrollTop =
+        target.offsetTop + target.offsetHeight - list.clientHeight;
+  };
+
+  const sizeOpen = () => {
+    box.style.height = `${top.offsetHeight + pop.scrollHeight}px`;
   };
 
   const filter = () => {
     const q = search.value.trim().toLowerCase();
-    for (const i of items)
-      i.hidden =
-        !!q &&
-        !i.dataset.name.includes(q) &&
-        !i.dataset.code.toLowerCase().includes(q);
+    for (const i of items) i.hidden = !!q && !i.dataset.search.includes(q);
+    empty.hidden = visible().length > 0;
     setActive(0);
+    sizeOpen();
   };
 
-  const close = () => {
+  const close = (refocus = false) => {
     if (!open) return;
     open = false;
     root.classList.remove("open");
     btn.setAttribute("aria-expanded", "false");
+    btn.inert = false;
+    searchRow.inert = true;
+    pop.inert = true;
+    box.style.height = "";
+    fit();
     document.removeEventListener("pointerdown", onDocDown, true);
+    if (refocus) btn.focus();
   };
 
   const onDocDown = (e) => {
@@ -340,36 +416,56 @@ export function makeLangPicker({ value, detect = false, onChange }) {
   };
 
   const openPop = () => {
-    if (open) return close();
+    if (open) return close(true);
     buildList();
     open = true;
+    search.value = "";
+    for (const i of items) {
+      i.hidden = false;
+      i.classList.toggle("sel", i.dataset.code === current);
+      i.setAttribute("aria-selected", String(i.dataset.code === current));
+    }
+    empty.hidden = true;
+    const pane = root.closest(".w-tr-pane");
+    const room = pane
+      ? pane.getBoundingClientRect().right -
+        root.getBoundingClientRect().left -
+        24
+      : PICKER_WIDTH;
+    box.style.width = `${Math.min(PICKER_WIDTH, room)}px`;
     root.classList.add("open");
     btn.setAttribute("aria-expanded", "true");
-    search.value = "";
-    filter();
-    for (const i of items)
-      i.classList.toggle("sel", i.dataset.code === current);
-    const sel = items.find((i) => i.dataset.code === current);
-    if (sel) scrollListTo(sel, true);
+    btn.inert = true;
+    searchRow.inert = false;
+    pop.inert = false;
+    sizeOpen();
+    const sel = items.findIndex((i) => i.dataset.code === current);
+    setActive(sel, false);
+    if (items[sel])
+      list.scrollTop =
+        items[sel].offsetTop -
+        (list.clientHeight - items[sel].offsetHeight) / 2;
+    search.focus({ preventScroll: true });
     document.addEventListener("pointerdown", onDocDown, true);
-    requestAnimationFrame(() => search.focus());
   };
 
-  const pick = (code, fire = true) => {
+  const pick = (code, fire = true, animate = fire) => {
+    const changed = code !== current;
     current = code;
     if (code !== "auto") detected = null;
-    renderBtn();
-    close();
-    if (fire) onChange?.(code);
+    if (changed) renderBtn(animate);
+    close(fire);
+    if (fire && changed) onChange?.(code);
   };
 
   btn.onclick = openPop;
   search.oninput = filter;
   search.onkeydown = (e) => {
     if (e.key === "Escape") {
-      close();
-      btn.focus();
-    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      close(true);
+    } else if (e.key === "Tab") close();
+    else if (e.key === "ArrowDown") {
       e.preventDefault();
       setActive(active + 1);
     } else if (e.key === "ArrowUp") {
@@ -377,13 +473,13 @@ export function makeLangPicker({ value, detect = false, onChange }) {
       setActive(active - 1);
     } else if (e.key === "Enter") {
       e.preventDefault();
-      const vis = visibleItems();
-      const target = vis[active] || vis[0];
+      const target = visible()[active];
       if (target) pick(target.dataset.code);
     }
   };
 
-  renderBtn();
+  renderBtn(false);
+  new ResizeObserver(fit).observe(sizer);
 
   return {
     el: root,
@@ -391,19 +487,23 @@ export function makeLangPicker({ value, detect = false, onChange }) {
       return current;
     },
     set value(code) {
-      pick(code, false);
+      pick(code, false, true);
     },
     get detected() {
       return detected;
     },
     setDetected(code) {
-      detected = code && langByCode(code) ? code : null;
-      renderBtn();
+      const next = code && langByCode(code) ? code : null;
+      if (next === detected) return;
+      detected = next;
+      renderBtn(true);
     },
   };
 }
 
 const SPEAK_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 8a5 5 0 0 1 0 8M17.7 5a9 9 0 0 1 0 14M6 15H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h2l3.5-4.5A.8.8 0 0 1 11 5v14a.8.8 0 0 1-1.5.5z"/></svg>`;
+
+const STOP_ICON = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2.5"/></svg>`;
 
 const ttsChunks = (text) => {
   const out = [];
@@ -441,7 +541,7 @@ export function speakButton(getText, getLang, className) {
   b.className = className;
   b.title = "listen";
   b.setAttribute("aria-label", "listen");
-  b.innerHTML = SPEAK_ICON;
+  b.innerHTML = `<span class="w-copy-ic w-copy-idle">${SPEAK_ICON}</span><span class="w-copy-ic w-speak-stop">${STOP_ICON}</span>`;
   b.onclick = async () => {
     if (b.classList.contains("speaking")) {
       stopActiveSpeech?.();
@@ -458,9 +558,11 @@ export function speakButton(getText, getLang, className) {
       cancelled = true;
       audio?.pause();
       b.classList.remove("speaking");
+      b.setAttribute("aria-label", "listen");
       stopActiveSpeech = null;
     };
     b.classList.add("speaking");
+    b.setAttribute("aria-label", "stop");
 
     try {
       for (const chunk of ttsChunks(text).slice(0, 10)) {

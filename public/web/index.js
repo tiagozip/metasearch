@@ -1661,25 +1661,6 @@
     return btn;
   };
 
-  const weatherIcon = (main) => {
-    const m = (main || "").toLowerCase();
-    if (m.includes("thunder")) return "⛈️";
-    if (m.includes("drizzle")) return "🌦️";
-    if (m.includes("rain")) return "🌧️";
-    if (m.includes("snow") || m.includes("sleet")) return "🌨️";
-    if (m.includes("clear") || m.includes("sun")) return "☀️";
-    if (m.includes("cloud")) return "☁️";
-    if (
-      m.includes("mist") ||
-      m.includes("fog") ||
-      m.includes("haze") ||
-      m.includes("smoke")
-    )
-      return "🌫️";
-    if (m.includes("wind")) return "💨";
-    return "🌡️";
-  };
-
   const renderRichResults = (rich) => {
     if (!rich?.length) return null;
     const frag = document.createDocumentFragment();
@@ -1770,122 +1751,11 @@
         frag.append(section);
       } else if (item.subtype === "weather" && item.weather) {
         section.classList.add("rich-weather");
-        const w = item.weather;
-        const header = document.createElement("div");
-        header.className = "rich-weather-header";
-        const location = document.createElement("div");
-        location.className = "rich-weather-location";
-        location.textContent = [
-          w.location?.name,
-          w.location?.state,
-          w.location?.country,
-        ]
-          .filter(Boolean)
-          .join(", ");
-        header.append(location);
-
-        if (w.current_weather) {
-          const cw = w.current_weather;
-          const current = document.createElement("div");
-          current.className = "rich-weather-current";
-
-          const icon = document.createElement("span");
-          icon.className = "rich-weather-icon";
-          icon.textContent = weatherIcon(
-            cw.weather?.main || cw.weather?.description,
-          );
-
-          const temp = document.createElement("span");
-          temp.className = "rich-weather-temp";
-          temp.textContent = `${Math.round(cw.temp)}°`;
-
-          const info = document.createElement("div");
-          info.className = "rich-weather-info";
-          const desc = document.createElement("span");
-          desc.className = "rich-weather-desc";
-          desc.textContent = cw.weather?.description || cw.weather?.main || "";
-          const feels = document.createElement("span");
-          feels.className = "rich-weather-feels";
-          feels.textContent = `feels like ${Math.round(cw.feels_like)}°`;
-          info.append(desc, feels);
-
-          current.append(icon, temp, info);
-          header.append(current);
-
-          const metrics = [];
-          if (cw.humidity != null)
-            metrics.push(["humidity", `${Math.round(cw.humidity)}%`]);
-          if (cw.wind_speed != null)
-            metrics.push(["wind", `${Math.round(cw.wind_speed)} m/s`]);
-          if (cw.uvi != null) metrics.push(["uv index", Math.round(cw.uvi)]);
-          if (cw.pressure != null)
-            metrics.push(["pressure", `${Math.round(cw.pressure)} hPa`]);
-          if (metrics.length) {
-            const stats = document.createElement("div");
-            stats.className = "rich-weather-metrics";
-            for (const [label, value] of metrics) {
-              const metric = document.createElement("div");
-              metric.className = "rich-weather-metric";
-              metric.innerHTML = `<span class="rich-weather-metric-label">${label}</span><span class="rich-weather-metric-val">${value}</span>`;
-              stats.append(metric);
-            }
-            current.append(stats);
-          }
-        }
-        section.append(header);
-
-        if (w.daily?.length) {
-          const forecast = document.createElement("div");
-          forecast.className = "rich-weather-forecast";
-          for (const day of w.daily.slice(0, 5)) {
-            const dayEl = document.createElement("div");
-            dayEl.className = "rich-weather-day";
-            const dayName = document.createElement("span");
-            dayName.className = "rich-weather-dayname";
-            const d = new Date(day.ts * 1000);
-            const isToday = d.toDateString() === new Date().toDateString();
-            if (isToday) dayEl.classList.add("today");
-            dayName.textContent = isToday
-              ? "today"
-              : d.toLocaleDateString("en", { weekday: "short" });
-            const dayIcon = document.createElement("span");
-            dayIcon.className = "rich-weather-dayicon";
-            dayIcon.textContent = weatherIcon(day.weather?.main);
-            const dayTemp = document.createElement("span");
-            dayTemp.className = "rich-weather-daytemp";
-            const high = day.temperature?.max ?? day.temperature?.day ?? "";
-            const low = day.temperature?.min ?? "";
-            dayTemp.innerHTML =
-              high && low
-                ? `<b>${Math.round(high)}°</b> ${Math.round(low)}°`
-                : `<b>${Math.round(high || low)}°</b>`;
-            const dayDesc = document.createElement("span");
-            dayDesc.className = "rich-weather-daydesc";
-            dayDesc.textContent = day.weather?.main || "";
-            dayDesc.title = dayDesc.textContent;
-            dayEl.append(dayName, dayIcon, dayTemp, dayDesc);
-            forecast.append(dayEl);
-          }
-          section.append(forecast);
-        }
-
-        if (w.alerts?.length) {
-          const alerts = document.createElement("div");
-          alerts.className = "rich-weather-alerts";
-          for (const alert of w.alerts.slice(0, 2)) {
-            const alertEl = document.createElement("div");
-            alertEl.className = "rich-weather-alert";
-            const alertTitle = document.createElement("span");
-            alertTitle.className = "rich-weather-alert-title";
-            alertTitle.textContent = alert.event;
-            const alertTime = document.createElement("span");
-            alertTime.className = "rich-weather-alert-time";
-            alertTime.textContent = alert.start_relative_i18n || "";
-            alertEl.append(alertTitle, alertTime);
-            alerts.append(alertEl);
-          }
-          section.append(alerts);
-        }
+        section.setAttribute("aria-busy", "true");
+        import("/s/weather.js")
+          .then((m) => m.fillWeather(section, item.weather))
+          .catch(() => section.remove())
+          .finally(() => section.removeAttribute("aria-busy"));
         frag.append(section);
       } else if (item.subtype === "timer" && item.timer) {
         section.classList.add("rich-timer");

@@ -16,7 +16,8 @@
       "!public/assets/map.js",
       "!public/assets/qrcode.js",
       "!public/assets/ort*.mjs",
-      "!public/assets/sugar-high.js"
+      "!public/assets/sugar-high.js",
+      "!public/assets/torph.js"
     ]
   },
   "linter": {
