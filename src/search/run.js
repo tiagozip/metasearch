@@ -1,4 +1,5 @@
 import { parseQuery } from "../query.js";
+import searchExa from "./exa.js";
 import searchImages from "./images.js";
 import searchKagiWeb from "./kagi.js";
 import searchMixed from "./mixed.js";
@@ -38,6 +39,7 @@ export async function runSearch({
   lens,
   db,
   clearance,
+  relaySecret,
   interactive = false,
   safe,
   time,
@@ -81,6 +83,7 @@ export async function runSearch({
           ...filters,
         });
       else if (eng === "kagi") attempt = await searchKagiWeb(q, page, db);
+      else if (eng === "exa") attempt = await searchExa(q, page, relaySecret);
       else
         attempt = await searchMixed(q, page, {
           attempts,

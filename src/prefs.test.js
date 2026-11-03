@@ -42,6 +42,7 @@ test("parseCfg keeps valid settings and drops the rest", () => {
     newTab: true,
     highlight: false,
     bold: false,
+    imageButton: false,
     domains: {
       "pinterest.com": "block",
       "github.com": "raise",

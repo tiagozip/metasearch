@@ -562,6 +562,14 @@ const init = () => {
   const form = input.closest("form");
   if (!host || !form) return;
   setup(host, input, form);
+  let imageButton = false;
+  try {
+    imageButton = localStorage.getItem("ms-imgbtn") === "1";
+  } catch {}
+  if (imageButton)
+    import("/s/rimg.js")
+      .then((m) => m.attachImageSearch(host, input))
+      .catch(() => {});
 };
 
 if (document.readyState === "loading") {

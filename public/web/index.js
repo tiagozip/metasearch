@@ -577,7 +577,8 @@
 
     const desc = document.createElement("p");
     desc.className = "result-desc";
-    if (engine === "kagi") desc.textContent = r.description || "";
+    if (engine === "kagi" || engine === "exa")
+      desc.textContent = r.description || "";
     else desc.innerHTML = r.description || "";
 
     const content = document.createElement("div");
@@ -613,7 +614,8 @@
         if (c.description) {
           const desc = document.createElement("div");
           desc.className = "link-cluster-desc";
-          if (engine === "kagi") desc.textContent = c.description;
+          if (engine === "kagi" || engine === "exa")
+            desc.textContent = c.description;
           else desc.innerHTML = c.description;
           item.append(desc);
         }
@@ -2950,14 +2952,17 @@
     import("/s/settings.js").then((m) => m.openSettings());
   });
 
-  if (__kagi_enabled__) {
+  const engines = __engines__;
+  if (engines.length > 1) {
     const engineSelect = document.querySelector("#engine-select");
     const tookEl = document.querySelector("#took-ms");
     if (typeof data.took === "number")
       tookEl.textContent = `took ${data.took}ms`;
 
+    for (const o of [...engineSelect.options])
+      if (!engines.includes(o.value)) o.remove();
     engineSelect.value =
-      document.cookie.match(/(?:^|;\s*)engine=(brave|kagi)\b/)?.[1] ||
+      document.cookie.match(/(?:^|;\s*)engine=(brave|kagi|exa)\b/)?.[1] ||
       data.fallback_from ||
       data.engine ||
       "brave";
@@ -3005,7 +3010,13 @@
       !r.videos?.results?.length &&
       !r.rich?.length;
     const resultsAll = document.getElementById("results-all");
-    if (isEmpty && currentQuery) {
+    if (
+      isEmpty &&
+      currentQuery &&
+      !/^(?:img:[0-9a-f]{24}|https?:\/\/\S+\.(?:jpe?g|png|webp|gif|avif|bmp)(?:[?#]\S*)?)$/i.test(
+        currentQuery,
+      )
+    ) {
       const box = document.createElement("div");
       box.className = "results-empty";
       const failed = Boolean(data.search_error);

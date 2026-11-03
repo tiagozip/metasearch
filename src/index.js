@@ -11,6 +11,7 @@ import braveFetch from "./search/braveFetch.js";
 import { getChallenge, redeem } from "./search/bravePow.js";
 import * as maps from "./search/maps.js";
 import searchMixed from "./search/mixed.js";
+import { reverseImage, rimgEngines } from "./search/rimg.js";
 import { runSearch } from "./search/run.js";
 import * as templates from "./templates.js";
 import {
@@ -34,28 +35,57 @@ const getSecret = () => new TextEncoder().encode(env.JWT_SECRET);
 
 const kagiEnabled = () => env.KAGI_ENABLED === "true" && Boolean(env.KAGI_DB);
 
-const engineOrder = (primary) =>
-  primary === "kagi" && kagiEnabled()
-    ? ["kagi", "brave"]
-    : kagiEnabled() || (env.KAGI_FALLBACK === "true" && Boolean(env.KAGI_DB))
-      ? ["brave", "kagi"]
-      : ["brave"];
+const exaEnabled = () => Boolean(env.RIMG_RELAY_SECRET);
 
-const braveClearance = () => (env.KAGI_DB ? { db: env.KAGI_DB } : undefined);
+const enginesOn = () => [
+  "brave",
+  ...(kagiEnabled() ? ["kagi"] : []),
+  ...(exaEnabled() ? ["exa"] : []),
+];
+
+const engineOrder = (primary) => [
+  ...new Set([
+    enginesOn().includes(primary) ? primary : "brave",
+    "brave",
+    ...(kagiEnabled() || (env.KAGI_FALLBACK === "true" && env.KAGI_DB)
+      ? ["kagi"]
+      : []),
+  ]),
+];
+
+const braveClearance = (tokens = true) =>
+  env.KAGI_DB ? { db: env.KAGI_DB, tokens } : undefined;
 
 const limited = async (limiter, request) => {
   if (!limiter) return false;
-  const key = request.headers.get("cf-connecting-ip") || "anon";
+  const ip = request.headers.get("cf-connecting-ip") || "anon";
+  const key = (() => {
+    if (!ip.includes(":") || ip.includes(".")) return ip;
+    const [head, tail] = ip.split("::");
+    const front = head ? head.split(":") : [];
+    const back = tail ? tail.split(":") : [];
+    const groups =
+      tail === undefined
+        ? front
+        : [
+            ...front,
+            ...Array(8 - front.length - back.length).fill("0"),
+            ...back,
+          ];
+    return `${groups
+      .slice(0, 4)
+      .map((g) => Number.parseInt(g || "0", 16).toString(16))
+      .join(":")}::/64`;
+  })();
   const { success } = await limiter.limit({ key });
   return !success;
 };
 
 const pickEngine = (cookieHeader) => {
-  if (!kagiEnabled()) return "brave";
-  return (
-    /(?:^|;\s*)engine=(brave|kagi)\b/.exec(cookieHeader || "")?.[1] ||
-    (env.SEARCH_ENGINE || "brave").toString().toLowerCase()
-  );
+  const picked =
+    /(?:^|;\s*)engine=(brave|kagi|exa)\b/.exec(cookieHeader || "")?.[1] ||
+    (env.SEARCH_ENGINE || "brave").toString().toLowerCase();
+  return enginesOn().includes(picked) ? picked : "brave";
 };
 
 const sign = async (payload, expiry) => {
@@ -67,7 +97,11 @@ const sign = async (payload, expiry) => {
 };
 
 export default new Elysia({ adapter: CloudflareAdapter })
-  .get("/og", async ({ query }) => {
+  .get("/og", async ({ query, request, set }) => {
+    if (await limited(env.API_LIMIT, request)) {
+      set.status = 429;
+      return "slow down";
+    }
     const q =
       (query?.q || "").toString().replaceAll("\n", " ").trim().slice(0, 120) ||
       "search";
@@ -425,13 +459,13 @@ export default new Elysia({ adapter: CloudflareAdapter })
     const reqEngine = (payload.engine || env.SEARCH_ENGINE || "brave")
       .toString()
       .toLowerCase();
-    if (reqEngine !== "brave" && reqEngine !== "kagi") {
+    if (!["brave", "kagi", "exa"].includes(reqEngine)) {
       set.status = 400;
       return {
-        error: `invalid engine "${reqEngine}" (allowed: brave, kagi)`,
+        error: `invalid engine "${reqEngine}" (allowed: ${enginesOn().join(", ")})`,
       };
     }
-    const engine = reqEngine === "kagi" && !kagiEnabled() ? "brave" : reqEngine;
+    const engine = enginesOn().includes(reqEngine) ? reqEngine : "brave";
 
     const page = Math.floor(Number(payload.page ?? 0));
     if (!Number.isFinite(page) || page < 0) {
@@ -448,7 +482,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
         engines: engineOrder(engine),
         lens: payload.lens,
         db: env.KAGI_DB,
-        clearance: braveClearance(),
+        relaySecret: env.RIMG_RELAY_SECRET,
+        clearance: braveClearance(false),
       });
     } catch (e) {
       set.status = 502;
@@ -748,6 +783,150 @@ export default new Elysia({ adapter: CloudflareAdapter })
       },
     );
   })
+  .post(
+    "/rimg/up",
+    async ({ request, set }) => {
+      set.headers["cache-control"] = "no-store";
+      if (await limited(env.RIMG_LIMIT, request)) {
+        set.status = 429;
+        return { error: "slow down" };
+      }
+      const bytes = await request.arrayBuffer();
+      if (!bytes.byteLength || bytes.byteLength > 8 * 1024 * 1024) {
+        set.status = 413;
+        return { error: "images can be up to 8 MB" };
+      }
+      const head = String.fromCharCode(...new Uint8Array(bytes.slice(0, 16)));
+      const type = [
+        [/^\x89PNG/, "image/png"],
+        [/^\xff\xd8\xff/, "image/jpeg"],
+        [/^GIF8/, "image/gif"],
+        [/^RIFF.{4}WEBP/s, "image/webp"],
+        [/^.{4}ftypavi[fs]/s, "image/avif"],
+        [/^BM/, "image/bmp"],
+      ].find(([re]) => re.test(head))?.[1];
+      if (!type) {
+        set.status = 415;
+        return { error: "send a png, jpeg, webp, gif, avif or bmp image" };
+      }
+      const id = [
+        ...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+      ]
+        .slice(0, 12)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      await caches.default.put(
+        new Request(`https://rimg.cache/${id}`),
+        new Response(bytes, {
+          headers: {
+            "content-type": type,
+            "cache-control": "public, max-age=7200",
+          },
+        }),
+      );
+      return { id };
+    },
+    { parse: "none" },
+  )
+  .get("/rimg/img/:id", async ({ params, set }) => {
+    if (!/^[0-9a-f]{24}$/.test(params.id || "")) {
+      set.status = 400;
+      return { error: "bad id" };
+    }
+    const hit = await caches.default.match(
+      new Request(`https://rimg.cache/${params.id}`),
+    );
+    if (!hit) {
+      set.status = 404;
+      return { error: "image expired" };
+    }
+    return new Response(hit.body, {
+      headers: {
+        "content-type": hit.headers.get("content-type") || "image/jpeg",
+        "cache-control": "private, max-age=3600",
+        "x-content-type-options": "nosniff",
+      },
+    });
+  })
+  .get("/rimg/t", async ({ query, set }) => {
+    let target;
+    try {
+      target = new URL(String(query?.u || ""));
+    } catch {}
+    if (
+      target?.protocol !== "https:" ||
+      !/(?:^|\.)(?:yandex\.net|tineye\.com|bing\.net|bing\.com)$/.test(
+        target.hostname,
+      )
+    ) {
+      set.status = 400;
+      return { error: "bad thumbnail url" };
+    }
+    const res = await fetch(target, {
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+      },
+      cf: { cacheTtl: 86400, cacheEverything: true },
+      signal: AbortSignal.timeout(8000),
+    }).catch(() => null);
+    const type = res?.headers.get("content-type") || "";
+    if (
+      !res?.ok ||
+      !type.startsWith("image/") ||
+      Number(res.headers.get("content-length") || 0) > 4 * 1024 * 1024
+    ) {
+      set.status = 502;
+      return { error: "thumbnail unavailable" };
+    }
+    return new Response(res.body, {
+      headers: {
+        "content-type": type,
+        "cache-control": "public, max-age=86400",
+        "x-content-type-options": "nosniff",
+      },
+    });
+  })
+  .get("/rimg", async ({ query, set, request }) => {
+    const engine = String(query?.engine || "");
+    if (!rimgEngines.includes(engine)) {
+      set.status = 400;
+      return { error: `engine must be one of ${rimgEngines.join(", ")}` };
+    }
+    if (await limited(env.RIMG_LIMIT, request)) {
+      set.status = 429;
+      return { error: "slow down" };
+    }
+    const id = String(query?.id || "");
+    const url = String(query?.url || "");
+    let input;
+    if (/^[0-9a-f]{24}$/.test(id)) {
+      const hit = await caches.default.match(
+        new Request(`https://rimg.cache/${id}`),
+      );
+      if (!hit) {
+        set.status = 404;
+        return { error: "image expired, upload it again" };
+      }
+      input = {
+        image: {
+          bytes: await hit.arrayBuffer(),
+          type: hit.headers.get("content-type") || "image/jpeg",
+        },
+        publicUrl: new URL(`/rimg/img/${id}`, request.url).href,
+      };
+    } else if (/^https?:\/\/\S+$/.test(url) && url.length < 2048) {
+      input = { url };
+    } else {
+      set.status = 400;
+      return { error: "pass an image url or an uploaded image id" };
+    }
+    const result = await reverseImage(engine, input);
+    set.headers["cache-control"] = result.ok
+      ? "private, max-age=1800"
+      : "no-store";
+    return result;
+  })
   .get("/geo", async ({ set, query, request }) => {
     const name = (query?.q || "").trim().slice(0, 80);
     const headers = { "cache-control": "private, max-age=600" };
@@ -849,7 +1028,9 @@ export default new Elysia({ adapter: CloudflareAdapter })
       }),
     );
     const out = new Response(resp.body, resp);
-    out.headers.set("cache-control", CACHE.forever);
+    if (resp.ok || resp.status === 304) {
+      out.headers.set("cache-control", CACHE.forever);
+    }
     return out;
   })
   .get("/", async ({ query, set, redirect, request }) => {
@@ -868,7 +1049,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         ? query.lens
         : parseLens(query?.cl) || undefined;
     const engine =
-      cfg?.engine && kagiEnabled()
+      cfg?.engine && enginesOn().includes(cfg.engine)
         ? cfg.engine
         : pickEngine(request.headers.get("cookie"));
     const safe = cfg?.safe || cookieSafe(request.headers.get("cookie"));
@@ -926,7 +1107,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
     if (q && redirectUrl) {
       return redirect(redirectUrl);
     }
-    if (q && firstResult) {
+    if (q && firstResult && !(await limited(env.API_LIMIT, request))) {
       try {
         const data = await runSearch({
           query: q,
@@ -936,6 +1117,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
           safe,
           time,
           db: env.KAGI_DB,
+          relaySecret: env.RIMG_RELAY_SECRET,
           clearance: braveClearance(),
         });
         if (data.first_result?.url) return redirect(data.first_result.url);
@@ -1147,7 +1329,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
 
     return { title, artist, image: state.ogImage, lyrics };
   })
-  .get("/p/:q", async ({ set, params, headers }) => {
+  .get("/p/:q", async ({ set, params, headers, request }) => {
     let payload;
     try {
       ({ payload } = await jwtVerify(params?.q || "", getSecret()));
@@ -1156,6 +1338,13 @@ export default new Elysia({ adapter: CloudflareAdapter })
       set.headers["content-type"] = "application/javascript";
       set.headers["cache-control"] = "no-store";
       return "location.reload()";
+    }
+
+    if (await limited(env.API_LIMIT, request)) {
+      set.status = 429;
+      set.headers["content-type"] = "application/javascript";
+      set.headers["cache-control"] = "no-store";
+      return "";
     }
 
     set.headers["content-type"] = "application/javascript";
@@ -1176,6 +1365,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         safe: payload.ss || cookieSafe(headers?.cookie),
         time: payload.f,
         db: env.KAGI_DB,
+        relaySecret: env.RIMG_RELAY_SECRET,
         clearance: braveClearance(),
         interactive: true,
       });
@@ -1188,9 +1378,21 @@ export default new Elysia({ adapter: CloudflareAdapter })
         safe: payload.ss || cookieSafe(headers?.cookie),
         time: payload.f,
         db: env.KAGI_DB,
+        relaySecret: env.RIMG_RELAY_SECRET,
         clearance: braveClearance(),
         interactive: true,
       });
+    } else if (
+      /^(?:img:[0-9a-f]{24}|https?:\/\/\S+\.(?:jpe?g|png|webp|gif|avif|bmp)(?:[?#]\S*)?)$/i.test(
+        payload.s || "",
+      )
+    ) {
+      template = await templates.webJs();
+      results = {
+        engine: "brave",
+        results: {},
+        more_results_available: false,
+      };
     } else {
       template = await templates.webJs();
       results = await runSearch({
@@ -1201,6 +1403,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         safe: payload.ss || cookieSafe(headers?.cookie),
         time: payload.f,
         db: env.KAGI_DB,
+        relaySecret: env.RIMG_RELAY_SECRET,
         clearance: braveClearance(),
         interactive: true,
       });
@@ -1235,14 +1438,19 @@ export default new Elysia({ adapter: CloudflareAdapter })
         ),
       )
       .replace("__results_template__", JSON.stringify(results))
-      .replace("__kagi_enabled__", kagiEnabled() ? "true" : "false")
+      .replace("__engines__", JSON.stringify(enginesOn()))
       .replace("%%galileo_pass%%", "");
 
     return js;
   })
   .post(
     "/p",
-    async ({ set, headers, body }) => {
+    async ({ set, headers, body, request }) => {
+      if (await limited(env.API_LIMIT, request)) {
+        set.status = 429;
+        return ["slow down"];
+      }
+
       const secret = getSecret();
       let payload;
       try {
@@ -1302,6 +1510,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         safe: payload.ss || cookieSafe(headers?.cookie),
         time: payload.f,
         db: env.KAGI_DB,
+        relaySecret: env.RIMG_RELAY_SECRET,
         clearance: braveClearance(),
         interactive: true,
       });
@@ -1414,6 +1623,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
       }),
     );
     const out = new Response(resp.body, resp);
+    if (!resp.ok && resp.status !== 304) return out;
     out.headers.set(
       "cache-control",
       /^(undyne-[\d.]+-light\.onnx|undyne-vocab\.txt|ort-wasm-simd-threaded\.(wasm|mjs)|ort\.wasm\.min\.mjs|inter-var-v4\.woff2)$/.test(

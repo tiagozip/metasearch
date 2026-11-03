@@ -12102,6 +12102,29 @@ reg({
   },
 });
 
+reg({
+  id: "rimg",
+  match: (q) => {
+    const id = q.match(/^img:([0-9a-f]{24})$/)?.[1];
+    if (id) return { id };
+    return /^https?:\/\/\S+\.(?:jpe?g|png|webp|gif|avif|bmp)(?:[?#]\S*)?$/i.test(
+      q,
+    )
+      ? { url: q }
+      : null;
+  },
+  build: (params) => {
+    const section = h("section", {
+      class: "w w-rimg",
+      "aria-label": "search by image",
+    });
+    import("/s/rimg.js")
+      .then((m) => m.fillReverseImage(section, params))
+      .catch(() => section.remove());
+    return section;
+  },
+});
+
 const WX_TYPOS = new Set([
   "whether",
   "wether",

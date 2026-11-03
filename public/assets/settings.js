@@ -53,6 +53,9 @@ export const prefs = {
   get bold() {
     return store.get("ms-bold") !== "0";
   },
+  get imageButton() {
+    return store.get("ms-imgbtn") === "1";
+  },
   get domains() {
     try {
       return JSON.parse(store.get("ms-domains") || "{}");
@@ -103,6 +106,7 @@ const settingsLink = () => {
     ...(prefs.newTab ? { n: 1 } : {}),
     ...(prefs.highlight ? {} : { h: 0 }),
     ...(prefs.bold ? {} : { b: 0 }),
+    ...(prefs.imageButton ? { img: 1 } : {}),
     ...(Object.keys(domains).length ? { d: domains } : {}),
     ...(prefs.lenses.length ? { c: prefs.lenses } : {}),
   };
@@ -215,6 +219,15 @@ const searchSection = () =>
           changed();
         },
       ),
+    ),
+    toggle(
+      "search by image button",
+      "adds a camera button to the search bar for reverse image search",
+      prefs.imageButton,
+      (on) => {
+        store.set("ms-imgbtn", on ? "1" : "");
+        changed();
+      },
     ),
   );
 
@@ -915,6 +928,7 @@ const linkSection = () => {
       "ms-newtab",
       "ms-highlight",
       "ms-bold",
+      "ms-imgbtn",
       "ms-domains",
       "ms-lenses",
     ])
