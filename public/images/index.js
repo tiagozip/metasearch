@@ -325,6 +325,23 @@
     return content;
   };
 
+  let previewFlight = null;
+  const panelAnimations = new WeakMap();
+  const cancelPreviewMotion = (panel) => {
+    if (previewFlight) {
+      const { animation, ghost, target } = previewFlight;
+      previewFlight = null;
+      animation.cancel();
+      ghost.remove();
+      target.style.visibility = "";
+    }
+    if (!panel) return;
+    panelAnimations.delete(panel);
+    for (const animation of panel.getAnimations({ subtree: true }))
+      animation.cancel();
+    panel.classList.remove("is-animating");
+  };
+
   const flipFromThumb = (thumb, target) => {
     if (!thumb) return;
     const from = thumb.getBoundingClientRect();
@@ -342,7 +359,7 @@
       },
       { transform: "none", clipPath: "inset(0px 0px round 10px)" },
     ];
-    const timing = { duration: 460, easing: easeDrawer };
+    const timing = { duration: 240, easing: easeDrawer };
 
     if (!target.closest(".sidebar-mode")) {
       target.animate(keyframes, timing);
@@ -365,11 +382,15 @@
     });
     document.body.append(ghost);
     target.style.visibility = "hidden";
+    const animation = ghost.animate(keyframes, timing);
+    const flight = { animation, ghost, target };
+    previewFlight = flight;
     const done = () => {
       ghost.remove();
       target.style.visibility = "";
+      if (previewFlight === flight) previewFlight = null;
     };
-    ghost.animate(keyframes, timing).finished.then(done, done);
+    animation.finished.then(done, done);
   };
 
   const slideContent = (content, direction) => {
@@ -389,10 +410,15 @@
   };
 
   const clipWhile = (panel, animation) => {
+    panelAnimations.set(panel, animation);
     panel.classList.add("is-animating");
     animation.finished
       .catch(() => {})
-      .then(() => panel.classList.remove("is-animating"));
+      .then(() => {
+        if (panelAnimations.get(panel) !== animation) return;
+        panelAnimations.delete(panel);
+        panel.classList.remove("is-animating");
+      });
   };
 
   const preserveAnchorPosition = (anchor, mutate) => {
@@ -415,6 +441,7 @@
     selectedIndex = -1;
 
     const panel = detailPanel;
+    cancelPreviewMotion(panel);
     detailPanel = null;
     if (!panel) return;
 
@@ -464,13 +491,13 @@
         { height: `${panel.offsetHeight}px` },
         { height: "0px", marginTop: "0px", marginBottom: "0px" },
       ],
-      { duration: 260, easing: easeOut, fill: "forwards" },
+      { duration: 150, easing: easeOut, fill: "forwards" },
     );
     for (const pseudoElement of ["::before", "::after"]) {
       panel.animate(
         [{ transform: "none" }, { transform: "translateY(20px)" }],
         {
-          duration: 260,
+          duration: 150,
           easing: easeOut,
           fill: "forwards",
           pseudoElement,
@@ -481,11 +508,12 @@
     shrink.finished.then(done, done);
   };
 
-  const showDetailPanel = (index, { direction = 0 } = {}) => {
+  const showDetailPanel = (index, { direction = 0, instant = false } = {}) => {
     const item = itemFor(index);
     const img = allImages[index];
     if (!item || !img) return;
 
+    cancelPreviewMotion(instant || !motion.matches ? detailPanel : null);
     closingPanel?.remove();
     closingPanel = null;
 
@@ -500,7 +528,7 @@
 
     const thumbImg = item.querySelector("img");
     const content = createDetailContent(img, thumbImg);
-    const animate = motion.matches;
+    const animate = motion.matches && !instant;
     const fromThumb = !direction;
 
     const swapInto = (panel) => {
@@ -511,7 +539,7 @@
       if (sidebar) {
         item.scrollIntoView({
           block: "nearest",
-          behavior: animate ? "smooth" : "auto",
+          behavior: "instant",
         });
       }
       if (!animate) return;
@@ -520,7 +548,7 @@
         clipWhile(
           panel,
           panel.animate([{ height: `${before}px` }, { height: `${after}px` }], {
-            duration: 280,
+            duration: 200,
             easing: easeOut,
           }),
         );
@@ -553,7 +581,7 @@
           { opacity: 0, transform: "translateX(24px)" },
           { opacity: 1, transform: "none" },
         ],
-        { duration: 320, easing: easeOut },
+        { duration: 240, easing: easeOut },
       );
       return;
     }
@@ -597,7 +625,7 @@
         ? itemTop - 16
         : Math.max(0, Math.min(overflow, itemTop - 16));
     if (delta) {
-      window.scrollBy({ top: delta, behavior: animate ? "smooth" : "auto" });
+      window.scrollBy({ top: delta, behavior: "instant" });
     }
 
     if (!animate) return;
@@ -607,7 +635,7 @@
       return;
     }
 
-    const opts = { duration: 460, easing: easeDrawer };
+    const opts = { duration: 240, easing: easeDrawer };
     clipWhile(
       panel,
       panel.animate(
@@ -634,17 +662,16 @@
     panel
       .querySelector(".image-detail-header")
       .animate([{ opacity: 0 }, { opacity: 1 }], {
-        duration: 240,
-        delay: 120,
+        duration: 120,
         easing: easeOut,
         fill: "backwards",
       });
     flipFromThumb(thumbImg, content.querySelector(".image-detail-preview img"));
   };
 
-  const navigateImage = (direction) => {
+  const navigateImage = (direction, instant = false) => {
     const next = neighborIndex(selectedIndex, direction);
-    if (next >= 0) showDetailPanel(next, { direction });
+    if (next >= 0) showDetailPanel(next, { direction, instant });
   };
 
   const transparencyCanvas = document.createElement("canvas");
@@ -798,7 +825,8 @@
     link.addEventListener("keydown", (e) => {
       if (e.key !== "Enter" && e.key !== " ") return;
       e.preventDefault();
-      link.click();
+      if (selectedIndex === index) closeDetailPanel({ instant: true });
+      else showDetailPanel(index, { instant: true });
     });
 
     return link;
@@ -899,18 +927,33 @@
     if (e.target.closest?.("input, textarea, [contenteditable]")) return;
 
     if (e.key === "Escape") {
-      closeDetailPanel();
+      closeDetailPanel({ instant: true });
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
-      navigateImage(-1);
+      navigateImage(-1, true);
     } else if (e.key === "ArrowRight") {
       e.preventDefault();
-      navigateImage(1);
+      navigateImage(1, true);
     }
   });
 
   const optionsBtn = document.querySelector("#options-btn");
   const optionsPopup = document.querySelector("#options-popup");
+  const setOptionsOpen = (open) => {
+    if (!open && optionsPopup.contains(document.activeElement))
+      optionsBtn.focus({ preventScroll: true });
+    optionsPopup.inert = !open;
+    optionsPopup.classList.toggle("visible", open);
+    optionsBtn.setAttribute("aria-expanded", String(open));
+  };
+  setOptionsOpen(false);
+  optionsBtn.setAttribute("aria-controls", "options-popup");
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !optionsPopup.classList.contains("visible"))
+      return;
+    event.preventDefault();
+    setOptionsOpen(false);
+  });
   const hideAiSlopCheckbox = document.querySelector("#hide-ai-slop");
   const detailsSidebarCheckbox = document.querySelector("#details-sidebar");
   const transparentOnlyCheckbox = document.querySelector("#transparent-only");
@@ -930,12 +973,12 @@
 
   optionsBtn?.addEventListener("click", (e) => {
     e.stopPropagation();
-    optionsPopup.classList.toggle("visible");
+    setOptionsOpen(!optionsPopup.classList.contains("visible"));
   });
 
   document.addEventListener("mousedown", (e) => {
     if (!optionsPopup.contains(e.target) && e.target !== optionsBtn) {
-      optionsPopup.classList.remove("visible");
+      setOptionsOpen(false);
     }
   });
 

@@ -23,13 +23,11 @@ const STYLE = `
   right: calc(var(--omnibox-b, 1px) * -1);
   height: calc(var(--omnibox-bar, 40px) + 24px + var(--omnibox-h, 0px));
   z-index: -1;
-  filter: url(#omnibox-goo-filter);
   pointer-events: none;
 }
 .omnibox-blob {
   position: absolute;
   background: var(--surface0, #313244);
-  will-change: transform;
 }
 .omnibox-blob-bar {
   top: 0;
@@ -45,10 +43,12 @@ const STYLE = `
   height: var(--omnibox-h, 0px);
   border-radius: 12px;
   transform-origin: 50% 0;
-  transform: translateY(-10px) scaleY(0);
-  transition: transform 240ms ${EASE};
+  transform: translateY(-2px) scaleY(0.985);
+  opacity: 0;
+  transition: transform 140ms ${EASE}, opacity 100ms ${EASE};
 }
 .omnibox-host.omnibox-open .omnibox-blob-panel {
+  opacity: 1;
   transform: none;
 }
 .omnibox-shade {
@@ -65,9 +65,9 @@ const STYLE = `
   opacity: 0;
   pointer-events: none;
   transform-origin: 50% 0;
-  transform: translateY(-10px) scaleY(0);
+  transform: translateY(-2px) scaleY(0.985);
   transition:
-    transform 240ms ${EASE},
+    transform 140ms ${EASE},
     opacity 100ms ${EASE};
 }
 .omnibox-host.omnibox-open .omnibox-shade {
@@ -75,9 +75,7 @@ const STYLE = `
   transform: none;
 }
 .omnibox-resizing :is(.omnibox-blob-panel, .omnibox-shade) {
-  transition:
-    transform 240ms ${EASE},
-    height 220ms ${EASE};
+  transition: opacity 100ms ${EASE};
 }
 .omnibox-panel {
   position: absolute;
@@ -99,15 +97,9 @@ const STYLE = `
   scrollbar-width: thin;
   scrollbar-color: var(--surface1, #45475a) transparent;
   opacity: 0;
-  translate: 0 -4px;
-  filter: blur(4px);
-  clip-path: inset(0 0 100% 0);
   pointer-events: none;
   transition:
     opacity 100ms ${EASE},
-    translate 100ms ${EASE},
-    filter 100ms ${EASE},
-    clip-path 0s 100ms,
     visibility 0s 100ms;
 }
 .omnibox-panel.open {
@@ -118,8 +110,7 @@ const STYLE = `
   clip-path: inset(0);
   pointer-events: auto;
   transition:
-    opacity 120ms ${EASE},
-    clip-path 240ms ${EASE},
+    opacity 100ms ${EASE},
     visibility 0s;
 }
 .omnibox-hl {
@@ -131,16 +122,10 @@ const STYLE = `
   background: var(--surface1, #45475a);
   opacity: 0;
   pointer-events: none;
-  transition:
-    transform 120ms ${EASE},
-    height 120ms ${EASE},
-    opacity 100ms ease;
+  transition: none;
 }
 .omnibox-hl.on {
   opacity: 1;
-}
-.omnibox-hl.snap {
-  transition: opacity 100ms ease;
 }
 .omnibox-item {
   position: relative;
@@ -215,9 +200,7 @@ const STYLE = `
   color: var(--muted, #7f849c);
   opacity: 0;
   translate: -3px 0;
-  transition:
-    opacity 120ms ease,
-    translate 160ms ${EASE};
+  transition: none;
 }
 .omnibox-arrow svg {
   width: 16px;
@@ -260,13 +243,6 @@ const ensureStyles = () => {
   el.id = "omnibox-style";
   el.textContent = STYLE;
   document.head.append(el);
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("width", "0");
-  svg.setAttribute("height", "0");
-  svg.setAttribute("aria-hidden", "true");
-  svg.style.position = "absolute";
-  svg.innerHTML = `<filter id="omnibox-goo-filter" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="goo"/><feComposite in="SourceGraphic" in2="goo" operator="atop"/></filter>`;
-  document.body.append(svg);
 };
 
 const renderTitle = (node, text, typed) => {
@@ -346,15 +322,9 @@ const setup = (host, input, form) => {
     const row = rows[active];
     row.classList.add("active");
     row.setAttribute("aria-selected", "true");
-    const wasOn = hl.classList.contains("on");
-    if (!wasOn) hl.classList.add("snap");
     hl.style.transform = `translateY(${row.offsetTop}px)`;
     hl.style.height = `${row.offsetHeight}px`;
-    if (!wasOn) {
-      hl.getBoundingClientRect();
-      hl.classList.remove("snap");
-      hl.classList.add("on");
-    }
+    hl.classList.add("on");
     row.scrollIntoView({ block: "nearest" });
     input.value = items[active].query;
     input.setAttribute("aria-activedescendant", row.id);
@@ -365,7 +335,7 @@ const setup = (host, input, form) => {
     panel.classList.remove("open");
     host.classList.remove("omnibox-open");
     clearTimeout(lower);
-    lower = setTimeout(() => host.classList.remove("omnibox-raised"), 300);
+    lower = setTimeout(() => host.classList.remove("omnibox-raised"), 140);
     hl.classList.remove("on");
     input.setAttribute("aria-expanded", "false");
     input.removeAttribute("aria-activedescendant");
@@ -383,7 +353,6 @@ const setup = (host, input, form) => {
     items = list;
     rows = [];
     const wasOpen = panel.classList.contains("open");
-    const h0 = wasOpen ? panel.getBoundingClientRect().height : 0;
     for (const a of panel.getAnimations()) a.cancel();
     panel.textContent = "";
     hl.classList.remove("on");
@@ -453,22 +422,6 @@ const setup = (host, input, form) => {
     host.style.setProperty("--omnibox-h", `${h1}px`);
     clearTimeout(lower);
     host.classList.add("omnibox-open", "omnibox-raised");
-    if (
-      wasOpen &&
-      h0 &&
-      h0 !== h1 &&
-      !matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      panel.style.overflow = "hidden";
-      panel
-        .animate([{ height: `${h0}px` }, { height: `${h1}px` }], {
-          duration: 220,
-          easing: EASE,
-        })
-        .finished.finally(() => {
-          panel.style.overflow = "";
-        });
-    }
   };
 
   const load = async (q) => {

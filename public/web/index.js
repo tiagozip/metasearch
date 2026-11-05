@@ -185,7 +185,7 @@
   const animateResize = (
     el,
     mutate,
-    { duration = 300, deferCollapse = false } = {},
+    { duration = 200, deferCollapse = false } = {},
   ) => {
     const h0 = el.getBoundingClientRect().height;
     for (const a of el.getAnimations()) a.cancel();
@@ -205,7 +205,7 @@
           { height: `${h0}px`, maxHeight: `${h0}px` },
           { height: `${h1}px`, maxHeight: `${h1}px` },
         ],
-        { duration, easing },
+        { duration: h1 < h0 ? Math.min(duration, 150) : duration, easing },
       );
       anims.push(
         a.finished.finally(() => {
@@ -661,10 +661,11 @@
           iframe.loading = "lazy";
           iframe.referrerpolicy = "strict-origin-when-cross-origin";
 
+          iframe.title = r.title || "video preview";
           iframe.allowFullscreen = true;
-          document.querySelector("#results-all").append(iframe);
+          article.prepend(iframe);
 
-          article.classList.add("youtube-featured");
+          article.classList.add("youtube-featured", "embedded-result");
 
           iframe.addEventListener("load", () => {
             const handshake = JSON.stringify({
@@ -1565,7 +1566,7 @@
           animateResize(
             attrsContainer,
             () => attrsContainer.classList.toggle("expanded"),
-            { deferCollapse: true, duration: 380 },
+            { deferCollapse: true, duration: 200 },
           );
         };
         const wrap = document.createElement("div");
@@ -1677,6 +1678,7 @@
         item.calculator.answer != null &&
         item.calculator.answer !== ""
       ) {
+        if (document.querySelector("[data-local-calculator]")) continue;
         section.classList.add("rich-calculator");
         const expr = document.createElement("div");
         expr.className = "rich-calc-expr";
@@ -2603,7 +2605,7 @@
           toggle.textContent = collapsed ? "show full lyrics" : "show less";
           toggle.setAttribute("aria-expanded", String(!collapsed));
         },
-        { duration: 420 },
+        { duration: 200 },
       );
     };
     toggle.setAttribute("aria-expanded", "false");
@@ -2663,7 +2665,7 @@
         animateResize(
           placeholder,
           () => renderGenius(placeholder, d, firstResult.url),
-          { duration: 380 },
+          { duration: 200 },
         );
       })
       .catch(dismiss);
@@ -2847,6 +2849,21 @@
 
   const optionsBtn = document.querySelector("#options-btn");
   const optionsPopup = document.querySelector("#options-popup");
+  const setOptionsOpen = (open) => {
+    if (!open && optionsPopup.contains(document.activeElement))
+      optionsBtn.focus({ preventScroll: true });
+    optionsPopup.inert = !open;
+    optionsPopup.classList.toggle("visible", open);
+    optionsBtn.setAttribute("aria-expanded", String(open));
+  };
+  setOptionsOpen(false);
+  optionsBtn.setAttribute("aria-controls", "options-popup");
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !optionsPopup.classList.contains("visible"))
+      return;
+    event.preventDefault();
+    setOptionsOpen(false);
+  });
   const linksOnly = document.querySelector("#links-only");
 
   const syncPrefs = () => {
@@ -2936,7 +2953,7 @@
     if (v === "new") {
       lensSelect.value = lensValue;
       syncMenuValues();
-      optionsPopup.classList.remove("visible");
+      setOptionsOpen(false);
       import("/s/settings.js").then((m) => m.openSettings("new-lens"));
       return;
     }
@@ -2948,7 +2965,7 @@
   if (search.get("cl")) keepParam("cl", search.get("cl"));
 
   document.querySelector("#open-settings").addEventListener("click", () => {
-    optionsPopup.classList.remove("visible");
+    setOptionsOpen(false);
     import("/s/settings.js").then((m) => m.openSettings());
   });
 
@@ -2979,12 +2996,12 @@
 
   optionsBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    optionsPopup.classList.toggle("visible");
+    setOptionsOpen(!optionsPopup.classList.contains("visible"));
   });
 
   document.addEventListener("mousedown", (e) => {
     if (!optionsPopup.contains(e.target) && e.target !== optionsBtn) {
-      optionsPopup.classList.remove("visible");
+      setOptionsOpen(false);
     }
   });
 

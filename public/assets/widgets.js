@@ -3098,6 +3098,44 @@ const calcFmt = (n) => {
 };
 
 reg({
+  id: "arithmetic",
+  match: (q) => {
+    if (q.length > 128 || !/^[\d.\s()+*/^×÷−-]+$/.test(q)) return null;
+    let depth = 0;
+    let operand = true;
+    let binary = false;
+    for (const token of calcTokenize(q)) {
+      if (token.t === "num") {
+        if (!operand) return null;
+        operand = false;
+      } else if (token.t === "lp") {
+        if (!operand) return null;
+        depth++;
+      } else if (token.t === "rp") {
+        if (operand || !depth) return null;
+        depth--;
+      } else if (operand) {
+        if (token.v !== "+" && token.v !== "-") return null;
+      } else {
+        binary = true;
+        operand = true;
+      }
+    }
+    if (operand || depth || !binary) return null;
+    const answer = calcEvaluate(q, false);
+    return Number.isFinite(answer) ? { answer: calcFmt(answer) } : null;
+  },
+  build: ({ answer }, q) =>
+    h(
+      "section",
+      { class: "rich-result rich-calculator", "data-local-calculator": "" },
+      h("div", { class: "rich-calc-expr" }, q),
+      h("div", { class: "rich-calc-answer" }, `= ${answer}`),
+      copyBtn(() => answer, "copy answer"),
+    ),
+});
+
+reg({
   id: "calculator",
   match: (q) => /^(?:calculator|calc|scientific\s+calculator)$/i.test(q.trim()),
   build: () => {
@@ -3288,7 +3326,7 @@ reg({
       display.classList.remove("err");
       histNav = -1;
       fresh = true;
-      replay(display, "committed");
+      display.classList.remove("committed");
     };
 
     degBtn.onclick = () => {
