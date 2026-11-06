@@ -13484,6 +13484,7 @@ html:has(.rimg-mode),
   .tabs .opt {
     width: 44px;
     height: 44px;
+    margin-block: -5px;
   }
   .options-popup .menu-row {
     min-height: 44px;
