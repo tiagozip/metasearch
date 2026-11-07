@@ -1953,6 +1953,42 @@ aside {
   color: var(--muted);
   overflow-wrap: anywhere;
 
+  &:is(input) {
+    field-sizing: content;
+    min-width: 1ch;
+    max-width: 100%;
+    padding: 0 4px;
+    margin: 0 -4px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    font: inherit;
+    font-size: 2.5rem;
+    letter-spacing: inherit;
+    color: var(--muted);
+    caret-color: var(--text);
+    outline: none;
+    transition:
+      background-color 150ms ease-out,
+      color 150ms ease-out;
+
+    @media (hover: hover) {
+      &:hover {
+        background: color-mix(in oklab, var(--text) 4%, transparent);
+      }
+    }
+
+    &:focus-visible,
+    &:focus {
+      color: var(--text);
+      background: color-mix(in oklab, var(--text) 6%, transparent);
+    }
+
+    @media (max-width: 600px) {
+      font-size: 1.6rem;
+    }
+  }
+
   @media (max-width: 600px) {
     font-size: 1.6rem;
   }
@@ -1964,6 +2000,11 @@ aside {
   letter-spacing: -0.03em;
   color: var(--text);
   overflow-wrap: anywhere;
+  transition: opacity 150ms ease-out;
+
+  &.stale {
+    opacity: 0.4;
+  }
 
   @media (max-width: 600px) {
     font-size: 1.6rem;

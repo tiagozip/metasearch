@@ -2900,6 +2900,7 @@ const CALC_FUNCS = {
 
 const CALC_PREC = { "+": 2, "-": 2, "*": 3, "/": 3, mod: 3, "^": 4, "u-": 4 };
 const CALC_RIGHT = { "^": true, "u-": true };
+const CALC_SUFFIX = { k: 1e3, m: 1e6, b: 1e9, t: 1e12 };
 
 const calcGamma = (z) => {
   const c = [
@@ -2936,14 +2937,24 @@ const calcTokenize = (src) => {
     }
     if (/[0-9.]/.test(c)) {
       let j = i + 1;
-      while (j < s.length && /[0-9.]/.test(s[j])) j++;
+      while (
+        j < s.length &&
+        (/[0-9.]/.test(s[j]) ||
+          (s[j] === "," && /^\d{3}(?!\d)/.test(s.slice(j + 1))))
+      )
+        j++;
       if ((s[j] === "e" || s[j] === "E") && /[0-9+-]/.test(s[j + 1] || "")) {
         j += 2;
         while (j < s.length && /[0-9]/.test(s[j])) j++;
       }
-      const num = s.slice(i, j);
-      const val = Number(num);
+      const num = s.slice(i, j).replace(/,/g, "");
+      let val = Number(num);
       if (!Number.isFinite(val)) throw new Error(`bad number: ${num}`);
+      const suffix = /^([kmbt])(?![a-z])/i.exec(s.slice(j));
+      if (suffix) {
+        val *= CALC_SUFFIX[suffix[1].toLowerCase()];
+        j++;
+      }
       tokens.push({ t: "num", v: val });
       i = j;
       continue;
@@ -3100,7 +3111,8 @@ const calcFmt = (n) => {
 reg({
   id: "arithmetic",
   match: (q) => {
-    if (q.length > 128 || !/^[\d.\s()+*/^×÷−-]+$/.test(q)) return null;
+    if (q.length > 128 || !/^(?:[\d.,\s()+*/^×÷−-]|(?<=\d)[kmbt])+$/i.test(q))
+      return null;
     let depth = 0;
     let operand = true;
     let binary = false;
@@ -3123,16 +3135,79 @@ reg({
     }
     if (operand || depth || !binary) return null;
     const answer = calcEvaluate(q, false);
-    return Number.isFinite(answer) ? { answer: calcFmt(answer) } : null;
+    return Number.isFinite(answer) ? { answer } : null;
   },
-  build: ({ answer }, q) =>
-    h(
+  build: ({ answer }, q) => {
+    const show = (n) =>
+      Number.isFinite(n) && Math.abs(n) < 1e15
+        ? n.toLocaleString("en", { maximumFractionDigits: 10 })
+        : calcFmt(n);
+    let value = answer;
+    const out = h("output", { class: "rich-calc-answer" }, `= ${show(value)}`);
+    const expr = h("input", {
+      class: "rich-calc-expr",
+      value: q,
+      spellcheck: "false",
+      autocomplete: "off",
+      autocapitalize: "off",
+      enterkeyhint: "done",
+      "aria-label": "expression",
+    });
+    const fits = CSS.supports("field-sizing", "content");
+    const size = () => {
+      if (!fits) expr.style.width = `${Math.max(1, expr.value.length) + 0.5}ch`;
+    };
+    size();
+    expr.addEventListener("input", () => {
+      size();
+      const r = (() => {
+        try {
+          return calcEvaluate(expr.value, false);
+        } catch {
+          return null;
+        }
+      })();
+      out.classList.toggle("stale", r === null);
+      if (r === null) return;
+      value = r;
+      out.textContent = `= ${show(r)}`;
+    });
+    expr.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        expr.blur();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        expr.value = q;
+        expr.dispatchEvent(new Event("input"));
+        expr.blur();
+      }
+    });
+    const root = h(
       "section",
       { class: "rich-result rich-calculator", "data-local-calculator": "" },
-      h("div", { class: "rich-calc-expr" }, q),
-      h("div", { class: "rich-calc-answer" }, `= ${answer}`),
-      copyBtn(() => answer, "copy answer"),
-    ),
+      expr,
+      out,
+      copyBtn(() => calcFmt(value), "copy answer"),
+    );
+    const onDoc = (e) => {
+      if (!root.isConnected) {
+        document.removeEventListener("keydown", onDoc);
+        return;
+      }
+      const ae = document.activeElement;
+      if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;
+      if (ae?.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key.length !== 1 || !/[0-9.+\-*^%()]/.test(e.key)) return;
+      e.preventDefault();
+      expr.focus();
+      const end = expr.value.length;
+      expr.setRangeText(e.key, end, end, "end");
+      expr.dispatchEvent(new Event("input"));
+    };
+    document.addEventListener("keydown", onDoc);
+    return root;
+  },
 });
 
 reg({
