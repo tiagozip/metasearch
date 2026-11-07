@@ -300,6 +300,31 @@
         scale: 0.97;
       }
 
+      .wallpaper {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0;
+
+        &.shown {
+          opacity: 1;
+        }
+      }
+
+      :root[data-wallpaper] {
+        scrollbar-gutter: auto;
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .wallpaper {
+          transition: opacity 320ms cubic-bezier(0.33, 1, 0.68, 1);
+        }
+      }
+
       @font-face {
         font-family: "InstrumentSans";
         font-display: swap;
@@ -551,6 +576,7 @@
       });
     </script>
     <script src="/s/omnibox.js" type="module"></script>
+    <script src="/s/wallpaper.js" type="module"></script>
   </body>
 
 </html>

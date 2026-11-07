@@ -107,6 +107,7 @@ const settingsLink = () => {
     ...(prefs.highlight ? {} : { h: 0 }),
     ...(prefs.bold ? {} : { b: 0 }),
     ...(prefs.imageButton ? { img: 1 } : {}),
+    ...(store.get("ms-wp-fx") ? { wf: store.get("ms-wp-fx") } : {}),
     ...(Object.keys(domains).length ? { d: domains } : {}),
     ...(prefs.lenses.length ? { c: prefs.lenses } : {}),
   };
@@ -180,6 +181,7 @@ const segmented = (label, options, value, onChange) => {
     });
     return b;
   });
+  group.select = select;
   group.style.setProperty("--n", options.length);
   group.append(
     el("span", { className: "mss-thumb", ariaHidden: "true" }),
@@ -758,6 +760,140 @@ const lensesSection = () => {
   return node;
 };
 
+const wallpaperRows = () => {
+  const kind = () => {
+    return store.get("ms-wp") === "custom" && store.get("ms-wp-img")
+      ? "custom"
+      : "none";
+  };
+  const problem = el("span", { className: "mss-desc", role: "status" });
+  const say = (text) => {
+    problem.textContent = text;
+    problem.hidden = !text;
+  };
+  const picker = el("input", { type: "file", accept: "image/*", hidden: true });
+  const choose = el("button", { type: "button", className: "mss-btn" });
+
+  const keep = async (file) => {
+    let bmp;
+    try {
+      bmp = await createImageBitmap(file);
+    } catch {
+      say("this browser can't open that file as an image");
+      return false;
+    }
+    for (const [max, q] of [
+      [2560, 0.9],
+      [1600, 0.82],
+      [1100, 0.75],
+    ]) {
+      const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+      const c = el("canvas", {
+        width: Math.round(bmp.width * k),
+        height: Math.round(bmp.height * k),
+      });
+      c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+      try {
+        localStorage.setItem("ms-wp-img", c.toDataURL("image/webp", q));
+        bmp.close();
+        say("");
+        return true;
+      } catch {}
+    }
+    bmp.close();
+    say("that image is too big to keep here, try a smaller one");
+    return false;
+  };
+
+  const effect = el(
+    "select",
+    { className: "mss-select", ariaLabel: "wallpaper effect" },
+    ...["none", "dither", "ascii", "halftone", "scanlines"].map((v) =>
+      el("option", { value: v, textContent: v }),
+    ),
+  );
+  effect.value = store.get("ms-wp-fx") || "dither";
+  effect.addEventListener("change", () => {
+    store.set("ms-wp-fx", effect.value === "dither" ? "" : effect.value);
+    changed();
+  });
+  const effectRow = el(
+    "label",
+    { className: "mss-row" },
+    el(
+      "span",
+      { className: "mss-text" },
+      el("span", { className: "mss-label", textContent: "wallpaper effect" }),
+      el("span", {
+        className: "mss-desc",
+        textContent: "drawn over your image",
+      }),
+    ),
+    effect,
+  );
+
+  const sync = () => {
+    const k = kind();
+    picked.select(k);
+    choose.hidden = k !== "custom";
+    choose.textContent = store.get("ms-wp-img")
+      ? "replace image"
+      : "choose image";
+    effectRow.hidden = k === "none";
+  };
+
+  const picked = segmented(
+    "wallpaper",
+    [
+      ["none", "none"],
+      ["custom", "your image"],
+    ],
+    kind(),
+    (v) => {
+      if (v === "custom" && !store.get("ms-wp-img")) {
+        picker.click();
+        return;
+      }
+      store.set("ms-wp", v === "none" ? "" : v);
+      sync();
+      changed();
+    },
+  );
+
+  say("");
+  choose.addEventListener("click", () => picker.click());
+  picker.addEventListener("cancel", sync);
+  picker.addEventListener("change", async () => {
+    const file = picker.files[0];
+    picker.value = "";
+    if (file && (await keep(file))) store.set("ms-wp", "custom");
+    sync();
+    changed();
+  });
+  sync();
+
+  return [
+    el(
+      "div",
+      { className: "mss-row mss-stack" },
+      el(
+        "span",
+        { className: "mss-text" },
+        el("span", { className: "mss-label", textContent: "wallpaper" }),
+        el("span", {
+          className: "mss-desc",
+          textContent:
+            "shown behind the home page. your image stays in this browser",
+        }),
+      ),
+      picked,
+      el("div", { className: "mss-field" }, choose, picker),
+      problem,
+    ),
+    effectRow,
+  ];
+};
+
 const appearanceSection = () => {
   const d = document.documentElement;
 
@@ -880,6 +1016,7 @@ const appearanceSection = () => {
         reset,
       ),
     ),
+    ...wallpaperRows(),
   );
 };
 
@@ -931,6 +1068,9 @@ const linkSection = () => {
       "ms-imgbtn",
       "ms-domains",
       "ms-lenses",
+      "ms-wp",
+      "ms-wp-img",
+      "ms-wp-fx",
     ])
       store.set(k, "");
     for (const k of ["links_only", "safesearch", "engine"])

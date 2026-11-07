@@ -43,6 +43,7 @@ test("parseCfg keeps valid settings and drops the rest", () => {
     highlight: false,
     bold: false,
     imageButton: false,
+    wallpaperEffect: "",
     domains: {
       "pinterest.com": "block",
       "github.com": "raise",
