@@ -1329,6 +1329,248 @@ export default new Elysia({ adapter: CloudflareAdapter })
 
     return { title, artist, image: state.ogImage, lyrics };
   })
+  .get("/q", async ({ query, set, request }) => {
+    if (await limited(env.API_LIMIT, request)) {
+      set.status = 429;
+      return { error: "rate limited" };
+    }
+    const ranges = {
+      "1d": ["5m", true, 30],
+      "5d": ["15m", false, 60],
+      "1mo": ["60m", false, 300],
+      "6mo": ["1d", false, 900],
+      ytd: ["1d", false, 900],
+      "1y": ["1d", false, 900],
+      "5y": ["1wk", false, 3600],
+      max: ["1mo", false, 3600],
+    };
+    const range = ranges[query?.r] ? query.r : "1d";
+    const [interval, prePost, ttl] = ranges[range];
+    const yahoo = (path) =>
+      fetch(`https://query1.finance.yahoo.com${path}`, {
+        headers: {
+          "user-agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          accept: "application/json",
+        },
+        cf: { cacheTtl: ttl, cacheEverything: true },
+      });
+
+    let symbol = query?.s || "";
+    const name = (query?.n || "").replace(/[^a-z0-9 -]/gi, "").slice(0, 40);
+    if (!symbol && name) {
+      try {
+        const r = await yahoo(
+          `/v1/finance/search?q=${encodeURIComponent(name.replaceAll("-", " "))}&quotesCount=6&newsCount=0`,
+        );
+        const quotes = (await r.json())?.quotes || [];
+        symbol =
+          quotes.find(
+            (q) =>
+              q.quoteType === "CRYPTOCURRENCY" && q.symbol.endsWith("-USD"),
+          )?.symbol || "";
+      } catch {}
+    }
+    if (!/^\^?[A-Z0-9.=-]{1,20}$/i.test(symbol)) {
+      set.status = 400;
+      return { error: "bad symbol" };
+    }
+
+    const rolling = range === "1d" && /(-[A-Z]{3,4}|=X)$/i.test(symbol);
+    const span = (() => {
+      if (!rolling) return `range=${range}`;
+      const now = Math.floor(Date.now() / 60000) * 60;
+      return `period1=${now - 86400}&period2=${now}`;
+    })();
+
+    let body;
+    try {
+      const r = await yahoo(
+        `/v8/finance/chart/${encodeURIComponent(symbol)}?${span}&interval=${interval}&includePrePost=${prePost}`,
+      );
+      if (!r.ok) {
+        set.status = r.status === 404 ? 404 : 502;
+        return { error: "quote failed" };
+      }
+      body = await r.json();
+    } catch {
+      set.status = 502;
+      return { error: "quote failed" };
+    }
+
+    const res = body?.chart?.result?.[0];
+    const m = res?.meta;
+    if (!m?.regularMarketPrice) {
+      set.status = 404;
+      return { error: "no quote" };
+    }
+    const close = res.indicators?.quote?.[0]?.close || [];
+    const open = res.indicators?.quote?.[0]?.open || [];
+    const vol = res.indicators?.quote?.[0]?.volume || [];
+    const points = (res.timestamp || [])
+      .map((t, i) => [t, close[i], vol[i] || 0])
+      .filter(([, c]) => c != null);
+    if (points.at(-1)?.[0] < m.regularMarketTime && range !== "max")
+      points.push([m.regularMarketTime, m.regularMarketPrice, 0]);
+
+    const p = {
+      pre: m.tradingPeriods?.pre?.[0]?.[0] ?? m.currentTradingPeriod?.pre,
+      regular:
+        m.tradingPeriods?.regular?.[0]?.[0] ?? m.currentTradingPeriod?.regular,
+      post: m.tradingPeriods?.post?.[0]?.[0] ?? m.currentTradingPeriod?.post,
+    };
+    const sessioned = range === "1d" && !rolling && p.regular;
+    const regularOpen = sessioned
+      ? open[
+          (res.timestamp || []).findIndex(
+            (t, i) => t >= p.regular.start && open[i] != null,
+          )
+        ]
+      : undefined;
+
+    set.headers["cache-control"] = `public, max-age=${ttl}`;
+    return {
+      symbol: m.symbol,
+      name: (m.longName || m.shortName || m.symbol).replace(
+        /^(.+) [A-Z]{3}$/,
+        rolling && m.instrumentType === "CRYPTOCURRENCY" ? "$1" : "$&",
+      ),
+      exchange: m.fullExchangeName || m.exchangeName,
+      type: m.instrumentType,
+      currency: m.currency,
+      decimals: m.priceHint ?? 2,
+      price: m.regularMarketPrice,
+      prevClose: rolling
+        ? points[0]?.[1]
+        : (m.previousClose ?? m.chartPreviousClose),
+      time: m.regularMarketTime,
+      tz: m.exchangeTimezoneName,
+      open: regularOpen,
+      dayHigh: m.regularMarketDayHigh,
+      dayLow: m.regularMarketDayLow,
+      yearHigh: m.fiftyTwoWeekHigh,
+      yearLow: m.fiftyTwoWeekLow,
+      volume: m.regularMarketVolume,
+      session: sessioned
+        ? {
+            start: p.pre?.start ?? p.regular.start,
+            open: p.regular.start,
+            close: p.regular.end,
+            end: p.post?.end ?? p.regular.end,
+          }
+        : null,
+      range,
+      rolling,
+      points,
+    };
+  })
+  .get("/qx", async ({ query, set, request }) => {
+    const symbol = query?.s || "";
+    if (!/^\^?[A-Z0-9.=-]{1,20}$/i.test(symbol)) {
+      set.status = 400;
+      return { error: "bad symbol" };
+    }
+    if (await limited(env.API_LIMIT, request)) {
+      set.status = 429;
+      return { error: "rate limited" };
+    }
+    const extra = await (async () => {
+      const json = (url) =>
+        fetch(url, {
+          headers: {
+            "user-agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            accept: "application/json",
+          },
+          signal: AbortSignal.timeout(8000),
+          cf: { cacheTtl: 3600, cacheEverything: true },
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+      const num = (v) => {
+        const n = Number.parseFloat(String(v ?? "").replace(/[$,%]/g, ""));
+        return Number.isFinite(n) ? n : undefined;
+      };
+      if (/-USD$/i.test(symbol)) {
+        const base = symbol.split("-")[0].toLowerCase();
+        const list = await json(
+          `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&symbols=${base}`,
+        );
+        const c = Array.isArray(list)
+          ? list.sort((a, b) => (b.market_cap || 0) - (a.market_cap || 0))[0]
+          : null;
+        return c
+          ? {
+              marketCap: c.market_cap,
+              rank: c.market_cap_rank,
+              supply: c.circulating_supply,
+              ath: c.ath,
+              athDate: c.ath_date,
+            }
+          : null;
+      }
+      if (!/^[A-Z]{1,5}$/i.test(symbol)) return null;
+      const sym = symbol.toUpperCase();
+      const summaryOf = (cls) =>
+        json(
+          `https://api.nasdaq.com/api/quote/${sym}/summary?assetclass=${cls}`,
+        );
+      const [stocks, info] = await Promise.all([
+        summaryOf("stocks"),
+        json(`https://api.nasdaq.com/api/quote/${sym}/info?assetclass=stocks`),
+      ]);
+      const summary = stocks?.data?.summaryData
+        ? stocks
+        : await summaryOf("etf");
+      const d = summary?.data?.summaryData || {};
+      const earnings = info?.data?.notifications
+        ?.flatMap((n) => n.eventTypes || [])
+        .find((e) => e.eventName === "Earnings Date")
+        ?.message?.split(":")
+        .slice(1)
+        .join(":")
+        .trim();
+      return {
+        marketCap: num(d.MarketCap?.value),
+        yield: num(d.Yield?.value),
+        dividend: num(d.AnnualizedDividend?.value),
+        target: num(d.OneYrTarget?.value),
+        sector: d.Sector?.value,
+        industry: d.Industry?.value,
+        avgVolume: num(d.AverageVolume?.value ?? d.FiftyDayAvgDailyVol?.value),
+        earnings: earnings || undefined,
+      };
+    })();
+    set.headers["cache-control"] = extra?.marketCap ? CACHE.med : "no-store";
+    return extra || {};
+  })
+  .get("/ql", async ({ query, set, request }) => {
+    const symbol = query?.s || "";
+    if (!/^\^?[A-Z0-9.=-]{1,20}$/i.test(symbol)) {
+      set.status = 400;
+      return "bad symbol";
+    }
+    if (await limited(env.API_LIMIT, request)) {
+      set.status = 429;
+      return "rate limited";
+    }
+    const coin = /-[A-Z]{3,4}$/i.test(symbol);
+    const url = coin
+      ? `https://assets.coincap.io/assets/icons/${symbol.split("-")[0].toLowerCase()}@2x.png`
+      : `https://assets.parqet.com/logos/symbol/${encodeURIComponent(symbol.toUpperCase())}?format=png&size=128`;
+    const r = await fetch(url, {
+      cf: { cacheTtl: 604800, cacheEverything: true },
+    }).catch(() => null);
+    const type = r?.headers.get("content-type") || "";
+    if (!r?.ok || !type.startsWith("image/")) {
+      set.status = 404;
+      set.headers["cache-control"] = CACHE.day;
+      return "no logo";
+    }
+    return new Response(r.body, {
+      headers: { "content-type": type, "cache-control": CACHE.forever },
+    });
+  })
   .get("/p/:q", async ({ set, params, headers, request }) => {
     let payload;
     try {

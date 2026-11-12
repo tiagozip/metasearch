@@ -2671,6 +2671,184 @@
       .catch(dismiss);
   };
 
+  const quoteTarget = (raw) => {
+    let u;
+    try {
+      u = new URL(raw);
+    } catch {
+      return null;
+    }
+    const host = u.hostname.replace(/^www\./, "");
+    const parts = u.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+    const fiat =
+      /^(USD|EUR|GBP|JPY|CHF|CAD|AUD|NZD|CNY|HKD|SEK|NOK|DKK|INR|BRL|MXN|KRW|SGD|ZAR|TRY|PLN)$/;
+    const suffix = {
+      NASDAQ: "",
+      NYSE: "",
+      NYSEARCA: "",
+      NYSEAMERICAN: "",
+      AMEX: "",
+      BATS: "",
+      LON: ".L",
+      ETR: ".DE",
+      FRA: ".F",
+      EPA: ".PA",
+      AMS: ".AS",
+      BIT: ".MI",
+      BME: ".MC",
+      SWX: ".SW",
+      TSE: ".TO",
+      TYO: ".T",
+      HKG: ".HK",
+      ASX: ".AX",
+      NSE: ".NS",
+      BOM: ".BO",
+      KRX: ".KS",
+      STO: ".ST",
+      CPH: ".CO",
+      OSL: ".OL",
+      HEL: ".HE",
+      SGX: ".SI",
+      TPE: ".TW",
+    };
+    const at = (i) => parts[i] || "";
+    const sym = (s) =>
+      /^\^?[A-Z0-9.=-]{1,20}$/i.test(s) ? { s: s.toUpperCase() } : null;
+    const site = (label, target) => (target ? { ...target, label } : null);
+
+    if (host.endsWith("finance.yahoo.com") && at(0) === "quote")
+      return site("Yahoo Finance", sym(at(1)));
+    if (host === "robinhood.com") {
+      const i = parts.indexOf("stocks");
+      if (i >= 0) return site("Robinhood", sym(at(i + 1)));
+      const c = parts.indexOf("crypto");
+      if (c >= 0 && at(c + 1))
+        return site("Robinhood", sym(`${at(c + 1)}-USD`));
+      return null;
+    }
+    if (host === "google.com" && at(0) === "finance" && at(1) === "quote") {
+      const [code, exch] = at(2).split(":");
+      if (exch)
+        return exch in suffix
+          ? site("Google Finance", sym(`${code}${suffix[exch]}`))
+          : null;
+      const [a, b] = code.split("-");
+      if (!b) return null;
+      return site(
+        "Google Finance",
+        sym(fiat.test(a) && fiat.test(b) ? `${a}${b}=X` : code),
+      );
+    }
+    if (host === "cnbc.com" && at(0) === "quotes" && !at(1).startsWith("."))
+      return site("CNBC", sym(at(1)));
+    if (host === "marketwatch.com" && at(0) === "investing") {
+      const kind = at(1);
+      const code = at(2).toUpperCase();
+      if (kind === "stock" || kind === "fund")
+        return site("MarketWatch", sym(code));
+      if (kind === "cryptocurrency" && /^[A-Z]+USD$/.test(code))
+        return site("MarketWatch", sym(`${code.slice(0, -3)}-USD`));
+      if (kind === "currency" && /^[A-Z]{6}$/.test(code))
+        return site("MarketWatch", sym(`${code}=X`));
+      return null;
+    }
+    if (
+      host === "nasdaq.com" &&
+      at(0) === "market-activity" &&
+      ["stocks", "etf"].includes(at(1))
+    )
+      return site("Nasdaq", sym(at(2)));
+    if (host === "stockanalysis.com" && ["stocks", "etf"].includes(at(0)))
+      return site("Stock Analysis", sym(at(1)));
+    if (host === "tradingview.com" && at(0) === "symbols") {
+      const [exch, code] = at(1).split("-");
+      return code && exch in suffix
+        ? site("TradingView", sym(`${code}${suffix[exch]}`))
+        : null;
+    }
+    const coin = (slug, label) =>
+      /^[a-z0-9-]{2,40}$/.test(slug) ? { n: slug, label } : null;
+    if (host === "kraken.com" && at(0) === "prices")
+      return coin(at(1), "Kraken");
+    if (host === "binance.com" && parts.includes("price"))
+      return coin(at(parts.indexOf("price") + 1), "Binance");
+    if (host === "coinbase.com" && at(0) === "price")
+      return coin(at(1), "Coinbase");
+    if (host === "coinmarketcap.com" && at(0) === "currencies")
+      return coin(at(1), "CoinMarketCap");
+    if (host === "coingecko.com" && parts.includes("coins"))
+      return coin(at(parts.indexOf("coins") + 1), "CoinGecko");
+    return null;
+  };
+
+  const showQuoteInstantAnswer = () => {
+    const web = data.results?.web?.results || [];
+    let hit = null;
+    for (const r of web.slice(0, 3)) {
+      const t = r?.url && quoteTarget(r.url);
+      if (t) {
+        hit = { ...t, url: r.url };
+        break;
+      }
+    }
+    const tag = currentQuery?.trim().match(/^\$([A-Za-z][A-Za-z.]{0,6})$/)?.[1];
+    if (!hit && tag) hit = { s: tag.toUpperCase() };
+    if (!hit) return;
+
+    const section = document.createElement("section");
+    section.className = "rich-result rich-quote qt-loading";
+    section.setAttribute("aria-busy", "true");
+    section.setAttribute("aria-label", "loading price");
+    section.innerHTML = `<div class="qt-head"><span class="sk qt-sk-logo"></span><div class="qt-id"><span class="sk sk-title"></span><span class="sk sk-eyebrow"></span></div></div><span class="sk qt-sk-price"></span><span class="sk qt-sk-chart"></span>`;
+    document.getElementById("results-all").prepend(section);
+
+    const dismiss = () => {
+      if (reducedMotion) return section.remove();
+      section.style.overflow = "hidden";
+      section
+        .animate(
+          [
+            { opacity: 1, height: `${section.offsetHeight}px` },
+            {
+              opacity: 0,
+              height: "0px",
+              paddingTop: "0px",
+              paddingBottom: "0px",
+              marginBottom: "0px",
+            },
+          ],
+          { duration: 220, easing: "cubic-bezier(0.23, 1, 0.32, 1)" },
+        )
+        .finished.finally(() => section.remove());
+    };
+
+    const qs = hit.s
+      ? `s=${encodeURIComponent(hit.s)}`
+      : `n=${encodeURIComponent(hit.n)}`;
+    Promise.all([
+      fetch(`/q?${qs}&r=1d`).then((r) => (r.ok ? r.json() : Promise.reject())),
+      import("/s/quote.js"),
+    ])
+      .then(([q, m]) => {
+        if (!q?.points?.length) return dismiss();
+        section.removeAttribute("aria-busy");
+        section.setAttribute("aria-label", `${q.name} price`);
+        document.querySelector(".rich-crypto")?.remove();
+        animateResize(
+          section,
+          () => {
+            section.classList.remove("qt-loading");
+            m.fillQuote(section, q, {
+              source: hit.url,
+              sourceLabel: hit.label,
+            });
+          },
+          { duration: 240 },
+        );
+      })
+      .catch(dismiss);
+  };
+
   const renderAllTab = () => {
     const results = data.results;
     const mixed = results.mixed || [];
@@ -3017,6 +3195,7 @@
     document.getElementById("results-all").append(mainFrag);
     document.getElementById("sidebar").append(sideFrag);
     showGeniusInstantAnswer();
+    showQuoteInstantAnswer();
 
     const r = data.results;
     const isEmpty =
