@@ -756,7 +756,9 @@ export function fillQuote(section, today, { source, sourceLabel } = {}) {
   renderStats();
   draw(today);
   if (!isFx)
-    fetch(`/qx?s=${encodeURIComponent(today.symbol)}`)
+    fetch(
+      `/qx?s=${encodeURIComponent(today.symbol)}&n=${encodeURIComponent(today.name)}`,
+    )
       .then((r) => (r.ok ? r.json() : null))
       .then((x) => {
         if (!x || !Object.values(x).some((v) => v != null)) return;

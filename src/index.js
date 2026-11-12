@@ -1499,13 +1499,27 @@ export default new Elysia({ adapter: CloudflareAdapter })
         const c = Array.isArray(list)
           ? list.sort((a, b) => (b.market_cap || 0) - (a.market_cap || 0))[0]
           : null;
-        return c
+        if (c)
+          return {
+            marketCap: c.market_cap,
+            rank: c.market_cap_rank,
+            supply: c.circulating_supply,
+            ath: c.ath,
+          };
+        const slug = (query?.n || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+        if (!slug) return null;
+        const id = `${base}-${slug}`;
+        const t = await json(`https://api.coinpaprika.com/v1/tickers/${id}`);
+        const usd = t?.quotes?.USD;
+        return usd
           ? {
-              marketCap: c.market_cap,
-              rank: c.market_cap_rank,
-              supply: c.circulating_supply,
-              ath: c.ath,
-              athDate: c.ath_date,
+              marketCap: usd.market_cap,
+              rank: t.rank,
+              supply: t.total_supply,
+              ath: usd.ath_price,
             }
           : null;
       }
