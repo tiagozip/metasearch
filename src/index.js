@@ -9,6 +9,7 @@ import { cfgScript, cookieSafe, parseCfg, parseLens, TIMES } from "./prefs.js";
 import { LENSES, resolveSearchPage } from "./query.js";
 import braveFetch from "./search/braveFetch.js";
 import { getChallenge, redeem } from "./search/bravePow.js";
+import { IMG_LAYOUTS, IMG_SIZES } from "./search/images.js";
 import * as maps from "./search/maps.js";
 import searchMixed from "./search/mixed.js";
 import { reverseImage, rimgEngines } from "./search/rimg.js";
@@ -1054,6 +1055,10 @@ export default new Elysia({ adapter: CloudflareAdapter })
         : pickEngine(request.headers.get("cookie"));
     const safe = cfg?.safe || cookieSafe(request.headers.get("cookie"));
     const time = TIMES.includes(query?.tf) ? query.tf : undefined;
+    const isize = IMG_SIZES.includes(query?.size) ? query.size : undefined;
+    const ilayout = IMG_LAYOUTS.includes(query?.layout)
+      ? query.layout
+      : undefined;
 
     set.headers["content-type"] = "text/html";
     set.headers.Link = `</s/inter-var-v4.woff2>; rel="preload"; as="font"; crossorigin`;
@@ -1156,6 +1161,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
             ...(lens ? { l: lens } : {}),
             ...(safe ? { ss: safe } : {}),
             ...(time ? { f: time } : {}),
+            ...(isize ? { z: isize } : {}),
+            ...(ilayout ? { o: ilayout } : {}),
           },
           "10m",
         ),
@@ -1620,6 +1627,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
         engines: engineOrder(pickEngine(headers?.cookie)),
         safe: payload.ss || cookieSafe(headers?.cookie),
         time: payload.f,
+        size: payload.z,
+        layout: payload.o,
         db: env.KAGI_DB,
         relaySecret: env.RIMG_RELAY_SECRET,
         clearance: braveClearance(),
@@ -1679,6 +1688,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
             ...(payload.l ? { l: payload.l } : {}),
             ...(payload.ss ? { ss: payload.ss } : {}),
             ...(payload.f ? { f: payload.f } : {}),
+            ...(payload.z ? { z: payload.z } : {}),
+            ...(payload.o ? { o: payload.o } : {}),
           },
           "2h",
         ),
@@ -1765,6 +1776,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
         lens: payload.l,
         safe: payload.ss || cookieSafe(headers?.cookie),
         time: payload.f,
+        size: payload.z,
+        layout: payload.o,
         db: env.KAGI_DB,
         relaySecret: env.RIMG_RELAY_SECRET,
         clearance: braveClearance(),
@@ -1780,6 +1793,8 @@ export default new Elysia({ adapter: CloudflareAdapter })
             ...(payload.l ? { l: payload.l } : {}),
             ...(payload.ss ? { ss: payload.ss } : {}),
             ...(payload.f ? { f: payload.f } : {}),
+            ...(payload.z ? { z: payload.z } : {}),
+            ...(payload.o ? { o: payload.o } : {}),
             ...(isImages ? { t: "images" } : isNews ? { t: "news" } : {}),
           },
           "2h",

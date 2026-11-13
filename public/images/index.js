@@ -165,6 +165,60 @@
     return false;
   };
 
+  const domainRules = () => {
+    let raw;
+    try {
+      raw = JSON.parse(localStorage.getItem("ms-domains") || "{}");
+    } catch {
+      raw = {};
+    }
+    const exact = {};
+    const patterns = [];
+    for (const [p, rule] of Object.entries(raw)) {
+      if (/^\/.+\/$/s.test(p)) {
+        try {
+          patterns.push({ re: new RegExp(p.slice(1, -1), "i"), rule });
+        } catch {}
+      } else if (p.includes("*")) {
+        const body = p
+          .split("*")
+          .map((x) => x.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+          .join(".*");
+        patterns.push({
+          re: new RegExp(`^(?:.+\\.)?${body}$`),
+          host: true,
+          rule,
+        });
+      } else exact[p] = rule;
+    }
+    return { exact, patterns };
+  };
+  let rules = domainRules();
+  const ruleOf = (img) => {
+    let host = (img.meta_url?.hostname || "").toLowerCase();
+    if (!host) {
+      try {
+        host = new URL(img.url).hostname;
+      } catch {
+        return;
+      }
+    }
+    host = host.replace(/^www\./, "");
+    for (let d = host; d.includes("."); d = d.slice(d.indexOf(".") + 1)) {
+      if (Object.hasOwn(rules.exact, d)) return rules.exact[d];
+    }
+    return rules.patterns.find((p) => p.re.test(p.host ? host : img.url || ""))
+      ?.rule;
+  };
+  const arrange = (list = []) => {
+    const rank = { raise: 0, lower: 2 };
+    return list
+      .map((img) => ({ img, rule: ruleOf(img) }))
+      .filter(({ rule }) => rule !== "block")
+      .sort((a, b) => (rank[a.rule] ?? 1) - (rank[b.rule] ?? 1))
+      .map(({ img }) => img);
+  };
+
   const initBlocklist = async () => {
     try {
       const hideAiSlop = localStorage.getItem("config:hide_slop") === "true";
@@ -842,9 +896,9 @@
       noResults.textContent = "no images found";
       frag.append(noResults);
     } else {
-      allImages = results;
-      for (let i = 0; i < results.length; i++) {
-        const element = renderImageResult(results[i], i);
+      allImages = arrange(results);
+      for (let i = 0; i < allImages.length; i++) {
+        const element = renderImageResult(allImages[i], i);
         if (element) frag.append(element);
       }
     }
@@ -856,10 +910,11 @@
     const grid = document.getElementById("images-grid");
     const frag = document.createDocumentFragment();
     const startIndex = allImages.length;
+    const batch = arrange(results);
 
-    for (let i = 0; i < results.length; i++) {
-      allImages.push(results[i]);
-      const element = renderImageResult(results[i], startIndex + i);
+    for (let i = 0; i < batch.length; i++) {
+      allImages.push(batch[i]);
+      const element = renderImageResult(batch[i], startIndex + i);
       if (element) frag.append(element);
     }
 
@@ -954,6 +1009,45 @@
     event.preventDefault();
     setOptionsOpen(false);
   });
+  const search = new URLSearchParams(location.search);
+  const syncMenuValues = () => {
+    for (const select of optionsPopup.querySelectorAll(".menu-select select")) {
+      select
+        .closest(".menu-select")
+        .querySelector(".menu-value-text").textContent =
+        select.selectedOptions[0]?.textContent || "";
+    }
+  };
+  for (const [name, id] of [
+    ["size", "#size-select"],
+    ["layout", "#layout-select"],
+  ]) {
+    const select = document.querySelector(id);
+    select.value = search.get(name) || "";
+    if (!select.value) select.selectedIndex = 0;
+    select.addEventListener("change", () => {
+      const u = new URL(location.href);
+      if (select.value) u.searchParams.set(name, select.value);
+      else u.searchParams.delete(name);
+      location.assign(u);
+    });
+    if (select.value) {
+      const hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = name;
+      hidden.value = select.value;
+      document.querySelector("header form").append(hidden);
+    }
+  }
+  syncMenuValues();
+  optionsPopup.addEventListener("change", syncMenuValues);
+  addEventListener("ms-prefs", () => {
+    rules = domainRules();
+    closeDetailPanel({ instant: true });
+    document.getElementById("images-grid").innerHTML = "";
+    renderImages(allImages);
+  });
+
   const hideAiSlopCheckbox = document.querySelector("#hide-ai-slop");
   const detailsSidebarCheckbox = document.querySelector("#details-sidebar");
   const transparentOnlyCheckbox = document.querySelector("#transparent-only");

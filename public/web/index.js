@@ -2679,7 +2679,16 @@
       return null;
     }
     const host = u.hostname.replace(/^www\./, "");
-    const parts = u.pathname.split("/").filter(Boolean).map(decodeURIComponent);
+    const parts = u.pathname
+      .split("/")
+      .filter(Boolean)
+      .map((p) => {
+        try {
+          return decodeURIComponent(p);
+        } catch {
+          return p;
+        }
+      });
     const fiat =
       /^(USD|EUR|GBP|JPY|CHF|CAD|AUD|NZD|CNY|HKD|SEK|NOK|DKK|INR|BRL|MXN|KRW|SGD|ZAR|TRY|PLN)$/;
     const suffix = {
@@ -3195,7 +3204,9 @@
     document.getElementById("results-all").append(mainFrag);
     document.getElementById("sidebar").append(sideFrag);
     showGeniusInstantAnswer();
-    showQuoteInstantAnswer();
+    try {
+      showQuoteInstantAnswer();
+    } catch {}
 
     const r = data.results;
     const isEmpty =

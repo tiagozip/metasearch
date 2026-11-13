@@ -5387,6 +5387,22 @@ body.images-detail-sidebar-open .images-body {
     }
   }
 
+  .menu-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    a {
+      display: flex;
+      color: var(--muted);
+      transition: color var(--duration-fast) var(--ease-out);
+
+      &:hover {
+        color: var(--blue);
+      }
+    }
+  }
+
   .menu-value {
     display: flex;
     align-items: center;

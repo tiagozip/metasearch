@@ -1,6 +1,6 @@
 import { parseQuery } from "../query.js";
 import searchExa from "./exa.js";
-import searchImages from "./images.js";
+import searchImages, { IMG_LAYOUTS, IMG_SIZES } from "./images.js";
 import searchKagiWeb from "./kagi.js";
 import searchMixed from "./mixed.js";
 import searchNews from "./news.js";
@@ -43,6 +43,8 @@ export async function runSearch({
   interactive = false,
   safe,
   time,
+  size,
+  layout,
 } = {}) {
   const filters = {
     safe: ["off", "moderate", "strict"].includes(safe) ? safe : undefined,
@@ -75,6 +77,8 @@ export async function runSearch({
           attempts,
           clearance,
           safe: filters.safe,
+          size: IMG_SIZES.includes(size) ? size : undefined,
+          layout: IMG_LAYOUTS.includes(layout) ? layout : undefined,
         });
       else if (tab === "news")
         attempt = await searchNews(q, page, {
