@@ -102,6 +102,8 @@ export function parseCfg(raw) {
 
   return {
     theme: obj.t === "amoled" ? "amoled" : "",
+    retro: /^[a-z]+\d{4}$/.test(obj.r) ? obj.r : "",
+    retroScheme: ["light", "dark"].includes(obj.rs) ? obj.rs : "",
     mascot: MASCOTS.includes(obj.m) && obj.m !== "teto" ? obj.m : "",
     accent: /^#[0-9a-f]{6}$/i.test(obj.a) ? obj.a : "",
     engine: ["brave", "kagi", "exa"].includes(obj.e) ? obj.e : "",
@@ -119,5 +121,5 @@ export function parseCfg(raw) {
 
 export function cfgScript(cfg) {
   const json = JSON.stringify(cfg).replaceAll("<", "\\u003c");
-  return `<script>try{const c=${json},L=localStorage,s=(k,v)=>v?L.setItem(k,v):L.removeItem(k),y="; path=/; max-age=31536000; samesite=lax";s("ms-theme",c.theme);s("ms-mascot",c.mascot);s("ms-accent",c.accent);s("ms-newtab",c.newTab?"1":"");s("ms-highlight",c.highlight?"":"0");s("ms-bold",c.bold?"":"0");s("ms-imgbtn",c.imageButton?"1":"");s("ms-wp-fx",c.wallpaperEffect);s("ms-domains",Object.keys(c.domains).length?JSON.stringify(c.domains):"");s("ms-lenses",c.lenses.length?JSON.stringify(c.lenses):"");document.cookie=\`links_only=\${c.linksOnly?1:0}\${y}\`;if(c.engine)document.cookie=\`engine=\${c.engine}\${y}\`;document.cookie=c.safe?\`safesearch=\${c.safe}\${y}\`:"safesearch=; path=/; max-age=0"}catch{}</script>`;
+  return `<script>try{const c=${json},L=localStorage,s=(k,v)=>v?L.setItem(k,v):L.removeItem(k),y="; path=/; max-age=31536000; samesite=lax";s("ms-theme",c.theme);s("ms-retro",c.retro);s("ms-retro-scheme",c.retroScheme);s("ms-mascot",c.mascot);s("ms-accent",c.accent);s("ms-newtab",c.newTab?"1":"");s("ms-highlight",c.highlight?"":"0");s("ms-bold",c.bold?"":"0");s("ms-imgbtn",c.imageButton?"1":"");s("ms-wp-fx",c.wallpaperEffect);s("ms-domains",Object.keys(c.domains).length?JSON.stringify(c.domains):"");s("ms-lenses",c.lenses.length?JSON.stringify(c.lenses):"");document.cookie=\`links_only=\${c.linksOnly?1:0}\${y}\`;if(c.engine)document.cookie=\`engine=\${c.engine}\${y}\`;document.cookie=c.safe?\`safesearch=\${c.safe}\${y}\`:"safesearch=; path=/; max-age=0"}catch{}</script>`;
 }

@@ -646,8 +646,9 @@
     }
 
     if (!hasHadWebResult) {
-      const u = new URL(url);
-      const sourceHost = u.hostname.replace(/^www\./, "").toLowerCase();
+      const sourceHost = URL.canParse(url)
+        ? new URL(url).hostname.replace(/^www\./, "").toLowerCase()
+        : "";
 
       if (sourceHost === "youtube.com" || sourceHost.endsWith(".youtube.com")) {
         const videoIdMatch = url.match(/[?&]v=([^&]+)/);

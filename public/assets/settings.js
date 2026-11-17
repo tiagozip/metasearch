@@ -98,6 +98,10 @@ const settingsLink = () => {
   );
   const cfg = {
     ...(store.get("ms-theme") === "amoled" ? { t: "amoled" } : {}),
+    ...(store.get("ms-retro") ? { r: store.get("ms-retro") } : {}),
+    ...(store.get("ms-retro-scheme")
+      ? { rs: store.get("ms-retro-scheme") }
+      : {}),
     ...(store.get("ms-mascot") ? { m: store.get("ms-mascot") } : {}),
     ...(store.get("ms-accent") ? { a: store.get("ms-accent") } : {}),
     ...(cookie.get("engine") ? { e: cookie.get("engine") } : {}),
@@ -894,6 +898,21 @@ const wallpaperRows = () => {
   ];
 };
 
+const RETRO = [
+  ["", "metasearch"],
+  ["google1998", "Google, 1998"],
+  ["hotbot1998", "HotBot, 1998"],
+  ["altavista1999", "AltaVista, 1999"],
+  ["lycos1999", "Lycos, 1999"],
+  ["askjeeves2000", "Ask Jeeves, 2000"],
+  ["google2004", "Google, 2004"],
+  ["yahoo2005", "Yahoo!, 2005"],
+  ["msn2005", "MSN Search, 2005"],
+  ["live2008", "Live Search, 2008"],
+  ["google2010", "Google, 2010"],
+  ["bing2013", "Bing, 2013"],
+];
+
 const appearanceSection = () => {
   const d = document.documentElement;
 
@@ -960,8 +979,86 @@ const appearanceSection = () => {
   };
   sync();
 
+  const retroTiles = RETRO.map(([v, text]) => {
+    const tile = el(
+      "button",
+      { type: "button", className: "mss-retro-tile", title: text },
+      el("img", {
+        src: `/s/retro-${v || "none"}-thumb.webp`,
+        alt: "",
+        loading: "lazy",
+      }),
+      el("span", { textContent: text }),
+    );
+    tile.setAttribute(
+      "aria-pressed",
+      String(v === (store.get("ms-retro") || "")),
+    );
+    tile.addEventListener("click", () => {
+      store.set("ms-retro", v);
+      changed();
+      location.reload();
+    });
+    return tile;
+  });
+  requestAnimationFrame(() => {
+    const on = retroTiles.find((t) => t.ariaPressed === "true");
+    const row = on?.parentElement;
+    if (row)
+      row.scrollLeft +=
+        on.getBoundingClientRect().left - row.getBoundingClientRect().left - 14;
+  });
+
   return section(
     "appearance",
+    el(
+      "div",
+      { className: "mss-row mss-stack" },
+      el(
+        "span",
+        { className: "mss-text" },
+        el("span", { className: "mss-label", textContent: "retro theme" }),
+        el("span", {
+          className: "mss-desc",
+          textContent: "dress the whole engine up as an old search engine",
+        }),
+      ),
+      el("div", { className: "mss-retros" }, ...retroTiles),
+    ),
+    ...(store.get("ms-retro")
+      ? [
+          el(
+            "div",
+            { className: "mss-row" },
+            el(
+              "span",
+              { className: "mss-text" },
+              el("span", {
+                className: "mss-label",
+                textContent: "retro colors",
+              }),
+            ),
+            segmented(
+              "retro colors",
+              [
+                ["", "auto"],
+                ["light", "light"],
+                ["dark", "dark"],
+              ],
+              store.get("ms-retro-scheme") || "",
+              (v) => {
+                store.set("ms-retro-scheme", v);
+                d.dataset.scheme =
+                  v ||
+                  (matchMedia("(prefers-color-scheme: dark)").matches
+                    ? "dark"
+                    : "light");
+                changed();
+              },
+            ),
+          ),
+        ]
+      : []),
     toggle(
       "amoled mode",
       "pure black background",

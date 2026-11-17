@@ -1,0 +1,1418 @@
+:root[data-retro="bing2013"] {
+  color-scheme: light;
+  --bg: #fff;
+  --text: #404040;
+  --subtext: #606060;
+  --muted: #777;
+  --surface0: #fff;
+  --surface1: #e5e5e5;
+  --blue: #1020d0;
+  --green: #009030;
+  --line: #e5e5e5;
+  --line-strong: #ccc;
+  --lift-1: none;
+  --lift-2: none;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+  scrollbar-color: auto;
+  text-rendering: auto;
+  -webkit-font-smoothing: auto;
+}
+
+:root[data-retro="bing2013"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *),
+:root[data-retro="bing2013"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *)::before,
+:root[data-retro="bing2013"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *)::after {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transition: none !important;
+  animation: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+:root[data-retro="bing2013"] body {
+  display: block;
+  background: #fff;
+  color: #404040;
+  font: 13px/normal Arial, Helvetica, sans-serif;
+  min-width: 987px;
+  min-height: 0;
+  overflow-x: visible;
+}
+
+:root[data-retro="bing2013"] body * {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+:root[data-retro="bing2013"] a {
+  color: #1020d0;
+  text-decoration: none;
+  text-underline-offset: auto;
+  text-decoration-thickness: auto;
+  border-bottom: 0;
+}
+
+:root[data-retro="bing2013"] a:visited {
+  color: #600090;
+}
+
+:root[data-retro="bing2013"] a:hover {
+  text-decoration: underline;
+}
+
+:root[data-retro="bing2013"] .teto,
+:root[data-retro="bing2013"] .omnibox-goo,
+:root[data-retro="bing2013"] .omnibox-shade,
+:root[data-retro="bing2013"] .wallpaper,
+:root[data-retro="bing2013"] .search-bar button svg,
+:root[data-retro="bing2013"] #options-btn svg,
+:root[data-retro="bing2013"] .engine-banner,
+:root[data-retro="bing2013"] .faq-section,
+:root[data-retro="bing2013"] .discussions-section,
+:root[data-retro="bing2013"] .result-source,
+:root[data-retro="bing2013"] .result-thumb,
+:root[data-retro="bing2013"] .result .favicon {
+  display: none !important;
+}
+
+:root[data-retro="bing2013"] .retro-logo {
+  display: block;
+  position: absolute;
+  line-height: 0;
+  z-index: 2;
+}
+
+:root[data-retro="bing2013"] .retro-logo:hover {
+  text-decoration: none;
+}
+
+:root[data-retro="bing2013"] .retro-logo img {
+  display: block;
+  border: 0;
+}
+
+:root[data-retro="bing2013"] .search-container,
+:root[data-retro="bing2013"] header .search-container .search-bar {
+  display: block;
+  gap: 0;
+  outline: none;
+  max-width: none;
+}
+
+:root[data-retro="bing2013"] .search-bar input[name="q"] {
+  all: unset;
+  box-sizing: border-box;
+  float: left;
+  height: 100%;
+  color: #000;
+  font: 16px/normal Arial, Helvetica, sans-serif;
+  caret-color: auto;
+}
+
+:root[data-retro="bing2013"] .search-bar input[name="q"]::placeholder {
+  color: transparent;
+}
+
+:root[data-retro="bing2013"] .search-bar button[type="submit"] {
+  all: unset;
+  box-sizing: border-box;
+  float: left;
+  cursor: pointer;
+  font-size: 0;
+  transform: none;
+  scale: 1;
+  background-repeat: no-repeat;
+}
+
+:root[data-retro="bing2013"] .retro-footer {
+  display: block;
+}
+
+:root[data-retro="bing2013"] .retro-footer ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:root[data-retro="bing2013"] .retro-footer li {
+  display: inline;
+}
+
+:root[data-retro="bing2013"][data-page="home"],
+:root[data-retro="bing2013"][data-page="home"] body {
+  height: 100%;
+  background: #333;
+  overflow: hidden;
+}
+
+:root[data-retro="bing2013"][data-page="home"] {
+  scrollbar-gutter: auto;
+}
+
+:root[data-retro="bing2013"][data-page="home"] body {
+  position: relative;
+  min-height: 562px;
+}
+
+:root[data-retro="bing2013"][data-page="home"] body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  max-width: 1366px;
+  max-height: 768px;
+  background: #666 url(/s/retro-bing2013-bg.jpg) center / cover no-repeat;
+}
+
+:root[data-retro="bing2013"][data-page="home"] header {
+  position: absolute;
+  top: calc(max(0px, (100vh - 768px) / 2) + min(100vh, 768px) * 0.2);
+  left: max(8%, calc((100% - 1366px) / 2 + 109px));
+  width: 800px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  display: block;
+  z-index: 5;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .retro-logo {
+  position: static;
+  float: left;
+  margin: 0 12px 0 0;
+}
+
+:root[data-retro="bing2013"][data-page="home"] form {
+  float: left;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .search-bar {
+  box-sizing: content-box;
+  float: left;
+  width: auto;
+  height: 31px;
+  margin-top: 8px;
+  padding: 0 3px 0 0;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .search-bar input[name="q"] {
+  width: 393px;
+  padding: 0 5px 0 9px;
+  line-height: 31px;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .search-bar button[type="submit"] {
+  width: 27px;
+  height: 27px;
+  margin-top: 2px;
+  background-image: url(/s/retro-bing2013-homego.png);
+}
+
+:root[data-retro="bing2013"][data-page="home"] .links {
+  position: fixed;
+  top: max(0px, calc((100vh - 768px) / 2));
+  right: 0;
+  height: 35px;
+  margin: 0;
+  padding: 0 20px 0 0;
+  display: block;
+  line-height: 35px;
+  z-index: 10;
+  background: none;
+  font-size: 0;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .links > * {
+  display: none;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .links #open-settings {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  margin-top: 6px;
+  vertical-align: top;
+  background: url(/s/retro-bing2013-homepref.png) no-repeat;
+  overflow: hidden;
+  text-indent: -999px;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .links .b13-signin {
+  display: inline-block;
+  font-size: 13px;
+  color: #999;
+  margin-right: 14px;
+  vertical-align: top;
+}
+
+:root[data-retro="bing2013"] .b13-hdr {
+  display: none;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .b13-hdr {
+  display: block;
+  position: fixed;
+  top: max(0px, calc((100vh - 768px) / 2));
+  left: 0;
+  right: 0;
+  height: 35px;
+  background: #333;
+  z-index: 4;
+}
+
+:root[data-retro="bing2013"] .b13-hdr ul {
+  position: absolute;
+  bottom: 8px;
+  margin: 0;
+  padding: 0 0 0 8px;
+  list-style: none;
+}
+
+:root[data-retro="bing2013"] .b13-hdr li {
+  display: inline;
+  margin: 0 10px 0 9px;
+  color: #999;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+:root[data-retro="bing2013"] .b13-hdr li a {
+  color: #999;
+  text-transform: uppercase;
+}
+
+:root[data-retro="bing2013"] .b13-hdr li a.b13-plain {
+  text-transform: none;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .retro-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: max(0px, calc((100vh - 768px) / 2));
+  height: 35px;
+  background: #333;
+  z-index: 4;
+  overflow: hidden;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .retro-footer ul {
+  position: absolute;
+  right: 20px;
+  white-space: nowrap;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .retro-footer li {
+  line-height: 32px;
+  color: #666;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .retro-footer a,
+:root[data-retro="bing2013"][data-page="home"] .retro-footer span {
+  margin: 0 10px;
+  color: #666;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .retro-footer a.b13-fb {
+  color: #999;
+}
+
+:root[data-retro="bing2013"] .b13-caption {
+  display: none;
+}
+
+:root[data-retro="bing2013"][data-page="home"] .b13-caption {
+  display: block;
+  position: fixed;
+  right: 15px;
+  bottom: calc(max(0px, (100vh - 768px) / 2) + 39px);
+  z-index: 8;
+}
+
+:root[data-retro="bing2013"] .b13-caption a {
+  float: left;
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 0 5px;
+  background: url(/s/retro-bing2013-hpc.png) no-repeat;
+}
+
+:root[data-retro="bing2013"] .b13-caption .b13-info {
+  position: relative;
+  width: 80px;
+  height: 32px;
+  margin-left: 13px;
+  background-position: -151px 1px;
+}
+
+:root[data-retro="bing2013"] .b13-caption .b13-info:hover {
+  background-position: -151px -36px;
+  text-decoration: none;
+}
+
+:root[data-retro="bing2013"] .b13-caption .b13-info span {
+  position: absolute;
+  right: 3px;
+  bottom: 47px;
+  width: 500px;
+  visibility: hidden;
+}
+
+:root[data-retro="bing2013"] .b13-caption .b13-info:hover span {
+  visibility: visible;
+}
+
+:root[data-retro="bing2013"] .b13-caption .b13-info p {
+  float: right;
+  margin: 0;
+  padding: 0.45em;
+  background: #fff;
+  border: 1px solid #555;
+  color: #150417;
+  font-size: 13px;
+  line-height: normal;
+}
+
+:root[data-retro="bing2013"] .b13-caption .b13-down {
+  background-position: -30px -77px;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) body {
+  border-top: 5px solid #333;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) header {
+  display: block;
+  position: relative;
+  max-width: none;
+  width: auto;
+  height: 80px;
+  margin: 0;
+  padding: 0;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) .retro-logo {
+  top: 36px;
+  left: 18px;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) header form {
+  position: absolute;
+  top: 36px;
+  left: 227px;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) .search-bar {
+  box-sizing: content-box;
+  width: 540px;
+  height: 33px;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #999;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) .search-bar:has(input:focus) {
+  border-color: #36b;
+  outline: none;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) .search-bar input[name="q"] {
+  width: 491px;
+  padding: 0 2px 0 10px;
+  line-height: 33px;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) .search-bar button[type="submit"] {
+  width: 48px;
+  height: 33px;
+  background-image: url(/s/retro-bing2013-go.png), linear-gradient(#ccc, #ccc);
+  background-size: 20px 20px, 1px 21px;
+  background-position: 22px 7px, 0 6px;
+}
+
+:root[data-retro="bing2013"] .rimg-btn {
+  display: none !important;
+}
+
+:root[data-retro="bing2013"] nav.tabs {
+  position: absolute;
+  top: 12px;
+  left: 122px;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  display: block;
+  max-width: none;
+  white-space: nowrap;
+  border: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  z-index: 3;
+}
+
+:root[data-retro="bing2013"] nav.tabs::before,
+:root[data-retro="bing2013"] nav.tabs::after,
+:root[data-retro="bing2013"] nav.tabs .tab::before,
+:root[data-retro="bing2013"] nav.tabs .tab::after {
+  display: none !important;
+}
+
+:root[data-retro="bing2013"] nav.tabs .tab {
+  display: inline;
+  margin: 0 1.8em 0 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: #777;
+  font: 700 11px Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+:root[data-retro="bing2013"] nav.tabs .tab:hover {
+  text-decoration: underline;
+}
+
+:root[data-retro="bing2013"] nav.tabs .tab.active {
+  color: #000;
+}
+
+:root[data-retro="bing2013"] nav.tabs .b13-tab {
+  display: inline;
+  margin: 0 1.8em 0 0;
+  color: #777;
+}
+
+:root[data-retro="bing2013"] #options-btn {
+  all: unset;
+  position: absolute;
+  top: 36px;
+  right: 15px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  background: url(/s/retro-bing2013-pref.png) no-repeat;
+}
+
+:root[data-retro="bing2013"] #options-btn:focus-visible {
+  outline: 1px dotted #000;
+}
+
+:root[data-retro="bing2013"] .b13-signin-r {
+  position: absolute;
+  top: 36px;
+  right: 46px;
+  color: #727272;
+  font-size: 13px;
+  text-transform: none;
+  font-weight: 400;
+}
+
+:root[data-retro="bing2013"] #options-popup {
+  top: 58px;
+  right: 10px;
+  left: auto;
+  width: 230px;
+  background: #fff;
+  border: 1px solid #ccc;
+  color: #404040;
+  font: 400 13px Arial, Helvetica, sans-serif;
+  text-transform: none;
+  padding: 6px 0;
+}
+
+:root[data-retro="bing2013"] #options-popup .menu-row {
+  color: #404040;
+  font: 13px Arial, Helvetica, sans-serif;
+  background: none;
+}
+
+:root[data-retro="bing2013"] #options-popup .menu-row:hover {
+  background: #f5f5f5;
+}
+
+:root[data-retro="bing2013"] #options-popup .menu-sep {
+  border: 0;
+  border-top: 1px solid #e5e5e5;
+}
+
+:root[data-retro="bing2013"] #options-popup #open-settings span {
+  color: #1020d0;
+}
+
+:root[data-retro="bing2013"] #options-popup .slider {
+  background: #ccc;
+}
+
+:root[data-retro="bing2013"] #options-popup input:checked + .slider {
+  background: #ffa615;
+}
+
+:root[data-retro="bing2013"] #options-popup .menu-note {
+  color: #777;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) .body {
+  display: flex;
+  max-width: none;
+  width: auto;
+  margin: 0;
+  padding: 0 0 0 120px;
+  gap: 41px;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) main {
+  width: 520px;
+  max-width: 520px;
+  flex: none;
+}
+
+:root[data-retro="bing2013"][data-page="images"] main,
+:root[data-retro="bing2013"][data-page="maps"] main {
+  width: auto;
+  max-width: 1000px;
+  flex: 1;
+  margin-right: 20px;
+}
+
+:root[data-retro="bing2013"] aside#sidebar {
+  width: 245px;
+  min-width: 0;
+  max-width: 245px;
+  flex: none;
+  color: #404040;
+  font-size: 13px;
+}
+
+:root[data-retro="bing2013"] .retro-stats {
+  margin: 20px 0 12px 120px;
+  padding-bottom: 10px;
+  color: #000;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+:root[data-retro="bing2013"] .body main .retro-stats {
+  margin-left: 0;
+}
+
+:root[data-retro="bing2013"] .retro-stats::before {
+  content: attr(data-total) " results";
+}
+
+:root[data-retro="bing2013"] #results-all {
+  display: block;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+}
+
+:root[data-retro="bing2013"] article.result {
+  display: block;
+  margin: 0;
+  padding: 0 0 20px;
+  background: none;
+  border: 0;
+  color: #404040;
+  font-size: 13px;
+}
+
+:root[data-retro="bing2013"] article.result:hover {
+  background: none;
+}
+
+:root[data-retro="bing2013"] article.result .result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+:root[data-retro="bing2013"] article.result .result-title {
+  order: 1;
+  display: block;
+  margin: 0;
+  padding: 0;
+  color: #1020d0;
+  font: 16px/1.2em Arial, Helvetica, sans-serif;
+  text-decoration: underline;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  -webkit-line-clamp: unset;
+}
+
+:root[data-retro="bing2013"] article.result .result-title:visited {
+  color: #600090;
+}
+
+:root[data-retro="bing2013"] article.result .result-title strong,
+:root[data-retro="bing2013"] article.result .result-title b {
+  font-weight: 700;
+  color: inherit;
+}
+
+:root[data-retro="bing2013"] article.result .retro-url {
+  order: 2;
+  display: block;
+  margin: 0;
+  padding: 0 0 2px;
+  color: #009030;
+  font: normal 13px/18px Arial, Helvetica, sans-serif;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+:root[data-retro="bing2013"] article.result .result-desc {
+  order: 3;
+  margin: 0;
+  padding: 0;
+  color: #404040;
+  font: 13px/18px Arial, Helvetica, sans-serif;
+  -webkit-line-clamp: unset;
+  display: block;
+  overflow: visible;
+}
+
+:root[data-retro="bing2013"] article.result .result-desc strong,
+:root[data-retro="bing2013"] article.result .result-desc b {
+  font-weight: 700;
+  color: #404040;
+}
+
+:root[data-retro="bing2013"] article.result .sitelinks {
+  order: 4;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 20px;
+  margin: 6px 0 0;
+  padding: 0;
+  background: none;
+  border: 0;
+}
+
+:root[data-retro="bing2013"] article.result .sitelink {
+  display: block;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: #1020d0;
+  font-size: 13px;
+  line-height: 18px;
+  text-decoration: underline;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:root[data-retro="bing2013"] article.result > a:has(img),
+:root[data-retro="bing2013"] article.result > a:has(svg) {
+  display: none;
+}
+
+:root[data-retro="bing2013"] .rich-result,
+:root[data-retro="bing2013"] #results-all > section,
+:root[data-retro="bing2013"] #results-all > div:not(.engine-banner) {
+  background: #fff;
+  border-color: #e5e5e5;
+  color: #404040;
+}
+
+:root[data-retro="bing2013"] #loading-indicator {
+  color: #777;
+}
+
+:root[data-retro="bing2013"] aside#sidebar a {
+  color: #1020d0;
+}
+
+:root[data-retro="bing2013"] aside#sidebar :is(h1, h2, h3) {
+  color: #000;
+  font-weight: 400;
+}
+
+:root[data-retro="bing2013"] aside#sidebar :is(button, .show-more) {
+  background: #f5f5f5;
+  border: 1px solid #ccc;
+  color: #404040;
+}
+
+:root[data-retro="bing2013"] aside#sidebar :is(hr, .divider) {
+  border-color: #e5e5e5;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) .retro-footer {
+  clear: both;
+  width: 550px;
+  margin: 20px 0 0 110px;
+  border-top: 1px solid #ccc;
+  font-size: 13px;
+  line-height: 23px;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) .retro-footer ul {
+  margin: 7px 0 43px 10px;
+  color: #777;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) .retro-footer a,
+:root[data-retro="bing2013"]:not([data-page="home"]) .retro-footer span {
+  margin: 0.4em;
+  color: #777;
+}
+
+:root[data-retro="bing2013"]:not([data-page="home"]) .retro-footer a.b13-fb {
+  color: #04c;
+}
+
+:root[data-retro="bing2013"] article.result a,
+:root[data-retro="bing2013"] aside#sidebar a {
+  text-underline-offset: auto;
+  text-decoration-thickness: auto;
+  border-bottom: 0;
+}
+
+:root[data-retro="bing2013"] aside#sidebar :is(p, span, div, td, dd, dt) {
+  color: #404040;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] {
+  color-scheme: dark;
+  --bg: #1f1f1f;
+  --text: #c8c8c8;
+  --subtext: #a8a8a8;
+  --muted: #8a8a8a;
+  --surface0: #1f1f1f;
+  --surface1: #333;
+  --blue: #7f9bff;
+  --green: #4fbf6a;
+  --line: #333;
+  --line-strong: #4a4a4a;
+  background: #1f1f1f;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] body {
+  background: #1f1f1f;
+  color: #c8c8c8;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"][data-page="home"],
+:root[data-retro="bing2013"][data-scheme="dark"][data-page="home"] body {
+  background: #1a1a1a;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"][data-page="home"] .b13-hdr,
+:root[data-retro="bing2013"][data-scheme="dark"][data-page="home"] .retro-footer {
+  background: #222;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .b13-caption .b13-info p {
+  background: #2a2a2a;
+  border-color: #555;
+  color: #ddd;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] a,
+:root[data-retro="bing2013"][data-scheme="dark"] aside#sidebar a,
+:root[data-retro="bing2013"][data-scheme="dark"] article.result .result-title,
+:root[data-retro="bing2013"][data-scheme="dark"] article.result .sitelink,
+:root[data-retro="bing2013"][data-scheme="dark"] #options-popup #open-settings span {
+  color: #7f9bff;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] a:visited,
+:root[data-retro="bing2013"][data-scheme="dark"] article.result .result-title:visited {
+  color: #b58fe6;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] article.result .retro-url {
+  color: #4fbf6a;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"]:not([data-page="home"]) body {
+  border-top-color: #ffb900;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"]:not([data-page="home"]) .search-bar {
+  background: #2b2b2b;
+  border-color: #555;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"]:not([data-page="home"]) .search-bar:has(input:focus) {
+  border-color: #ffb900;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .search-bar input[name="q"] {
+  color: #eee;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"][data-page="home"] .search-bar {
+  background: #2b2b2b;
+  border-color: #444;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"]:not([data-page="home"]) .search-bar button[type="submit"] {
+  background-image: url(/s/retro-bing2013-go-dark.png), linear-gradient(#555, #555);
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] #options-btn {
+  background-image: url(/s/retro-bing2013-pref-dark.png);
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] #options-btn:focus-visible {
+  outline-color: #ddd;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] nav.tabs .tab,
+:root[data-retro="bing2013"][data-scheme="dark"] nav.tabs .b13-tab {
+  color: #8a8a8a;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] nav.tabs .tab.active {
+  color: #fff;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .b13-signin-r {
+  color: #999;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] #options-popup {
+  background: #262626;
+  border-color: #444;
+  color: #c8c8c8;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] #options-popup .menu-row {
+  color: #c8c8c8;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] #options-popup .menu-row:hover {
+  background: #333;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] #options-popup .menu-sep {
+  border-top-color: #3a3a3a;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] #options-popup .slider {
+  background: #555;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] #options-popup .menu-note,
+:root[data-retro="bing2013"][data-scheme="dark"] #loading-indicator {
+  color: #8a8a8a;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .retro-stats {
+  color: #9a9a9a;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] article.result,
+:root[data-retro="bing2013"][data-scheme="dark"] article.result .result-desc,
+:root[data-retro="bing2013"][data-scheme="dark"] article.result .result-desc strong,
+:root[data-retro="bing2013"][data-scheme="dark"] article.result .result-desc b,
+:root[data-retro="bing2013"][data-scheme="dark"] aside#sidebar,
+:root[data-retro="bing2013"][data-scheme="dark"] aside#sidebar :is(p, span, div, td, dd, dt) {
+  color: #c8c8c8;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .rich-result,
+:root[data-retro="bing2013"][data-scheme="dark"] #results-all > section,
+:root[data-retro="bing2013"][data-scheme="dark"] #results-all > div:not(.engine-banner),
+:root[data-retro="bing2013"][data-scheme="dark"] aside#sidebar > *,
+:root[data-retro="bing2013"][data-scheme="dark"] main :is(.infobox, .news-item, .image-grid, .map-container, .widget) {
+  background-color: #1f1f1f;
+  border-color: #333;
+  color: #c8c8c8;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] aside#sidebar :is(h1, h2, h3) {
+  color: #eee;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] aside#sidebar :is(button, .show-more) {
+  background: #2b2b2b;
+  border-color: #4a4a4a;
+  color: #c8c8c8;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] aside#sidebar :is(hr, .divider) {
+  border-color: #333;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"]:not([data-page="home"]) .retro-footer {
+  border-top-color: #3a3a3a;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"]:not([data-page="home"]) .retro-footer :is(ul, a, span) {
+  color: #8a8a8a;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"]:not([data-page="home"]) .retro-footer a.b13-fb {
+  color: #7f9bff;
+}
+
+@media (max-width: 760px) {
+  :root[data-retro="bing2013"] body {
+    min-width: 0;
+  }
+  :root[data-retro="bing2013"]:not([data-page="home"]) header {
+    height: auto;
+    padding: 8px 12px 0;
+  }
+  :root[data-retro="bing2013"]:not([data-page="home"]) header .retro-logo {
+    position: static;
+    display: block;
+    margin: 30px 0 8px;
+  }
+  :root[data-retro="bing2013"]:not([data-page="home"]) header form {
+    position: static;
+    width: auto;
+    max-width: none;
+  }
+  :root[data-retro="bing2013"]:not([data-page="home"]) header .search-bar {
+    display: flex;
+    width: auto;
+  }
+  :root[data-retro="bing2013"]:not([data-page="home"]) header .search-bar input {
+    min-width: 0;
+    width: auto;
+    flex: 1;
+  }
+  :root[data-retro="bing2013"]:not([data-page="home"]) nav.tabs {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+  :root[data-retro="bing2013"]:not([data-page="home"]) .b13-signin-r {
+    display: none;
+  }
+  :root[data-retro="bing2013"]:not([data-page="home"]) .body {
+    display: block;
+    padding: 0 12px;
+  }
+  :root[data-retro="bing2013"]:not([data-page="home"]) main,
+  :root[data-retro="bing2013"]:not([data-page="home"]) #sidebar {
+    width: auto;
+    max-width: none;
+    margin: 0;
+  }
+  :root[data-retro="bing2013"]:not([data-page="home"]) .retro-footer {
+    width: auto;
+    margin-left: 0;
+    padding-left: 12px;
+  }
+  :root[data-retro="bing2013"]:not([data-page="home"]) .retro-footer ul {
+    width: auto;
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+}
+
+:root[data-retro="bing2013"] #options-popup {
+  border-radius: 0;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.2);
+  padding: 2px 0;
+}
+
+:root[data-retro="bing2013"] #options-popup .menu-row {
+  border-radius: 0;
+  padding: 4px 12px;
+  min-height: 0;
+}
+
+:root[data-retro="bing2013"] #options-popup .menu-row:hover {
+  background: #f2f2f2;
+}
+
+:root[data-retro="bing2013"] #options-popup .switch {
+  width: auto;
+  height: auto;
+}
+
+:root[data-retro="bing2013"] #options-popup .switch input {
+  position: static;
+  opacity: 1;
+  appearance: auto;
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  accent-color: #1020d0;
+}
+
+:root[data-retro="bing2013"] #options-popup .slider,
+:root[data-retro="bing2013"] #options-popup .menu-chevron {
+  display: none;
+}
+
+:root[data-retro="bing2013"] #options-popup .menu-value {
+  border: 1px solid #c8c8c8;
+  background: #fff;
+  padding: 0 18px 0 4px;
+  border-radius: 0;
+  position: relative;
+  font-size: 13px;
+}
+
+:root[data-retro="bing2013"] #options-popup .menu-value::after {
+  content: "▼";
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  translate: 0 -50%;
+  font-size: 8px;
+  color: #1020d0;
+}
+
+:root[data-retro="bing2013"] #options-popup .menu-sep {
+  background: #ccc;
+  margin: 2px 0;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] #options-popup .menu-row:hover {
+  background: #333;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] #options-popup .menu-value {
+  background: #1f1f1f;
+  border-color: #404040;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] #options-popup .menu-value::after {
+  color: #7f9bff;
+}
+
+:root[data-retro="bing2013"] .result-skeleton {
+  display: none;
+}
+
+:root[data-retro="bing2013"] .rich-weather :is(.wx-stage, .wx-axis, .wx-tab-bar, .wx-day-pill, .wx-tab-on, .wx-tab:not(:has(.wx-tab-val))) {
+  display: none;
+}
+
+:root[data-retro="bing2013"] .rich-weather .wx-tabs {
+  border: 0;
+  gap: 0 12px;
+  margin: 4px 0 8px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+:root[data-retro="bing2013"] .rich-weather .wx-tab {
+  pointer-events: none;
+  padding: 0;
+  font-size: 13px;
+  color: #000;
+}
+
+:root[data-retro="bing2013"] .rich-weather :is(.wx-tab-label, .wx-tab-val) {
+  display: inline;
+  color: inherit;
+  font-weight: normal;
+  opacity: 1;
+  margin: 0 0 0 4px;
+}
+
+:root[data-retro="bing2013"] .rich-weather .wx-tab-label {
+  margin: 0;
+}
+
+:root[data-retro="bing2013"] .rich-weather .wx-tab-label::first-letter {
+  text-transform: uppercase;
+}
+
+:root[data-retro="bing2013"] .rich-weather .wx-tab-label::after {
+  content: ":";
+}
+
+:root[data-retro="bing2013"] .rich-weather .wx-days {
+  border-top: 0;
+  gap: 0;
+  justify-content: flex-start;
+}
+
+:root[data-retro="bing2013"] .rich-weather .wx-day {
+  flex: 0 0 auto;
+  min-width: 56px;
+  border-radius: 0;
+  padding: 4px 6px;
+  font-size: 13px;
+  background: none;
+}
+
+:root[data-retro="bing2013"] .rich-weather .wx-lo {
+  color: #777;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .rich-weather .wx-tab {
+  color: #ddd;
+}
+
+:root[data-retro="bing2013"] .news-section .scroller-btn {
+  display: none;
+}
+
+:root[data-retro="bing2013"] .news-section :is(.scroller, .news-gallery) {
+  display: block;
+  overflow: visible;
+  mask: none;
+  -webkit-mask: none;
+  padding: 0;
+  margin: 0;
+}
+
+:root[data-retro="bing2013"] .news-section .news-card {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0 0 8px;
+  height: auto;
+}
+
+:root[data-retro="bing2013"] .news-section :is(.news-card-thumb, .news-card-thumb-placeholder) {
+  display: none;
+}
+
+:root[data-retro="bing2013"] .news-section .news-card-header {
+  justify-content: flex-start;
+  padding: 0;
+  font-size: 13px;
+  color: #777;
+  gap: 0;
+}
+
+:root[data-retro="bing2013"] .news-section .news-card-header .favicon {
+  display: none;
+}
+
+:root[data-retro="bing2013"] .news-section .news-card-source {
+  flex: 0 1 auto;
+}
+
+:root[data-retro="bing2013"] .news-section .news-card-site {
+  color: #006d21;
+  font-weight: normal;
+  font-size: 13px;
+}
+
+:root[data-retro="bing2013"] .news-section .news-card-age {
+  font-size: 13px;
+}
+
+:root[data-retro="bing2013"] .rich-weather .wx-stats {
+  font-size: 13px;
+}
+
+:root[data-retro="bing2013"] .rich-weather .wx-stats dt {
+  color: inherit;
+}
+
+:root[data-retro="bing2013"] .news-section .news-card-age::before {
+  content: " - ";
+  white-space: pre;
+}
+
+:root[data-retro="bing2013"] .news-section .news-card-title {
+  order: -1;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 1.2;
+  color: #1020d0;
+  text-decoration: none;
+  -webkit-line-clamp: unset;
+  display: block;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .news-section .news-card-title {
+  color: #7f9bff;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .news-section .news-card-site {
+  color: #6c6;
+}
+
+:root[data-retro="bing2013"] .image-detail-panel {
+  --detail-bg: #fff;
+  width: auto;
+  margin: 12px 0;
+  flex-basis: 100%;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  color: #000;
+}
+
+:root[data-retro="bing2013"] .image-detail-panel::before,
+:root[data-retro="bing2013"] .image-detail-panel::after {
+  display: none;
+}
+
+:root[data-retro="bing2013"] .image-detail-panel :is(button, a) {
+  border-radius: 0;
+}
+
+:root[data-retro="bing2013"] .image-detail-panel .image-detail-header button {
+  background: #f2f2f2;
+  border: 1px solid #ccc;
+  color: #000;
+}
+
+:root[data-retro="bing2013"] .image-detail-panel .image-detail-title {
+  font-size: 16px;
+  font-weight: normal;
+  color: #000;
+}
+
+:root[data-retro="bing2013"] .image-detail-panel .image-detail-source a {
+  color: #006d21;
+}
+
+:root[data-retro="bing2013"] .image-detail-panel .image-detail-actions a {
+  background: none;
+  color: #1020d0;
+  padding: 0;
+  font-weight: normal;
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+:root[data-retro="bing2013"] .image-detail-panel .image-detail-actions a svg {
+  display: none;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .image-detail-panel {
+  --detail-bg: #1f1f1f;
+  border-color: #404040;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .image-detail-panel .image-detail-title {
+  color: #ddd;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .image-detail-panel .image-detail-header button {
+  background: #333;
+  border-color: #404040;
+  color: #ddd;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .image-detail-panel .image-detail-actions a {
+  color: #7f9bff;
+}
+
+:root[data-retro="bing2013"] .rich-calculator {
+  font-size: 13px;
+}
+
+:root[data-retro="bing2013"] .rich-calculator :is(.rich-calc-expr, .rich-calc-answer) {
+  font-size: 22px;
+  font-weight: bold;
+  color: #000;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .rich-calculator :is(.rich-calc-expr, .rich-calc-answer) {
+  color: #ddd;
+}
+
+:root[data-retro="bing2013"] :is(.w-cur-box, .w-cur-swap, .w-cur-pick, .w-cur-sel, .w-cur-retry) {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+:root[data-retro="bing2013"] .w-cur-box {
+  border: 1px solid;
+  border-color: #c0c0c0 #d9d9d9 #d9d9d9;
+  border-top-color: #a0a0a0;
+  height: auto;
+  min-height: 0;
+}
+
+:root[data-retro="bing2013"] .w-cur-amt {
+  font-size: 16px;
+  padding: 4px 6px;
+}
+
+:root[data-retro="bing2013"] :is(.w-cur-pick, .w-cur-swap) {
+  background: #f2f2f2;
+  border: 1px solid #ccc;
+  font-size: 13px;
+  font-weight: normal;
+  color: #000;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] .w-cur-box {
+  border-color: #404040;
+}
+
+:root[data-retro="bing2013"][data-scheme="dark"] :is(.w-cur-pick, .w-cur-swap) {
+  background: #333;
+  border-color: #404040;
+  color: #ddd;
+}
+
+@media (max-width: 560px) {
+  :root[data-retro="bing2013"][data-page="home"] header {
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
+  :root[data-retro="bing2013"][data-page="home"] .retro-logo {
+    float: none;
+    display: block;
+    margin: 0;
+  }
+  :root[data-retro="bing2013"][data-page="home"] .retro-logo img {
+    max-width: 100%;
+    height: auto;
+  }
+  :root[data-retro="bing2013"][data-page="home"] :is(form, .search-container) {
+    float: none;
+    display: block;
+    width: 100%;
+  }
+  :root[data-retro="bing2013"][data-page="home"] .search-bar {
+    float: none;
+    display: flex;
+    width: auto;
+  }
+  :root[data-retro="bing2013"][data-page="home"] .search-bar input[name="q"] {
+    width: auto;
+    min-width: 0;
+    flex: 1;
+  }
+  :root[data-retro="bing2013"][data-page="home"] .b13-hdr ul {
+    left: 0;
+    right: 76px;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  :root[data-retro="bing2013"][data-page="home"] .b13-hdr li {
+    margin: 0 6px;
+  }
+  :root[data-retro="bing2013"][data-page="home"] .links .b13-signin {
+    display: none;
+  }
+  :root[data-retro="bing2013"][data-page="home"] .retro-footer ul {
+    left: 0;
+    right: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+}

@@ -1,5 +1,6 @@
 import braveData from "./braveData.js";
 import braveFetch from "./braveFetch.js";
+import uncloak from "./uncloak.js";
 
 export default async function searchNews(
   query,
@@ -28,35 +29,38 @@ export default async function searchNews(
     const simplified = braveData(raw);
     const newsResults = simplified?.response?.news?.results || [];
 
-    return {
-      pow_low: resp.powLow,
-      more_results_available:
-        simplified?.response?.query?.more_results_available ?? false,
-      results: newsResults.map((r) => ({
-        title: r.title,
-        url: r.url,
-        description: r.description,
-        age: r.age,
-        meta_url: r.meta_url
-          ? {
-              hostname: r.meta_url.hostname,
-              favicon: r.meta_url.favicon,
-            }
-          : null,
-        profile: r.profile
-          ? {
-              name: r.profile.name,
-              img: r.profile.img,
-            }
-          : null,
-        thumbnail: r.thumbnail
-          ? {
-              src: r.thumbnail.src,
-            }
-          : null,
-        is_live: r.is_live || false,
-      })),
-    };
+    return await uncloak(
+      {
+        pow_low: resp.powLow,
+        more_results_available:
+          simplified?.response?.query?.more_results_available ?? false,
+        results: newsResults.map((r) => ({
+          title: r.title,
+          url: r.url,
+          description: r.description,
+          age: r.age,
+          meta_url: r.meta_url
+            ? {
+                hostname: r.meta_url.hostname,
+                favicon: r.meta_url.favicon,
+              }
+            : null,
+          profile: r.profile
+            ? {
+                name: r.profile.name,
+                img: r.profile.img,
+              }
+            : null,
+          thumbnail: r.thumbnail
+            ? {
+                src: r.thumbnail.src,
+              }
+            : null,
+          is_live: r.is_live || false,
+        })),
+      },
+      { clearance, safe },
+    );
   } catch (e) {
     console.error("news search parse error:", e);
     throw new Error(`brave news parse failed (${resp.status})`);

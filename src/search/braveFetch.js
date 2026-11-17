@@ -35,6 +35,10 @@ const braveFetch = async (url, options = {}) => {
     "cache-control": "max-age=0",
     ...options.headers,
   };
+  if (headers["sec-fetch-mode"] !== "navigate") {
+    delete headers["sec-fetch-user"];
+    delete headers["cache-control"];
+  }
 
   let lastErr;
   let clearance = db ? cachedClearance({ tokens }) : null;
@@ -52,6 +56,7 @@ const braveFetch = async (url, options = {}) => {
           ? { ...headers, Cookie: `${headers.Cookie}; ${clearance.cookie}` }
           : headers,
         body: options.body,
+        redirect: options.redirect ?? "follow",
         signal: ac.signal,
       });
       const bodyText = await resp.text();

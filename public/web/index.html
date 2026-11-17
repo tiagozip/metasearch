@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script>try{const d=document.documentElement,L=localStorage;const a=L.getItem("ms-accent");if(a)d.style.setProperty("--blue",a);if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";const m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",()=> {const s=`/s/${m}.webp`,f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach((i)=> {i.src=s;i.style.objectFit="contain"})})}}catch{}</script>
+    <script>try{const d=document.documentElement,L=localStorage;const a=L.getItem("ms-accent");if(a)d.style.setProperty("--blue",a);if(L.getItem("ms-theme")==="amoled")d.dataset.theme="amoled";const r=L.getItem("ms-retro");if(r&&/^[a-z0-9]+$/.test(r)){d.dataset.retro=r;const k=L.getItem("ms-retro-scheme");d.dataset.scheme=k==="dark"||k==="light"?k:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.write(`<link rel="stylesheet" href="/s/retro-${r}.css"><script type="module" src="/s/retro.js"><\/script>`)}const m=L.getItem("ms-mascot");if(m&&m!=="teto"){d.dataset.mascot=m;addEventListener("DOMContentLoaded",()=> {const s=`/s/${m}.webp`,f=document.querySelector("link[rel~=icon]");if(f)f.href=s;document.querySelectorAll('img[src*="teto"]').forEach((i)=> {i.src=s;i.style.objectFit="contain"})})}}catch{}</script>
     <script async data-domain="search.tiago.zip" src="https://palantir.estrogen.delivery/Pn7xQk2.privacy.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>%%pageTitle%%</title>

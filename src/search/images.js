@@ -1,5 +1,6 @@
 import braveData from "./braveData.js";
 import braveFetch from "./braveFetch.js";
+import uncloak from "./uncloak.js";
 
 export const IMG_SIZES = ["small", "medium", "large"];
 export const IMG_LAYOUTS = ["wide", "tall", "square"];
@@ -48,32 +49,35 @@ export default async function searchImages(
       return !layout || layoutOf(w, h) === layout;
     };
 
-    return {
-      pow_low: resp.powLow,
-      more_results_available:
-        simplified.body?.response?.query?.more_results_available ?? false,
-      results: imageResults
-        .map((r) => ({
-          title: r.title,
-          url: r.url,
-          source: r.source,
-          thumbnail: r.thumbnail?.src || r.properties?.url,
-          properties: r.properties
-            ? {
-                url: r.properties.url,
-                width: r.properties.width,
-                height: r.properties.height,
-              }
-            : null,
-          meta_url: r.meta_url
-            ? {
-                hostname: r.meta_url.hostname,
-                favicon: r.meta_url.favicon,
-              }
-            : null,
-        }))
-        .filter(keep),
-    };
+    return await uncloak(
+      {
+        pow_low: resp.powLow,
+        more_results_available:
+          simplified.body?.response?.query?.more_results_available ?? false,
+        results: imageResults
+          .map((r) => ({
+            title: r.title,
+            url: r.url,
+            source: r.source,
+            thumbnail: r.thumbnail?.src || r.properties?.url,
+            properties: r.properties
+              ? {
+                  url: r.properties.url,
+                  width: r.properties.width,
+                  height: r.properties.height,
+                }
+              : null,
+            meta_url: r.meta_url
+              ? {
+                  hostname: r.meta_url.hostname,
+                  favicon: r.meta_url.favicon,
+                }
+              : null,
+          }))
+          .filter(keep),
+      },
+      { clearance, safe },
+    );
   } catch (e) {
     console.error("image search parse error:", e);
     throw new Error(`brave image parse failed (${resp.status})`);

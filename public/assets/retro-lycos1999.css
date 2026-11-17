@@ -1,0 +1,1195 @@
+:root[data-retro="lycos1999"] {
+  color-scheme: light;
+  --bg: #fff;
+  --text: #000;
+  --subtext0: #000;
+  --subtext1: #000;
+  --surface0: #fff;
+  --surface1: #fff;
+  --surface2: #fff;
+  --mantle: #fff;
+  --crust: #fff;
+  --base: #fff;
+  --muted: #666;
+  --blue: #00f;
+  background: #fff;
+}
+
+:root[data-retro="lycos1999"] body {
+  background: #fff !important;
+  color: #000 !important;
+  font-family: "Times New Roman", Times, serif !important;
+  font-size: 16px;
+  margin: 5px 8px 8px !important;
+  padding: 0 !important;
+  max-width: none !important;
+  min-height: 0;
+  display: block !important;
+}
+
+:root[data-retro="lycos1999"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *),
+:root[data-retro="lycos1999"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *)::before,
+:root[data-retro="lycos1999"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *)::after {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transition: none !important;
+  animation: none !important;
+  text-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+:root[data-retro="lycos1999"] a {
+  color: #00f;
+  text-decoration: underline;
+}
+
+:root[data-retro="lycos1999"] a:visited {
+  color: #800080;
+}
+
+:root[data-retro="lycos1999"] a:active {
+  color: #f00;
+}
+
+:root[data-retro="lycos1999"] .omnibox-goo,
+:root[data-retro="lycos1999"] .omnibox-shade,
+:root[data-retro="lycos1999"] .teto,
+:root[data-retro="lycos1999"] header > img,
+:root[data-retro="lycos1999"] .search-bar svg,
+:root[data-retro="lycos1999"] #sidebar,
+:root[data-retro="lycos1999"] .engine-banner,
+:root[data-retro="lycos1999"] .faq-section,
+:root[data-retro="lycos1999"] .discussions-section,
+:root[data-retro="lycos1999"] .result-source,
+:root[data-retro="lycos1999"] .sitelinks,
+:root[data-retro="lycos1999"] .result-thumb,
+:root[data-retro="lycos1999"] .result img,
+:root[data-retro="lycos1999"] .links {
+  display: none !important;
+}
+
+:root[data-retro="lycos1999"] header {
+  all: unset;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  width: 600px;
+  margin: 0 auto !important;
+  position: static !important;
+  background: #fff !important;
+  border: 0 !important;
+}
+
+:root[data-retro="lycos1999"] header::before,
+:root[data-retro="lycos1999"] header::after,
+:root[data-retro="lycos1999"] nav.tabs::before,
+:root[data-retro="lycos1999"] nav.tabs::after,
+:root[data-retro="lycos1999"] .tab-indicator,
+:root[data-retro="lycos1999"] .search-bar::before,
+:root[data-retro="lycos1999"] .search-bar::after {
+  display: none !important;
+}
+
+:root[data-retro="lycos1999"] .retro-logo,
+:root[data-retro="lycos1999"] .retro-logo img {
+  display: block !important;
+  border: 0;
+  width: 701px;
+  height: 39px;
+}
+
+:root[data-retro="lycos1999"] .ly-net {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 701px;
+  height: 20px;
+  background: #eee;
+  font: 10px verdana, helvetica, sans-serif;
+  padding-right: 4px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+:root[data-retro="lycos1999"] header form,
+:root[data-retro="lycos1999"] .search-container {
+  all: unset;
+  display: block;
+  border: 0 !important;
+  background: none !important;
+  outline: 0 !important;
+}
+
+:root[data-retro="lycos1999"] header form {
+  width: 550px;
+  margin-top: 4px;
+}
+
+:root[data-retro="lycos1999"] .search-bar {
+  all: unset;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  border: 0 !important;
+  background: none !important;
+  outline: 0 !important;
+  height: 59px !important;
+  max-width: none !important;
+}
+
+:root[data-retro="lycos1999"] .ly-dog {
+  display: block !important;
+  width: 44px;
+  height: 55px;
+  margin: 2px 4px 2px 2px;
+}
+
+:root[data-retro="lycos1999"] .ly-for {
+  font: bold 13px verdana, helvetica, sans-serif;
+  padding: 10px 2px 0;
+}
+
+:root[data-retro="lycos1999"] input[name="q"] {
+  all: unset;
+  box-sizing: border-box;
+  margin-top: 8px;
+  font: 13.333px monospace;
+  color: #000;
+  background: #fff;
+  border: 2px inset #eee;
+  padding: 1px 2px;
+  height: 22px;
+  width: 224px;
+}
+
+:root[data-retro="lycos1999"] input[name="q"]::placeholder {
+  color: transparent;
+}
+
+:root[data-retro="lycos1999"] .search-bar button[type="submit"] {
+  all: unset;
+  display: block;
+  margin-top: 18px;
+  width: 84px !important;
+  height: 20px !important;
+  margin-left: 4px;
+  width: 84px;
+  background: url(/s/retro-lycos1999-ggi.png) no-repeat !important;
+  border: 0 !important;
+  cursor: pointer;
+  position: static !important;
+  aspect-ratio: auto !important;
+}
+
+:root[data-retro="lycos1999"] .ly-sub {
+  margin: -6px 0 0 110px;
+  text-align: center;
+  font: 10px verdana, helvetica, sans-serif;
+  padding: 2px;
+}
+
+:root[data-retro="lycos1999"] #open-settings,
+:root[data-retro="lycos1999"] #options-btn {
+  all: unset;
+  color: #00f;
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
+:root[data-retro="lycos1999"] #options-btn svg {
+  display: none;
+}
+
+:root[data-retro="lycos1999"] .ly-tools {
+  width: 550px;
+  margin: 18px auto 0;
+  font: 10px/1.3 verdana, helvetica, sans-serif;
+  text-align: center;
+}
+
+:root[data-retro="lycos1999"] .retro-footer {
+  width: 600px;
+  margin: 28px auto 8px;
+  text-align: center;
+  font: 10px/1.25 verdana, helvetica, sans-serif;
+}
+
+:root[data-retro="lycos1999"] .ly-foot p {
+  margin: 12px 0;
+}
+
+:root[data-retro="lycos1999"] .ly-foot img {
+  display: inline-block;
+}
+
+:root[data-retro="lycos1999"]:not([data-page="home"]) header nav.tabs {
+  all: unset;
+  order: 5;
+  display: flex !important;
+  width: 600px;
+  gap: 0;
+  margin-top: 6px;
+  background: #fc0;
+  font: bold 11px verdana, helvetica, sans-serif;
+  position: static !important;
+}
+
+:root[data-retro="lycos1999"] nav.tabs a.tab {
+  all: unset;
+  color: #000;
+  padding: 3px 10px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+:root[data-retro="lycos1999"] nav.tabs a.tab.active {
+  background: #fff;
+  border: 1px solid #fc0;
+  border-bottom: 0;
+  text-decoration: none;
+}
+
+:root[data-retro="lycos1999"] .options-popup {
+  background: #ffc !important;
+  color: #000 !important;
+  border: 1px solid #cc9 !important;
+  font: 11px verdana, helvetica, sans-serif !important;
+}
+
+:root[data-retro="lycos1999"] .body {
+  display: block !important;
+  width: 600px;
+  max-width: none !important;
+  padding: 0 !important;
+  margin: 0 auto !important;
+  grid-template-columns: none !important;
+}
+
+:root[data-retro="lycos1999"] main {
+  max-width: none !important;
+  width: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+:root[data-retro="lycos1999"] .retro-stats {
+  display: block;
+  background: #ffc;
+  border: 1px solid #cc9;
+  font: 12px verdana, helvetica, sans-serif;
+  padding: 4px;
+  margin: 10px 0 12px;
+}
+
+:root[data-retro="lycos1999"] .retro-stats::before {
+  content: "WEB SITES";
+  font-weight: bold;
+  color: #900;
+  margin-right: 10px;
+}
+
+:root[data-retro="lycos1999"] .retro-stats::after {
+  content: "Showing Results 1-" attr(data-count) " of " attr(data-total) " for " attr(data-q);
+}
+
+:root[data-retro="lycos1999"] #results-all {
+  display: block !important;
+  max-width: none !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  counter-reset: ly;
+}
+
+:root[data-retro="lycos1999"] #results-all > * {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  color: #000;
+}
+
+:root[data-retro="lycos1999"] #results-all article.result {
+  all: unset;
+  display: block !important;
+  margin: 0 0 14px !important;
+  padding: 0 0 0 26px !important;
+  position: relative;
+  counter-increment: ly;
+  font: 13px verdana, helvetica, sans-serif;
+}
+
+:root[data-retro="lycos1999"] article.result::before {
+  content: counter(ly) ".";
+  position: absolute;
+  left: 0;
+  width: 22px;
+  text-align: right;
+  font: 13px verdana, helvetica, sans-serif;
+}
+
+:root[data-retro="lycos1999"] article.result .result-content {
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  gap: 0 !important;
+}
+
+:root[data-retro="lycos1999"] .result-title {
+  all: unset;
+  display: inline !important;
+  font: bold 13px verdana, helvetica, sans-serif !important;
+  color: #00f !important;
+  text-decoration: underline !important;
+  cursor: pointer;
+}
+
+:root[data-retro="lycos1999"] .result-title:visited {
+  color: #800080 !important;
+}
+
+:root[data-retro="lycos1999"] .result-title * {
+  font: inherit !important;
+  color: inherit !important;
+}
+
+:root[data-retro="lycos1999"] .result-desc {
+  all: unset;
+  display: block !important;
+  font: 12px/1.25 verdana, helvetica, sans-serif !important;
+  color: #000 !important;
+  margin: 1px 0 0 !important;
+  -webkit-line-clamp: unset !important;
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+:root[data-retro="lycos1999"] .result-desc strong,
+:root[data-retro="lycos1999"] .result-desc b {
+  font-weight: normal;
+  color: #000;
+}
+
+:root[data-retro="lycos1999"] .retro-url {
+  display: block;
+  font: 10px verdana, helvetica, sans-serif;
+  font-style: normal;
+  color: #666;
+}
+
+:root[data-retro="lycos1999"] .retro-url::before {
+  content: "http://";
+}
+
+:root[data-retro="lycos1999"] .rich-result {
+  background: #fff !important;
+  color: #000 !important;
+  border: 0 !important;
+  font-family: verdana, helvetica, sans-serif !important;
+  font-size: 12px;
+  padding: 0 0 14px !important;
+}
+
+:root[data-retro="lycos1999"] #loading-indicator {
+  color: #666;
+  font: 11px verdana, helvetica, sans-serif;
+}
+
+:root[data-retro="lycos1999"] .image-grid,
+:root[data-retro="lycos1999"] .images-grid {
+  background: #fff !important;
+}
+
+:root[data-retro="lycos1999"] .ly-dir {
+  display: grid;
+  grid-template-columns: 215px 215px;
+  column-gap: 0;
+  row-gap: 22px;
+  width: 430px;
+  margin: 30px auto 0;
+  font: 10px verdana, helvetica, sans-serif;
+}
+
+:root[data-retro="lycos1999"] .ly-dir h3 {
+  margin: 0;
+  font: bold 17px verdana, helvetica, sans-serif;
+}
+
+:root[data-retro="lycos1999"] .ly-foot {
+  border-top: 2px groove #eee;
+  padding-top: 12px;
+}
+
+:root[data-retro="lycos1999"] nav.tabs a.tab {
+  position: relative !important;
+}
+
+:root[data-retro="lycos1999"] nav.tabs a.tab::before,
+:root[data-retro="lycos1999"] nav.tabs a.tab::after {
+  display: none !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] {
+  color-scheme: dark;
+  --bg: #0c0c16;
+  --text: #e6e6e6;
+  --subtext0: #e6e6e6;
+  --subtext1: #e6e6e6;
+  --surface0: #0c0c16;
+  --surface1: #0c0c16;
+  --surface2: #0c0c16;
+  --mantle: #0c0c16;
+  --crust: #0c0c16;
+  --base: #0c0c16;
+  --muted: #9a9aa8;
+  --blue: #7fb2ff;
+  background: #0c0c16;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] body {
+  background: #0c0c16 !important;
+  color: #e6e6e6 !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] a,
+:root[data-retro="lycos1999"][data-scheme="dark"] #open-settings,
+:root[data-retro="lycos1999"][data-scheme="dark"] #options-btn {
+  color: #7fb2ff;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] a:visited {
+  color: #c99cff;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] a:active {
+  color: #ff6a5a;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] header {
+  background: #0c0c16 !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .ly-net {
+  background: #24242e;
+  color: #ccc;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .ly-dog {
+  content: url(/s/retro-lycos1999-dog-dark.png);
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .search-bar button[type="submit"] {
+  background-image: url(/s/retro-lycos1999-ggi-dark.png) !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] input[name="q"] {
+  color: #fff;
+  background: #000;
+  border-color: #555;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"]:not([data-page="home"]) header nav.tabs {
+  background: #c90;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] nav.tabs a.tab {
+  color: #000;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] nav.tabs a.tab.active {
+  background: #0c0c16;
+  color: #fc0;
+  border-color: #c90;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .options-popup,
+:root[data-retro="lycos1999"][data-scheme="dark"] .retro-stats {
+  background: #2a2614 !important;
+  color: #eee !important;
+  border-color: #6b6230 !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .retro-stats::before {
+  color: #ff7a6a;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] #results-all > *,
+:root[data-retro="lycos1999"][data-scheme="dark"] .result-desc,
+:root[data-retro="lycos1999"][data-scheme="dark"] .result-desc strong,
+:root[data-retro="lycos1999"][data-scheme="dark"] .result-desc b {
+  color: #e6e6e6 !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .result-title {
+  color: #7fb2ff !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .result-title:visited {
+  color: #c99cff !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .retro-url,
+:root[data-retro="lycos1999"][data-scheme="dark"] #loading-indicator {
+  color: #9a9aa8;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-result,
+:root[data-retro="lycos1999"][data-scheme="dark"] .image-grid,
+:root[data-retro="lycos1999"][data-scheme="dark"] .images-grid {
+  background: #0c0c16 !important;
+  color: #e6e6e6 !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .ly-foot {
+  border-top-color: #333;
+}
+
+:root[data-retro="lycos1999"] .rich-weather {
+  zoom: 0.72;
+  border: 1px solid #cc9 !important;
+  padding: 8px 10px 10px !important;
+  margin-bottom: 16px;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-weather {
+  border-color: #554 !important;
+}
+
+@media (max-width: 720px) {
+  :root[data-retro="lycos1999"] body {
+    overflow-x: hidden;
+  }
+
+  :root[data-retro="lycos1999"] header,
+  :root[data-retro="lycos1999"] .body {
+    width: auto;
+  }
+
+  :root[data-retro="lycos1999"] .retro-logo,
+  :root[data-retro="lycos1999"] .retro-logo img,
+  :root[data-retro="lycos1999"] .ly-net {
+    width: 100%;
+    height: auto;
+  }
+
+  :root[data-retro="lycos1999"] .ly-net {
+    overflow: hidden;
+  }
+
+  :root[data-retro="lycos1999"] header form {
+    width: 100%;
+  }
+
+  :root[data-retro="lycos1999"] .search-bar {
+    flex-wrap: wrap;
+    height: auto !important;
+    gap: 4px;
+  }
+
+  :root[data-retro="lycos1999"] .search-bar input[name="q"] {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+
+  :root[data-retro="lycos1999"]:not([data-page="home"]) header nav.tabs {
+    width: 100%;
+    flex-wrap: wrap;
+    overflow: visible !important;
+  }
+
+  :root[data-retro="lycos1999"] .ly-dir {
+    width: auto;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+:root[data-retro="lycos1999"] .link-cluster {
+  display: none !important;
+}
+
+:root[data-retro="lycos1999"] .ly-optwrap {
+  position: relative;
+  display: inline-block !important;
+}
+
+:root[data-retro="lycos1999"] #options-popup {
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  right: auto !important;
+  margin: 2px 0 0 !important;
+  width: 210px !important;
+  padding: 4px 6px !important;
+  background: #ffc !important;
+  color: #000 !important;
+  border: 2px outset #cc9 !important;
+  font: 11px Verdana, Arial, Geneva, sans-serif !important;
+  font-style: normal !important;
+  text-align: left !important;
+  scale: none !important;
+  translate: none !important;
+  filter: none !important;
+  z-index: 1000 !important;
+}
+
+:root[data-retro="lycos1999"] #options-popup .menu-row {
+  all: unset;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 3px 0;
+  font: 11px Verdana, Arial, Geneva, sans-serif;
+  color: #000;
+  cursor: default;
+}
+
+:root[data-retro="lycos1999"] #options-popup .menu-row:hover {
+  background: none !important;
+}
+
+:root[data-retro="lycos1999"] #options-popup .switch {
+  all: unset;
+  display: inline-block;
+}
+
+:root[data-retro="lycos1999"] #options-popup .slider,
+:root[data-retro="lycos1999"] #options-popup .menu-value,
+:root[data-retro="lycos1999"] #options-popup .menu-chevron,
+:root[data-retro="lycos1999"] #options-popup .menu-row > svg {
+  display: none !important;
+}
+
+:root[data-retro="lycos1999"] #options-popup input[type="checkbox"] {
+  all: revert;
+  position: static !important;
+  opacity: 1 !important;
+  appearance: auto !important;
+  width: 13px !important;
+  height: 13px !important;
+  margin: 0 !important;
+}
+
+:root[data-retro="lycos1999"] #options-popup select {
+  all: revert;
+  position: static !important;
+  opacity: 1 !important;
+  appearance: auto !important;
+  width: 110px !important;
+  height: 19px;
+  font: 11px Arial, sans-serif;
+  color: #000;
+  background: #fff;
+  border: 1px solid #767676;
+  border-radius: 0;
+}
+
+:root[data-retro="lycos1999"] #options-popup .menu-sep {
+  all: unset;
+  display: block;
+  margin: 4px 0;
+  border-top: 1px solid #808080;
+  border-bottom: 1px solid #fff;
+}
+
+:root[data-retro="lycos1999"] #options-popup #open-settings {
+  all: unset;
+  display: block !important;
+  padding: 2px 0;
+  font: 11px Verdana, Arial, Geneva, sans-serif;
+  color: #00f;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+:root[data-retro="lycos1999"] #options-popup #open-settings span::after {
+  content: "...";
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] #options-popup {
+  background: #2a2614 !important;
+  color: #eee !important;
+  border-color: #6b6230 !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] #options-popup .menu-row {
+  color: #eee;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] #options-popup select {
+  color: #f0f0f0;
+  background: #000;
+  border-color: #6b6230;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] #options-popup #open-settings {
+  color: #7fb2ff;
+}
+
+:root[data-retro="lycos1999"] #loading-indicator .result-skeleton,
+:root[data-retro="lycos1999"] #loading-indicator svg {
+  display: none !important;
+}
+
+:root[data-retro="lycos1999"] .news-section {
+  margin: 0 0 16px !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+}
+
+:root[data-retro="lycos1999"] .news-section > h3 {
+  all: unset;
+  display: block;
+  font-size: 0 !important;
+  font: bold 11px Verdana, Arial, Geneva, sans-serif;
+  color: #900;
+  margin: 0 0 4px;
+}
+
+:root[data-retro="lycos1999"] .news-section > h3::before {
+  content: "Top News";
+  font-size: 11px;
+}
+
+:root[data-retro="lycos1999"] .news-section .scroller {
+  all: unset;
+  display: block !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+}
+
+:root[data-retro="lycos1999"] .news-section .news-gallery {
+  all: unset;
+  display: block !important;
+  margin: 0 0 0 18px;
+  padding: 0;
+}
+
+:root[data-retro="lycos1999"] .news-section .news-card {
+  all: unset;
+  display: list-item !important;
+  list-style: square outside;
+  margin: 0 0 3px;
+  width: auto !important;
+  font: 12px Verdana, Arial, Geneva, sans-serif;
+  color: #000;
+  cursor: pointer;
+}
+
+:root[data-retro="lycos1999"] .news-section .news-card-thumb,
+:root[data-retro="lycos1999"] .news-section .news-card-header img,
+:root[data-retro="lycos1999"] .news-section .scroller-btn {
+  display: none !important;
+}
+
+:root[data-retro="lycos1999"] .news-section .news-card-title {
+  all: unset;
+  display: inline !important;
+  color: #00f;
+  text-decoration: underline;
+  -webkit-line-clamp: none !important;
+}
+
+:root[data-retro="lycos1999"] .news-section .news-card-header {
+  all: unset;
+  display: inline !important;
+  margin-left: 6px;
+  font: 10px Verdana, Arial, Geneva, sans-serif;
+  color: #666;
+}
+
+:root[data-retro="lycos1999"] .news-section .news-card-header * {
+  all: unset;
+  display: inline !important;
+  margin-right: 4px;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+}
+
+:root[data-retro="lycos1999"] .news-section .news-card-header + .news-card-title {
+  display: inline !important;
+}
+
+:root[data-retro="lycos1999"] .news-section .news-card {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+:root[data-retro="lycos1999"] .news-section .news-card::before {
+  content: "\25AA";
+  order: 0;
+  margin: 0 6px 0 -14px;
+}
+
+:root[data-retro="lycos1999"] .news-section .news-card-title {
+  order: 1;
+}
+
+:root[data-retro="lycos1999"] .news-section .news-card-header {
+  order: 2;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .news-section .news-card-title {
+  color: #7fb2ff;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .news-section .news-card-header,
+:root[data-retro="lycos1999"][data-scheme="dark"] .news-section > h3 {
+  color: #9a9aa8;
+}
+
+:root[data-retro="lycos1999"] .news-results {
+  all: unset;
+  display: block !important;
+  counter-reset: nw;
+}
+
+:root[data-retro="lycos1999"] article.news-result {
+  all: unset;
+  display: block !important;
+  counter-increment: nw;
+  margin: 0 0 14px !important;
+  padding: 0 0 0 24px !important;
+  position: relative;
+  background: none !important;
+  border: 0 !important;
+}
+
+:root[data-retro="lycos1999"] article.news-result::before {
+  content: counter(nw) ".";
+  position: absolute;
+  left: 0;
+  width: 18px;
+  text-align: right;
+  font: 13px Verdana, Arial, Geneva, sans-serif;
+  color: #000;
+}
+
+:root[data-retro="lycos1999"] .news-result-link {
+  all: unset;
+  display: block !important;
+  cursor: pointer;
+}
+
+:root[data-retro="lycos1999"] .news-result-content {
+  all: unset;
+  display: flex !important;
+  flex-direction: column;
+}
+
+:root[data-retro="lycos1999"] .news-result-thumb,
+:root[data-retro="lycos1999"] .news-result-favicon {
+  display: none !important;
+}
+
+:root[data-retro="lycos1999"] .news-result-header {
+  all: unset;
+  order: 3;
+  display: block !important;
+  font: 10px Verdana, Arial, Geneva, sans-serif !important;
+  color: #666 !important;
+}
+
+:root[data-retro="lycos1999"] .news-result-header * {
+  all: unset;
+  margin-right: 6px;
+  font: inherit !important;
+  color: inherit !important;
+  text-decoration: none !important;
+}
+
+:root[data-retro="lycos1999"] .news-result-title {
+  all: unset;
+  order: 1;
+  display: block !important;
+  font: bold 13px Verdana, Arial, Geneva, sans-serif !important;
+  color: #00f !important;
+  text-decoration: underline !important;
+}
+
+:root[data-retro="lycos1999"] .news-result-desc {
+  all: unset;
+  order: 2;
+  display: block !important;
+  font: 12px/1.3 Verdana, Arial, Geneva, sans-serif !important;
+  color: #000 !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] article.news-result::before,
+:root[data-retro="lycos1999"][data-scheme="dark"] .news-result-desc {
+  color: #eee !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .news-result-title {
+  color: #7fb2ff !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .news-result-header {
+  color: #9a9aa8 !important;
+}
+
+:root[data-retro="lycos1999"] .image-detail-panel {
+  background: #ffc !important;
+  color: #000 !important;
+  border: 1px solid #808080 !important;
+  font: 11px Verdana, Arial, Geneva, sans-serif !important;
+}
+
+:root[data-retro="lycos1999"] .image-detail-panel * {
+  background-color: transparent;
+  font-family: Verdana, Arial, Geneva, sans-serif !important;
+}
+
+:root[data-retro="lycos1999"] .image-detail-header button {
+  all: unset;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  margin-left: 2px;
+  background: #c0c0c0 !important;
+  color: #000 !important;
+  border: 2px outset #fff;
+  border-color: #fff #808080 #808080 #fff;
+  cursor: default;
+}
+
+:root[data-retro="lycos1999"] .image-detail-header button svg {
+  width: 12px;
+  height: 12px;
+  stroke: #000;
+}
+
+:root[data-retro="lycos1999"] .image-detail-preview {
+  background: #ffc !important;
+  border: 0 !important;
+}
+
+:root[data-retro="lycos1999"] .image-detail-preview img {
+  border: 1px solid #808080 !important;
+}
+
+:root[data-retro="lycos1999"] .image-detail-title {
+  font: bold 13px Verdana, Arial, Geneva, sans-serif !important;
+  color: #000 !important;
+}
+
+:root[data-retro="lycos1999"] .image-detail-source,
+:root[data-retro="lycos1999"] .image-detail-source * {
+  color: #00f !important;
+  font-size: 11px !important;
+}
+
+:root[data-retro="lycos1999"] .image-detail-dimensions {
+  font-size: 10px !important;
+  color: #666 !important;
+}
+
+:root[data-retro="lycos1999"] .image-detail-actions a {
+  all: unset;
+  display: inline-block !important;
+  padding: 1px 8px;
+  font: 11px Verdana, Arial, Geneva, sans-serif !important;
+  color: #000 !important;
+  background: #c0c0c0 !important;
+  border: 2px outset #fff;
+  border-color: #fff #808080 #808080 #fff;
+  cursor: pointer;
+}
+
+:root[data-retro="lycos1999"] .image-detail-actions a svg {
+  display: none !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .image-detail-panel,
+:root[data-retro="lycos1999"][data-scheme="dark"] .image-detail-preview {
+  background: #2a2614 !important;
+  color: #eee !important;
+  border-color: #6b6230 !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .image-detail-title {
+  color: #eee !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .image-detail-source,
+:root[data-retro="lycos1999"][data-scheme="dark"] .image-detail-source * {
+  color: #7fb2ff !important;
+}
+
+:root[data-retro="lycos1999"] #loading-indicator.visible:has(.result-skeleton)::before {
+  content: "Searching...";
+  display: block;
+  padding: 8px 0;
+  font: 11px verdana, helvetica, sans-serif;
+  color: #666;
+}
+
+:root[data-retro="lycos1999"][data-page="maps"] body {
+  margin: 0 !important;
+}
+
+:root[data-retro="lycos1999"] .rich-weather .wx-tabs,
+:root[data-retro="lycos1999"] .rich-weather .wx-stage,
+:root[data-retro="lycos1999"] .rich-weather .wx-axis,
+:root[data-retro="lycos1999"] .rich-weather .wx-sep,
+:root[data-retro="lycos1999"] .rich-weather .wx-day-pill {
+  display: none !important;
+}
+
+:root[data-retro="lycos1999"] .rich-weather {
+  zoom: 1;
+  background: #ffc !important;
+  font-family: verdana, helvetica, sans-serif !important;
+}
+
+:root[data-retro="lycos1999"] .rich-weather .wx-days {
+  display: flex !important;
+  border: 1px solid #cc9;
+  margin-top: 8px;
+  background: #fff;
+}
+
+:root[data-retro="lycos1999"] .rich-weather .wx-day {
+  all: unset;
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  padding: 3px 0;
+  font: 10px verdana, helvetica, sans-serif;
+  color: #000;
+  border-left: 1px solid #cc9;
+  cursor: pointer;
+}
+
+:root[data-retro="lycos1999"] .rich-weather .wx-day:first-of-type {
+  border-left: 0;
+}
+
+:root[data-retro="lycos1999"] .rich-weather .wx-day[aria-pressed="true"],
+:root[data-retro="lycos1999"] .rich-weather .wx-day.active,
+:root[data-retro="lycos1999"] .rich-weather .wx-day.selected {
+  background: #fc0;
+  font-weight: bold;
+}
+
+:root[data-retro="lycos1999"] .rich-weather .wx-temp {
+  font-family: verdana, helvetica, sans-serif !important;
+  font-weight: bold;
+}
+
+:root[data-retro="lycos1999"] .rich-weather .wx-stats {
+  margin: 4px 0 0;
+  font: 11px verdana, helvetica, sans-serif;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-weather {
+  background: #2a2614 !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-weather .wx-days {
+  background: #0c0c16;
+  border-color: #6b6230;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-weather .wx-day {
+  color: #eee;
+  border-color: #6b6230;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-weather .wx-day[aria-pressed="true"],
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-weather .wx-day.active,
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-weather .wx-day.selected {
+  background: #c90;
+  color: #000;
+}
+
+:root[data-retro="lycos1999"] .rich-result.w {
+  border: 1px solid #cc9 !important;
+  background: #ffc !important;
+  padding: 6px 8px !important;
+  margin-bottom: 14px;
+}
+
+:root[data-retro="lycos1999"] .rich-result.w .w-title {
+  font: bold 12px verdana, helvetica, sans-serif !important;
+  color: #900 !important;
+}
+
+:root[data-retro="lycos1999"] .rich-result.w .w-sub,
+:root[data-retro="lycos1999"] .rich-result.w .w-cur-rate {
+  font: 10px verdana, helvetica, sans-serif !important;
+  color: #666 !important;
+}
+
+:root[data-retro="lycos1999"] .rich-result.w .w-cur-box,
+:root[data-retro="lycos1999"] .rich-result.w .w-cur-row {
+  background: none !important;
+  border: 0 !important;
+  padding: 2px 0 !important;
+}
+
+:root[data-retro="lycos1999"] .rich-result.w input,
+:root[data-retro="lycos1999"] .rich-result.w select {
+  font: 12px verdana, helvetica, sans-serif !important;
+  color: #000 !important;
+  background: #fff !important;
+  border: 2px inset #eee !important;
+  border-color: #808080 #fff #fff #808080 !important;
+  padding: 1px 3px !important;
+  appearance: auto !important;
+}
+
+:root[data-retro="lycos1999"] .rich-result.w button,
+:root[data-retro="lycos1999"] .rich-calculator button {
+  background: #c0c0c0 !important;
+  color: #000 !important;
+  border: 2px outset #fff !important;
+  border-color: #fff #808080 #808080 #fff !important;
+}
+
+:root[data-retro="lycos1999"] .rich-calculator .rich-calc-expr,
+:root[data-retro="lycos1999"] .rich-calculator .rich-calc-answer {
+  font-family: verdana, helvetica, sans-serif !important;
+  font-size: 18px !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-result.w {
+  background: #2a2614 !important;
+  border-color: #6b6230 !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-result.w input,
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-result.w select {
+  color: #fff !important;
+  background: #000 !important;
+  border-color: #333 #777 #777 #333 !important;
+}
+
+:root[data-retro="lycos1999"][data-scheme="dark"] .rich-result.w .w-title {
+  color: #ff7a6a !important;
+}
+
+:root[data-retro="lycos1999"] .faq-section {
+  display: none !important;
+}
+
+@media (max-width: 720px) {
+  :root[data-retro="lycos1999"] .ly-tools {
+    width: auto;
+  }
+
+  :root[data-retro="lycos1999"] .retro-footer {
+    width: auto;
+  }
+}

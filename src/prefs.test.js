@@ -11,6 +11,7 @@ test("parseCfg keeps valid settings and drops the rest", () => {
   const cfg = parseCfg(
     enc({
       t: "amoled",
+      r: "bing2013",
       m: "miku",
       a: "#ff00aa",
       e: "kagi",
@@ -34,6 +35,8 @@ test("parseCfg keeps valid settings and drops the rest", () => {
   );
   expect(cfg).toEqual({
     theme: "amoled",
+    retro: "bing2013",
+    retroScheme: "",
     mascot: "miku",
     accent: "#ff00aa",
     engine: "kagi",

@@ -1,0 +1,987 @@
+:root[data-retro="altavista1999"] {
+  color-scheme: light;
+  --bg: #fff;
+  --text: #000;
+  --subtext: #000;
+  --muted: #666;
+  --surface0: #fff;
+  --surface1: #fff;
+  --blue: #000099;
+  --mauve: #663366;
+  --r-chip: 0;
+  background: #fff;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 16px;
+  scrollbar-gutter: auto;
+}
+
+:root[data-retro="altavista1999"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *),
+:root[data-retro="altavista1999"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *)::before,
+:root[data-retro="altavista1999"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *)::after {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transition: none !important;
+  animation: none !important;
+  text-shadow: none !important;
+}
+
+:root[data-retro="altavista1999"] body {
+  background: #fff;
+  color: #000;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 16px;
+  line-height: normal;
+  margin: 0;
+  padding: 8px;
+  min-height: 0;
+  display: block;
+  -webkit-font-smoothing: auto;
+}
+
+:root[data-retro="altavista1999"] a {
+  color: #000099;
+  text-decoration: underline;
+}
+
+:root[data-retro="altavista1999"] a:visited {
+  color: #663366;
+}
+
+:root[data-retro="altavista1999"] a:active {
+  color: #ff0000;
+}
+
+:root[data-retro="altavista1999"] header {
+  margin: 0;
+  padding: 0;
+  max-width: none;
+  display: block;
+  position: relative;
+}
+
+:root[data-retro="altavista1999"] header .teto,
+:root[data-retro="altavista1999"] header > .links,
+:root[data-retro="altavista1999"] .meowing-badge {
+  display: none !important;
+}
+
+:root[data-retro="altavista1999"] .retro-logo {
+  display: block;
+  width: 600px;
+  height: 60px;
+  border-bottom: 2px solid #003399;
+  line-height: 0;
+}
+
+:root[data-retro="altavista1999"] .retro-logo img {
+  width: 480px;
+  height: 60px;
+  border: 0;
+}
+
+:root[data-retro="altavista1999"] header form {
+  display: block;
+  width: 600px;
+  max-width: none;
+  background: #ffcc66;
+  padding: 6px 6px 6px 15px;
+  box-sizing: border-box;
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  color: #000;
+}
+
+:root[data-retro="altavista1999"] .av-ask {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 2px 2px 4px;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 13px;
+}
+
+:root[data-retro="altavista1999"] .av-ask sup {
+  line-height: 0;
+}
+
+:root[data-retro="altavista1999"] .av-ask small {
+  font-size: 9px;
+}
+
+:root[data-retro="altavista1999"] header select {
+  all: revert;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  field-sizing: fixed;
+}
+
+:root[data-retro="altavista1999"] .search-container {
+  display: block;
+  padding: 0 2px;
+}
+
+:root[data-retro="altavista1999"] .search-container .search-bar,
+:root[data-retro="altavista1999"] header .search-container .search-bar {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: auto;
+  max-width: none;
+  background: none;
+  border: 0;
+  outline: 0;
+}
+
+:root[data-retro="altavista1999"] .search-container .search-bar input[name="q"] {
+  all: revert;
+  width: 404px;
+  height: auto;
+  padding: 1px 2px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
+  color: #000;
+  background: #fff;
+  border: 2px inset #ccc;
+  field-sizing: fixed;
+  caret-color: auto;
+}
+
+:root[data-retro="altavista1999"] .search-container .search-bar button {
+  all: revert;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  color: #000;
+  aspect-ratio: auto;
+  height: auto;
+  transform: none;
+  scale: 1;
+  cursor: default;
+}
+
+:root[data-retro="altavista1999"] .av-example {
+  display: block;
+  padding: 6px 2px 2px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+}
+
+:root[data-retro="altavista1999"] .av-tip {
+  display: flex;
+  justify-content: space-between;
+}
+
+:root[data-retro="altavista1999"] #options-btn {
+  all: unset;
+  color: #000099;
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+}
+
+:root[data-retro="altavista1999"] .av-rule {
+  width: 600px;
+  height: 2px;
+  background: #003399;
+}
+
+:root[data-retro="altavista1999"] .av-rule-gap {
+  margin-bottom: 5px;
+}
+
+:root[data-retro="altavista1999"] .av-specialty {
+  width: 600px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  padding-bottom: 5px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+:root[data-retro="altavista1999"] .av-spec-title {
+  color: #003399;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+:root[data-retro="altavista1999"] .av-spec-links {
+  font-size: 13px;
+  line-height: 1.15;
+}
+
+:root[data-retro="altavista1999"][data-page="home"] header {
+  width: 600px;
+  margin: 0 auto;
+}
+
+:root[data-retro="altavista1999"] .av-cols {
+  display: flex;
+  width: 600px;
+  margin-top: 16px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+}
+
+:root[data-retro="altavista1999"] .av-col-cat {
+  width: 175px;
+  margin-right: 17px;
+}
+
+:root[data-retro="altavista1999"] .av-col-news {
+  width: 265px;
+  margin-right: 18px;
+}
+
+:root[data-retro="altavista1999"] .av-col-spons {
+  width: 125px;
+  color: gray;
+  padding-top: 0;
+}
+
+:root[data-retro="altavista1999"] .av-sec {
+  font-size: 13px;
+}
+
+:root[data-retro="altavista1999"] .av-right {
+  text-align: right;
+  margin-top: 16px;
+}
+
+:root[data-retro="altavista1999"] .av-cap {
+  font-size: 18px;
+}
+
+:root[data-retro="altavista1999"] .av-abc {
+  color: #3131ce;
+}
+
+:root[data-retro="altavista1999"] .av-abcn {
+  color: #21219c;
+}
+
+:root[data-retro="altavista1999"] .av-bar {
+  height: 3px;
+  background: #ffcc66;
+  margin-bottom: 2px;
+}
+
+:root[data-retro="altavista1999"] .av-grey {
+  background: #cccccc;
+}
+
+:root[data-retro="altavista1999"] .av-cats {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-left: 8px;
+  font-weight: bold;
+}
+
+:root[data-retro="altavista1999"] .av-list .av-dart::before {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-right: 5px;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 7px solid #003399;
+}
+
+:root[data-retro="altavista1999"] .av-indent {
+  padding-left: 8px;
+}
+
+:root[data-retro="altavista1999"] .av-plain {
+  margin-bottom: 0;
+}
+
+:root[data-retro="altavista1999"] .av-col-news .av-list:first-of-type {
+  margin-bottom: 16px;
+}
+
+:root[data-retro="altavista1999"] .av-col-news .av-indent + .av-sec {
+  margin-top: 16px;
+}
+
+:root[data-retro="altavista1999"] .av-new {
+  color: #cc0000;
+}
+
+:root[data-retro="altavista1999"] .av-spons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+:root[data-retro="altavista1999"] .retro-footer {
+  display: block;
+  margin-top: 16px;
+}
+
+:root[data-retro="altavista1999"][data-page="home"] .retro-footer {
+  width: 600px;
+  margin: 16px auto 0;
+}
+
+:root[data-retro="altavista1999"] .av-foot {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  color: #003399;
+  padding-top: 13px;
+  padding-bottom: 8px;
+  line-height: 1.3;
+}
+
+:root[data-retro="altavista1999"] .av-foot a,
+:root[data-retro="altavista1999"] .av-foot #open-settings {
+  color: #000099;
+  font-size: 10px;
+}
+
+:root[data-retro="altavista1999"]:not([data-page="home"]) .tabs {
+  display: block;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  height: 0;
+  max-width: 600px;
+}
+
+:root[data-retro="altavista1999"]:not([data-page="home"]) .tabs .tab {
+  display: none;
+}
+
+:root[data-retro="altavista1999"] .options-popup {
+  background: #ffcc66;
+  color: #000;
+  border: 1px solid #003399 !important;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  top: 0;
+  right: 0;
+}
+
+:root[data-retro="altavista1999"] .options-popup * {
+  color: #000;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+:root[data-retro="altavista1999"] .body {
+  display: block;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+
+:root[data-retro="altavista1999"] aside#sidebar {
+  display: none;
+}
+
+:root[data-retro="altavista1999"] main {
+  max-width: 600px;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 16px;
+  color: #000;
+}
+
+:root[data-retro="altavista1999"] .retro-stats {
+  width: 600px;
+  padding: 12px 0 8px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  color: #000;
+}
+
+:root[data-retro="altavista1999"] .retro-stats b {
+  font-size: 13px;
+}
+
+:root[data-retro="altavista1999"] .retro-stats a {
+  margin-left: 6px;
+}
+
+:root[data-retro="altavista1999"] #results-all {
+  counter-reset: av;
+  max-width: 600px;
+}
+
+:root[data-retro="altavista1999"] .engine-banner,
+:root[data-retro="altavista1999"] .faq-section,
+:root[data-retro="altavista1999"] .discussions-section,
+:root[data-retro="altavista1999"] .result-thumb-link,
+:root[data-retro="altavista1999"] .result-source,
+:root[data-retro="altavista1999"] .sitelinks,
+:root[data-retro="altavista1999"] .link-cluster,
+:root[data-retro="altavista1999"] .rich-result,
+:root[data-retro="altavista1999"] .infobox {
+  display: none !important;
+}
+
+:root[data-retro="altavista1999"] article.result.web-result {
+  display: block;
+  padding: 0;
+  margin: 0 0 16px;
+  counter-increment: av;
+  border: 0;
+  background: none;
+}
+
+:root[data-retro="altavista1999"] article.result.web-result .result-content {
+  display: block;
+  padding-left: 0;
+}
+
+:root[data-retro="altavista1999"] article.result.web-result .result-content::before {
+  content: counter(av) ". ";
+  font-weight: bold;
+  float: left;
+  margin-right: 4px;
+}
+
+:root[data-retro="altavista1999"] .result-title {
+  display: block;
+  color: #000099;
+  font-size: 16px;
+  font-weight: bold;
+  text-decoration: underline;
+  line-height: normal;
+  margin: 0;
+}
+
+:root[data-retro="altavista1999"] .result-title:visited {
+  color: #663366;
+}
+
+:root[data-retro="altavista1999"] .result-desc {
+  display: block;
+  -webkit-line-clamp: unset;
+  color: #000;
+  font-size: 16px;
+  line-height: normal;
+  margin: 0 0 0 40px;
+  overflow: visible;
+}
+
+:root[data-retro="altavista1999"] .result-desc strong {
+  color: #000;
+  font-weight: normal;
+}
+
+:root[data-retro="altavista1999"] .retro-url {
+  display: block;
+  font-style: normal;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 13px;
+  color: #808080;
+  margin-left: 40px;
+  word-break: break-all;
+}
+
+:root[data-retro="altavista1999"] .av-url-label {
+  color: #000;
+}
+
+:root[data-retro="altavista1999"] .av-more {
+  font-size: 13px;
+  margin-left: 40px;
+}
+
+:root[data-retro="altavista1999"] #loading-indicator {
+  color: #000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+}
+
+:root[data-retro="altavista1999"] #loading-indicator * {
+  background: none;
+  color: #000;
+}
+
+:root[data-retro="altavista1999"] .images-grid img,
+:root[data-retro="altavista1999"] .image-item {
+  border: 1px solid #003399 !important;
+  background: #fff !important;
+}
+
+:root[data-retro="altavista1999"] .news-card,
+:root[data-retro="altavista1999"] .result {
+  background: #fff;
+  color: #000;
+  font-family: "Times New Roman", Times, serif;
+}
+
+:root[data-retro="altavista1999"][data-page="images"] main,
+:root[data-retro="altavista1999"][data-page="images"] #results-all,
+:root[data-retro="altavista1999"][data-page="maps"] main,
+:root[data-retro="altavista1999"][data-page="maps"] #results-all {
+  max-width: none;
+}
+
+:root[data-retro="altavista1999"] a,
+:root[data-retro="altavista1999"] .result-title {
+  text-underline-offset: auto !important;
+  text-decoration-thickness: auto !important;
+  text-decoration-line: underline;
+}
+
+:root[data-retro="altavista1999"] .search-container .search-bar input[name="q"]:focus {
+  outline: 0;
+}
+
+:root[data-retro="altavista1999"]:not([data-page="home"]) .retro-logo {
+  height: 32px;
+  padding-bottom: 4px;
+}
+
+:root[data-retro="altavista1999"]:not([data-page="home"]) .retro-logo img {
+  width: 214px;
+  height: 32px;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1633;
+  --text: #dde4f2;
+  --subtext: #dde4f2;
+  --muted: #8f9cc0;
+  --surface0: #0b1633;
+  --surface1: #12235a;
+  --blue: #99ccff;
+  --mauve: #cc99ff;
+  background: #0b1633;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] body,
+:root[data-retro="altavista1999"][data-scheme="dark"] main,
+:root[data-retro="altavista1999"][data-scheme="dark"] .retro-stats,
+:root[data-retro="altavista1999"][data-scheme="dark"] .result-desc,
+:root[data-retro="altavista1999"][data-scheme="dark"] .result-desc strong,
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-url-label,
+:root[data-retro="altavista1999"][data-scheme="dark"] #loading-indicator,
+:root[data-retro="altavista1999"][data-scheme="dark"] #loading-indicator * {
+  color: #dde4f2;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] body,
+:root[data-retro="altavista1999"][data-scheme="dark"] .news-card,
+:root[data-retro="altavista1999"][data-scheme="dark"] .result {
+  background: #0b1633;
+  color: #dde4f2;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] a,
+:root[data-retro="altavista1999"][data-scheme="dark"] .result-title,
+:root[data-retro="altavista1999"][data-scheme="dark"] #options-btn,
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-foot a,
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-foot #open-settings {
+  color: #99ccff;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] a:visited,
+:root[data-retro="altavista1999"][data-scheme="dark"] .result-title:visited {
+  color: #cc99ff;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] a:active {
+  color: #ff6666;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .retro-logo {
+  border-bottom-color: #3366cc;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .retro-logo img {
+  content: url("/s/retro-altavista1999-logo-dark.png");
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"]:not([data-page="home"]) .retro-logo img {
+  content: url("/s/retro-altavista1999-results-dark.png");
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] header form,
+:root[data-retro="altavista1999"][data-scheme="dark"] .options-popup {
+  background: #003399;
+  color: #dde4f2;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .options-popup {
+  border-color: #ffcc66 !important;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .options-popup * {
+  color: #dde4f2;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-ask b {
+  color: #ffcc66;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .search-container .search-bar input[name="q"] {
+  color: #dde4f2;
+  background: #050c1f;
+  border-color: #3366cc;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-rule {
+  background: #3366cc;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-spec-title,
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-foot {
+  color: #ffcc66;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-abc {
+  color: #99ccff;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-abcn {
+  color: #6699ff;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-grey {
+  background: #1c2c5c;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-col-spons,
+:root[data-retro="altavista1999"][data-scheme="dark"] .retro-url {
+  color: #8f9cc0;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-list .av-dart::before {
+  border-left-color: #ffcc66;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .av-new {
+  color: #ff6666;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .images-grid img,
+:root[data-retro="altavista1999"][data-scheme="dark"] .image-item {
+  border-color: #3366cc !important;
+  background: #12235a !important;
+}
+
+:root[data-retro="altavista1999"] .scroller > :first-child {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+@media (max-width: 640px) {
+  :root[data-retro="altavista1999"] header,
+  :root[data-retro="altavista1999"] header *,
+  :root[data-retro="altavista1999"] .av-rule,
+  :root[data-retro="altavista1999"] .av-specialty,
+  :root[data-retro="altavista1999"] .av-cols,
+  :root[data-retro="altavista1999"] .retro-stats,
+  :root[data-retro="altavista1999"] .retro-footer {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  :root[data-retro="altavista1999"] .retro-stats,
+  :root[data-retro="altavista1999"] .av-tip,
+  :root[data-retro="altavista1999"] .av-cols {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+}
+
+:root[data-retro="altavista1999"] .options-popup {
+  padding: 4px 0 !important;
+  min-width: 180px;
+}
+
+:root[data-retro="altavista1999"] .options-popup .menu-row {
+  padding: 3px 8px !important;
+  min-height: 0 !important;
+  gap: 10px;
+  background: none !important;
+}
+
+:root[data-retro="altavista1999"] .options-popup .menu-value,
+:root[data-retro="altavista1999"] .options-popup .switch .slider,
+:root[data-retro="altavista1999"] .options-popup svg {
+  display: none !important;
+}
+
+:root[data-retro="altavista1999"] .options-popup .switch {
+  width: auto;
+  height: auto;
+}
+
+:root[data-retro="altavista1999"] .options-popup .switch input,
+:root[data-retro="altavista1999"] .options-popup .menu-select select {
+  all: revert;
+  position: static;
+  opacity: 1;
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+}
+
+:root[data-retro="altavista1999"] .options-popup .menu-sep {
+  margin: 4px 0;
+  height: 2px;
+  background: #003399 !important;
+}
+
+:root[data-retro="altavista1999"] .options-popup #open-settings span {
+  color: #000099 !important;
+  text-decoration: underline;
+}
+
+:root[data-retro="altavista1999"] .options-popup .menu-note {
+  padding: 2px 8px;
+  font-size: 10px;
+}
+
+:root[data-retro="altavista1999"] .news-results {
+  counter-reset: av;
+  max-width: 600px;
+}
+
+:root[data-retro="altavista1999"] .news-result {
+  counter-increment: av;
+  margin: 0 0 16px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+}
+
+:root[data-retro="altavista1999"] .news-result-link {
+  display: block !important;
+  text-decoration: none !important;
+  color: #000 !important;
+}
+
+:root[data-retro="altavista1999"] .news-result-content {
+  display: flex;
+  flex-direction: column;
+}
+
+:root[data-retro="altavista1999"] .news-result-title {
+  order: -1;
+  font: bold 16px "Times New Roman", Times, serif !important;
+  color: #000099 !important;
+  text-decoration: underline;
+  margin: 0 !important;
+}
+
+:root[data-retro="altavista1999"] .news-result-title::before {
+  content: counter(av) ". ";
+  color: #000;
+  display: inline-block;
+  margin-right: 4px;
+  text-decoration: none;
+}
+
+:root[data-retro="altavista1999"] .news-result-desc {
+  order: 0;
+  font: 16px "Times New Roman", Times, serif !important;
+  color: #000 !important;
+  text-decoration: none !important;
+  margin: 0 0 0 40px !important;
+  -webkit-line-clamp: unset !important;
+}
+
+:root[data-retro="altavista1999"] .news-result-header {
+  order: 1;
+  margin-left: 40px;
+  font-size: 13px;
+  color: #808080;
+}
+
+:root[data-retro="altavista1999"] .news-result-site::before {
+  content: "Source: ";
+  color: #000;
+}
+
+:root[data-retro="altavista1999"] .news-result-site,
+:root[data-retro="altavista1999"] .news-result-age {
+  color: #808080 !important;
+  text-decoration: none !important;
+}
+
+:root[data-retro="altavista1999"] .news-result-age::before {
+  content: " - ";
+}
+
+:root[data-retro="altavista1999"] .news-result-favicon,
+:root[data-retro="altavista1999"] .news-result-thumb,
+:root[data-retro="altavista1999"] .news-result-thumb-placeholder {
+  display: none !important;
+}
+
+:root[data-retro="altavista1999"] .images-grid {
+  gap: 6px !important;
+}
+
+:root[data-retro="altavista1999"] .image-item .image-info {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+}
+
+:root[data-retro="altavista1999"] .image-item .image-source img {
+  display: none;
+}
+
+:root[data-retro="altavista1999"] .image-item.selected {
+  outline: 2px solid #ff0000 !important;
+}
+
+:root[data-retro="altavista1999"] .image-detail-panel {
+  background: #fff !important;
+  color: #000 !important;
+  border: 0 !important;
+  border-top: 2px solid #003399 !important;
+  border-bottom: 2px solid #003399 !important;
+}
+
+:root[data-retro="altavista1999"] .image-detail-header button {
+  all: revert;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  min-width: 26px;
+}
+
+:root[data-retro="altavista1999"] .image-detail-header button svg {
+  width: 12px;
+  height: 12px;
+  vertical-align: middle;
+}
+
+:root[data-retro="altavista1999"] .image-detail-preview {
+  border: 1px solid #003399 !important;
+  background: #fff !important;
+}
+
+:root[data-retro="altavista1999"] .image-detail-title {
+  font: bold 16px "Times New Roman", Times, serif !important;
+  color: #000 !important;
+}
+
+:root[data-retro="altavista1999"] .image-detail-source span::before {
+  content: "URL: ";
+  color: #000;
+}
+
+:root[data-retro="altavista1999"] .image-detail-source img {
+  display: none;
+}
+
+:root[data-retro="altavista1999"] .image-detail-dimensions {
+  font: 13px "Times New Roman", Times, serif !important;
+  color: #808080 !important;
+}
+
+:root[data-retro="altavista1999"] .image-detail-actions a {
+  all: unset;
+  font: 13px Arial, Helvetica, sans-serif;
+  color: #000099 !important;
+  text-decoration: underline !important;
+  cursor: pointer;
+}
+
+:root[data-retro="altavista1999"] .image-detail-actions a::before {
+  content: "[ ";
+  color: #000;
+}
+
+:root[data-retro="altavista1999"] .image-detail-actions a::after {
+  content: " ]";
+  color: #000;
+}
+
+:root[data-retro="altavista1999"] .image-detail-actions a svg {
+  display: none;
+}
+
+:root[data-retro="altavista1999"] .loading-indicator .icon,
+:root[data-retro="altavista1999"] #loading-indicator .icon,
+:root[data-retro="altavista1999"] #loading-indicator .result-skeleton {
+  display: none !important;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .options-popup .menu-sep {
+  background: #ffcc66 !important;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .options-popup #open-settings span,
+:root[data-retro="altavista1999"][data-scheme="dark"] .news-result-title,
+:root[data-retro="altavista1999"][data-scheme="dark"] .image-detail-actions a {
+  color: #99ccff !important;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .news-result-link,
+:root[data-retro="altavista1999"][data-scheme="dark"] .news-result-desc,
+:root[data-retro="altavista1999"][data-scheme="dark"] .news-result-title::before,
+:root[data-retro="altavista1999"][data-scheme="dark"] .news-result-site::before,
+:root[data-retro="altavista1999"][data-scheme="dark"] .image-detail-title,
+:root[data-retro="altavista1999"][data-scheme="dark"] .image-detail-source span::before,
+:root[data-retro="altavista1999"][data-scheme="dark"] .image-detail-actions a::before,
+:root[data-retro="altavista1999"][data-scheme="dark"] .image-detail-actions a::after {
+  color: #dde4f2 !important;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .news-result-site,
+:root[data-retro="altavista1999"][data-scheme="dark"] .news-result-age,
+:root[data-retro="altavista1999"][data-scheme="dark"] .news-result-header,
+:root[data-retro="altavista1999"][data-scheme="dark"] .image-detail-dimensions {
+  color: #8f9cc0 !important;
+}
+
+:root[data-retro="altavista1999"][data-scheme="dark"] .image-detail-panel,
+:root[data-retro="altavista1999"][data-scheme="dark"] .image-detail-preview {
+  background: #0b1633 !important;
+  border-color: #3366cc !important;
+}
+
+@media (max-width: 640px) {
+  :root[data-retro="altavista1999"][data-page="home"] header,
+  :root[data-retro="altavista1999"][data-page="home"] .retro-footer,
+  :root[data-retro="altavista1999"] .retro-logo,
+  :root[data-retro="altavista1999"] header form,
+  :root[data-retro="altavista1999"] .av-rule,
+  :root[data-retro="altavista1999"] .av-specialty,
+  :root[data-retro="altavista1999"] .av-cols {
+    width: 100%;
+  }
+
+  :root[data-retro="altavista1999"][data-page="home"] .retro-logo {
+    height: auto;
+  }
+
+  :root[data-retro="altavista1999"][data-page="home"] .retro-logo img {
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+  }
+
+  :root[data-retro="altavista1999"] .search-container .search-bar input[name="q"] {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+  }
+
+  :root[data-retro="altavista1999"] .av-ask {
+    flex-wrap: wrap;
+  }
+
+  :root[data-retro="altavista1999"] .av-specialty {
+    gap: 12px;
+  }
+
+  :root[data-retro="altavista1999"] .av-col {
+    width: 100%;
+    margin: 0 0 12px;
+  }
+
+  :root[data-retro="altavista1999"] .news-result-desc,
+  :root[data-retro="altavista1999"] .news-result-header {
+    margin-left: 20px !important;
+  }
+}

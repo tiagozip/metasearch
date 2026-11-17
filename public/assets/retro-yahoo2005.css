@@ -1,0 +1,1097 @@
+:root[data-retro="yahoo2005"] {
+  color-scheme: light;
+  --text: #000;
+  --bg: #fff;
+  --surface0: #fff;
+  --surface1: #eee;
+  --subtext: #333;
+  --blue: #0000de;
+  --muted: #666;
+  --green: #008000;
+  --red: #c00;
+  --yellow: #c63;
+  --mauve: #639;
+  --line: #ccc;
+  --line-strong: #999;
+  --r-card: 0;
+  --r-control: 0;
+  --r-surface: 0;
+  --r-chip: 0;
+  --r-pill: 0;
+  --duration-fast: 0s;
+  --duration-base: 0s;
+  --duration-slow: 0s;
+}
+
+:root[data-retro="yahoo2005"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *),
+:root[data-retro="yahoo2005"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *)::before,
+:root[data-retro="yahoo2005"] *:not(:is(.mss, .mss-modal), :is(.mss, .mss-modal) *)::after {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transition: none !important;
+  animation: none !important;
+  text-wrap: wrap;
+}
+
+:root[data-retro="yahoo2005"] body {
+  background: #fff;
+  color: #000;
+  font: 83%/1.22em arial, helvetica, clean, sans-serif;
+  display: block;
+  min-height: 0;
+}
+
+:root[data-retro="yahoo2005"] a {
+  color: #0000de;
+  text-decoration: underline;
+}
+
+:root[data-retro="yahoo2005"] a:visited {
+  color: #639;
+}
+
+:root[data-retro="yahoo2005"] a:active {
+  color: #f00;
+}
+
+:root[data-retro="yahoo2005"] .y-hdr {
+  height: 1.1em;
+  margin: 0 7px;
+  background: #f2f2f2;
+  border-bottom: 1px solid #d9d9d9;
+  padding: 2px 10px;
+  font: 77% verdana, arial, sans-serif;
+  text-align: left;
+  line-height: 1.1em;
+}
+
+:root[data-retro="yahoo2005"] .y-hdr-r {
+  float: right;
+}
+
+:root[data-retro="yahoo2005"] header .teto,
+:root[data-retro="yahoo2005"] header .links > a:not(#open-settings),
+:root[data-retro="yahoo2005"] header .links > span,
+:root[data-retro="yahoo2005"] .search-bar button svg,
+:root[data-retro="yahoo2005"] nav.tabs > a.tab,
+:root[data-retro="yahoo2005"] .result-source,
+:root[data-retro="yahoo2005"] .engine-banner,
+:root[data-retro="yahoo2005"] .result-thumb-link {
+  display: none !important;
+}
+
+:root[data-retro="yahoo2005"] header {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  display: block;
+}
+
+:root[data-retro="yahoo2005"] .retro-logo {
+  display: block;
+}
+
+:root[data-retro="yahoo2005"] .retro-logo img {
+  display: block;
+  border: 0;
+}
+
+:root[data-retro="yahoo2005"] .y-tabs {
+  white-space: nowrap;
+  font-size: 100%;
+}
+
+:root[data-retro="yahoo2005"] .y-tabs .y-sep {
+  display: none;
+}
+
+:root[data-retro="yahoo2005"] .y-tabs > a,
+:root[data-retro="yahoo2005"] .y-tabs > strong {
+  padding: 0 0.48em;
+  border-left: 1px solid #adadad;
+}
+
+:root[data-retro="yahoo2005"] .y-tabs > :first-child {
+  border-color: #fff;
+}
+
+:root[data-retro="yahoo2005"] .y-tabs > a:hover {
+  background: #d5d5d5;
+}
+
+:root[data-retro="yahoo2005"] .y-tabs em {
+  font: 78%/1.2em verdana;
+  font-style: italic;
+}
+
+:root[data-retro="yahoo2005"] .y-tabs em a {
+  border: 0;
+  padding: 0;
+}
+
+:root[data-retro="yahoo2005"] .search-container {
+  display: block;
+  gap: 0;
+}
+
+:root[data-retro="yahoo2005"] header .search-container .search-bar,
+:root[data-retro="yahoo2005"] .search-container .search-bar {
+  height: auto;
+  background: none;
+  border: 0;
+  outline: 0;
+  max-width: none;
+  cursor: auto;
+  display: block;
+}
+
+:root[data-retro="yahoo2005"] .search-container .search-bar input:not([type="hidden"]) {
+  height: auto;
+  border: 1px solid #7f9db9;
+  background: #fff;
+  color: #000;
+  font: 13.33px arial, sans-serif;
+  padding: 2px 3px;
+  caret-color: auto;
+  field-sizing: fixed;
+}
+
+:root[data-retro="yahoo2005"] .search-container .search-bar input::placeholder {
+  color: transparent;
+}
+
+:root[data-retro="yahoo2005"] .search-container .search-bar button {
+  aspect-ratio: auto;
+  height: auto;
+  transform: none;
+  scale: 1;
+  display: inline-block;
+  font: 13.33px arial, sans-serif;
+  color: #000;
+  background: #ece9d8;
+  border: 2px outset #f0f0f0;
+  border-color: #fff #716f64 #716f64 #fff;
+  padding: 1px 6px;
+  cursor: default;
+}
+
+:root[data-retro="yahoo2005"] .retro-footer {
+  text-align: center;
+  font: 78%/1.2em arial;
+  margin: 20px 0;
+  clear: both;
+}
+
+:root[data-retro="yahoo2005"] .retro-footer p {
+  margin: 0;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] body {
+  text-align: center;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] header {
+  width: 52.5em;
+  margin: 7px auto;
+  text-align: center;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] .retro-logo {
+  margin: 35px 0 20px;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] .retro-logo img {
+  width: 422px;
+  height: 46px;
+  margin: 0 auto;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] .y-tabs {
+  text-align: center;
+  margin: 0 auto;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] header form {
+  width: 62%;
+  margin: 8px auto 0;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] .search-container {
+  position: relative;
+  text-align: left;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] .y-label {
+  display: block;
+  font: italic bold 78%/1.2em verdana;
+  text-align: left;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] .search-bar input:not([type="hidden"]) {
+  display: block;
+  width: 32em;
+  margin: 5px auto 0;
+  box-sizing: content-box;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] .search-bar button {
+  display: block;
+  margin: 10px auto 0;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] .y-side {
+  position: absolute;
+  top: 0;
+  left: 102.5%;
+  margin: 0;
+  text-align: left;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] .y-side a {
+  display: block;
+  white-space: nowrap;
+  font: 78%/1.2em verdana;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] .y-try {
+  margin: 50px auto 20px;
+  text-align: center;
+  font-size: 120%;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] .y-try em {
+  color: #f90;
+  font: bold 80% arial;
+}
+
+:root[data-retro="yahoo2005"][data-page="home"] header .links {
+  display: none;
+}
+
+:root[data-retro="yahoo2005"]:not([data-page="home"]) header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: end;
+  gap: 0 14px;
+  padding: 10px 14px 6px;
+}
+
+:root[data-retro="yahoo2005"]:not([data-page="home"]) .retro-logo {
+  grid-row: 1 / span 2;
+  align-self: center;
+}
+
+:root[data-retro="yahoo2005"]:not([data-page="home"]) .retro-logo img {
+  width: 263px;
+  height: auto;
+}
+
+:root[data-retro="yahoo2005"]:not([data-page="home"]) header form {
+  grid-column: 2;
+}
+
+:root[data-retro="yahoo2005"]:not([data-page="home"]) .y-tabs {
+  margin: 0 0 4px -0.48em;
+}
+
+:root[data-retro="yahoo2005"]:not([data-page="home"]) .search-bar input:not([type="hidden"]) {
+  width: 32em;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+:root[data-retro="yahoo2005"]:not([data-page="home"]) .search-bar button {
+  vertical-align: middle;
+}
+
+:root[data-retro="yahoo2005"]:not([data-page="home"]) .search-bar {
+  display: inline-block !important;
+  width: auto !important;
+}
+
+:root[data-retro="yahoo2005"]:not([data-page="home"]) .y-side {
+  font: 78%/1.2em verdana;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+:root[data-retro="yahoo2005"] #options-btn {
+  all: unset;
+  color: #0000de;
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
+:root[data-retro="yahoo2005"] nav.tabs.y-hidden-tabs {
+  grid-column: 2;
+  margin: 0;
+  max-width: none;
+  height: 0;
+  padding: 0;
+  border: 0;
+}
+
+:root[data-retro="yahoo2005"] nav.tabs .options-popup {
+  background: #fff;
+  color: #000;
+  border: 1px solid #7f9db9;
+  font: 13px arial, sans-serif;
+}
+
+:root[data-retro="yahoo2005"] .retro-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 4px 0 0;
+  padding: 3px 7px;
+  background: #e8eefa;
+  border-top: 1px solid #7591cd;
+}
+
+:root[data-retro="yahoo2005"] .retro-stats h2 {
+  margin: 0;
+  font: bold 100% arial;
+  color: #000;
+}
+
+:root[data-retro="yahoo2005"] .retro-stats p {
+  margin: 0;
+  font: 78%/1.2em verdana;
+  color: #000;
+}
+
+:root[data-retro="yahoo2005"] .body {
+  max-width: none;
+  padding: 0 14px;
+  gap: 24px;
+  margin-top: 0;
+  align-items: flex-start;
+}
+
+:root[data-retro="yahoo2005"] main {
+  max-width: 650px;
+}
+
+:root[data-retro="yahoo2005"] #results-all {
+  counter-reset: yres;
+  padding-top: 8px;
+}
+
+:root[data-retro="yahoo2005"] #results-all article.result {
+  counter-increment: yres;
+  display: block;
+  position: relative;
+  padding: 0 0 0 2em;
+  margin: 0 0 1.25em;
+  border: 0;
+  background: none;
+}
+
+:root[data-retro="yahoo2005"] #results-all article.result::before {
+  content: counter(yres) ". ";
+  position: absolute;
+  left: 0;
+  width: 1.7em;
+  text-align: right;
+  font-size: 100%;
+}
+
+:root[data-retro="yahoo2005"] .result-content {
+  display: block;
+}
+
+:root[data-retro="yahoo2005"] #results-all .result-title {
+  display: inline;
+  color: #0000de;
+  font: 100%/1.22em arial, sans-serif;
+  text-decoration: underline;
+  text-underline-offset: auto;
+  margin: 0;
+}
+
+:root[data-retro="yahoo2005"] #results-all .result-title:visited {
+  color: #639;
+}
+
+:root[data-retro="yahoo2005"] #results-all .result-title strong,
+:root[data-retro="yahoo2005"] #results-all .result-title b {
+  font-weight: bold;
+}
+
+:root[data-retro="yahoo2005"] #results-all .result-desc {
+  display: block;
+  color: #000;
+  font: 100%/1.22em arial, sans-serif;
+  margin: 0;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+:root[data-retro="yahoo2005"] #results-all .result-desc strong {
+  font-weight: bold;
+  color: #000;
+}
+
+:root[data-retro="yahoo2005"] .retro-url {
+  display: block;
+  font-style: normal;
+  color: #008000;
+  font-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+:root[data-retro="yahoo2005"] .retro-url .y-meta {
+  color: #008000;
+}
+
+:root[data-retro="yahoo2005"] .retro-url .y-meta a {
+  color: #0000de;
+}
+
+:root[data-retro="yahoo2005"] .sitelinks {
+  display: block;
+  margin: 2px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+:root[data-retro="yahoo2005"] .sitelinks a.sitelink {
+  display: inline;
+  margin-right: 0.8em;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: #0000de;
+  font-size: 92%;
+}
+
+:root[data-retro="yahoo2005"] .faq-section,
+:root[data-retro="yahoo2005"] .rich-result {
+  background: #fff;
+  color: #000;
+  border: 0;
+  padding: 0;
+  margin: 0 0 1.25em;
+}
+
+:root[data-retro="yahoo2005"] .faq-section *,
+:root[data-retro="yahoo2005"] .rich-result *,
+:root[data-retro="yahoo2005"] aside#sidebar * {
+  color: inherit;
+  background-color: transparent;
+  border-color: #ccc;
+}
+
+:root[data-retro="yahoo2005"] .faq-section a,
+:root[data-retro="yahoo2005"] .rich-result a,
+:root[data-retro="yahoo2005"] aside#sidebar a {
+  color: #0000de;
+}
+
+:root[data-retro="yahoo2005"] aside#sidebar {
+  max-width: 300px;
+  min-width: 220px;
+  margin-top: 8px;
+  padding: 0;
+  background: #fff;
+  color: #000;
+  border-left: 1px solid #d9d9d9;
+  padding-left: 10px;
+  font-size: 92%;
+}
+
+:root[data-retro="yahoo2005"] #loading-indicator {
+  color: #666;
+  font: 78% verdana;
+}
+
+:root[data-retro="yahoo2005"][data-page="images"] #results-all,
+:root[data-retro="yahoo2005"][data-page="news"] #results-all {
+  color: #000;
+}
+
+:root[data-retro="yahoo2005"][data-page="images"] #results-all a {
+  color: #0000de;
+}
+
+:root[data-retro="yahoo2005"][data-page="images"] #results-all img {
+  border: 1px solid #0000de;
+}
+
+:root[data-retro="yahoo2005"][data-page="images"] main {
+  max-width: none;
+}
+
+:root[data-retro="yahoo2005"] .faq-section,
+:root[data-retro="yahoo2005"] .faq-section *,
+:root[data-retro="yahoo2005"] aside#sidebar,
+:root[data-retro="yahoo2005"] aside#sidebar *,
+:root[data-retro="yahoo2005"] .rich-result * {
+  font-family: arial, helvetica, sans-serif;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+:root[data-retro="yahoo2005"] .faq-section > :first-child {
+  font-weight: bold;
+  background: #e8eefa;
+  padding: 2px 4px;
+}
+
+:root[data-retro="yahoo2005"] aside#sidebar h1,
+:root[data-retro="yahoo2005"] aside#sidebar h2,
+:root[data-retro="yahoo2005"] aside#sidebar h3 {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] {
+  color-scheme: dark;
+  --text: #e6e4ee;
+  --bg: #17151f;
+  --surface0: #17151f;
+  --surface1: #262236;
+  --subtext: #c4c0d2;
+  --blue: #8ea6ff;
+  --muted: #9a96aa;
+  --green: #6fcf6f;
+  --red: #ff5a6e;
+  --yellow: #f2a35c;
+  --mauve: #c09be8;
+  --line: #3a3550;
+  --line-strong: #5a5470;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] body {
+  background: #17151f;
+  color: #e6e4ee;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] a,
+:root[data-retro="yahoo2005"][data-scheme="dark"] #options-btn,
+:root[data-retro="yahoo2005"][data-scheme="dark"] #results-all .result-title,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .retro-url .y-meta a,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .sitelinks a.sitelink,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .faq-section a,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-result a,
+:root[data-retro="yahoo2005"][data-scheme="dark"] aside#sidebar a,
+:root[data-retro="yahoo2005"][data-scheme="dark"][data-page="images"] #results-all a {
+  color: #8ea6ff;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] a:visited,
+:root[data-retro="yahoo2005"][data-scheme="dark"] #results-all .result-title:visited {
+  color: #c09be8;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] a:active {
+  color: #ff5a6e;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .retro-logo img {
+  content: url(/s/retro-yahoo2005-logo-dark.png);
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .y-hdr {
+  background: #262236;
+  border-bottom-color: #3a3550;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .y-tabs > a,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .y-tabs > strong {
+  border-left-color: #5a5470;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .y-tabs > :first-child {
+  border-color: #17151f;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .y-tabs > a:hover {
+  background: #332d4a;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .search-container .search-bar input:not([type="hidden"]) {
+  border-color: #6a78a8;
+  background: #0f0e16;
+  color: #f0eef6;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .search-container .search-bar button {
+  color: #e6e4ee;
+  background: #3a3550;
+  border-color: #5f5878 #1c1928 #1c1928 #5f5878;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] nav.tabs .options-popup {
+  background: #1f1c2c;
+  color: #e6e4ee;
+  border-color: #6a78a8;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .retro-stats,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .faq-section > :first-child {
+  background: #232b48;
+  border-top-color: #5c74b8;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .retro-stats h2,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .retro-stats p,
+:root[data-retro="yahoo2005"][data-scheme="dark"] #results-all .result-desc,
+:root[data-retro="yahoo2005"][data-scheme="dark"] #results-all .result-desc strong,
+:root[data-retro="yahoo2005"][data-scheme="dark"][data-page="images"] #results-all,
+:root[data-retro="yahoo2005"][data-scheme="dark"][data-page="news"] #results-all {
+  color: #e6e4ee;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .retro-url,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .retro-url .y-meta {
+  color: #6fcf6f;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .faq-section,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-result,
+:root[data-retro="yahoo2005"][data-scheme="dark"] aside#sidebar {
+  background: #17151f;
+  color: #e6e4ee;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] aside#sidebar {
+  border-left-color: #3a3550;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .faq-section *,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-result *,
+:root[data-retro="yahoo2005"][data-scheme="dark"] aside#sidebar * {
+  border-color: #3a3550;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] #loading-indicator {
+  color: #9a96aa;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"][data-page="images"] #results-all img {
+  border-color: #8ea6ff;
+}
+
+:root[data-retro="yahoo2005"] .options-popup,
+:root[data-retro="yahoo2005"] .options-popup.visible {
+  scale: none;
+  translate: none;
+  filter: none;
+  transition: none;
+  border: 1px solid #7f9db9;
+  border-radius: 0;
+  box-shadow: none;
+  background: #fff;
+  padding: 6px 8px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+}
+:root[data-retro="yahoo2005"] .options-popup .menu-row {
+  border-radius: 0;
+  padding: 3px 2px;
+  min-height: 0;
+  font-size: 12px;
+}
+:root[data-retro="yahoo2005"] .options-popup .menu-sep {
+  height: 0;
+  border-top: 1px solid #ccc;
+  background: none;
+  margin: 4px 0;
+}
+:root[data-retro="yahoo2005"] .options-popup .menu-chevron {
+  display: none;
+}
+:root[data-retro="yahoo2005"] .options-popup .menu-value {
+  border: 1px solid #7f9db9;
+  background: #fff;
+  color: #000;
+  padding: 0 18px 0 3px;
+  border-radius: 0;
+  position: relative;
+  font-size: 11px;
+}
+:root[data-retro="yahoo2005"] .options-popup .menu-value::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  margin-top: -2px;
+  border: 4px solid transparent;
+  border-top-color: #000;
+  border-bottom: 0;
+}
+:root[data-retro="yahoo2005"] .options-popup .switch {
+  width: 13px;
+  height: 13px;
+}
+:root[data-retro="yahoo2005"] .options-popup .switch .slider {
+  border-radius: 0;
+  border: 1px solid #7f9db9;
+  background: #fff;
+  transition: none;
+}
+:root[data-retro="yahoo2005"] .options-popup .switch input:checked + .slider {
+  background: #fff;
+}
+:root[data-retro="yahoo2005"] .options-popup .switch .slider::before {
+  display: none;
+  top: 1px;
+  left: 4px;
+  width: 3px;
+  height: 7px;
+  border: solid #000;
+  border-width: 0 2px 2px 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  rotate: 45deg;
+  transition: none;
+}
+:root[data-retro="yahoo2005"] .options-popup .switch input:checked + .slider::before {
+  display: block;
+  translate: none;
+}
+:root[data-retro="yahoo2005"] .rich-weather .wx-area {
+  fill: #e5ecf9;
+}
+:root[data-retro="yahoo2005"] .rich-weather .wx-line {
+  stroke: #0000de;
+  stroke-width: 1.5;
+  stroke-linecap: butt;
+}
+:root[data-retro="yahoo2005"] .rich-weather .wx-chart.wind .wx-line {
+  stroke-dasharray: 3 3;
+}
+:root[data-retro="yahoo2005"] .rich-weather .wx-tab,
+:root[data-retro="yahoo2005"] .rich-weather .wx-day {
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+:root[data-retro="yahoo2005"] .rich-weather .wx-tab-on .wx-tab-label {
+  font-weight: bold;
+  text-decoration: none;
+}
+:root[data-retro="yahoo2005"] .rich-weather .wx-tab:not(.wx-tab-on) .wx-tab-label {
+  color: #0000de;
+  text-decoration: underline;
+}
+:root[data-retro="yahoo2005"] .rich-weather .wx-day-pill {
+  display: none;
+}
+:root[data-retro="yahoo2005"] .rich-weather .wx-days {
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background: #eff3fa;
+  gap: 0;
+}
+:root[data-retro="yahoo2005"] .rich-weather .wx-day + .wx-day {
+  border-left: 1px solid #ccc;
+}
+:root[data-retro="yahoo2005"] .news-gallery {
+  display: block;
+  overflow: visible;
+  margin: 0;
+  padding: 0;
+}
+:root[data-retro="yahoo2005"] .news-card,
+:root[data-retro="yahoo2005"] .news-card:hover {
+  --card-bg: transparent;
+  display: block;
+  min-width: 0;
+  max-width: none;
+  background: none;
+  border-radius: 0;
+  margin: 0 0 8px;
+  padding: 0;
+}
+:root[data-retro="yahoo2005"] .news-card::after {
+  display: none;
+}
+:root[data-retro="yahoo2005"] .news-card-thumb,
+:root[data-retro="yahoo2005"] .news-card-thumb-placeholder {
+  display: none;
+}
+:root[data-retro="yahoo2005"] .news-card-title {
+  color: #0000de;
+  text-decoration: underline;
+  font-size: 13px;
+  -webkit-line-clamp: unset;
+}
+:root[data-retro="yahoo2005"] .news-card-header,
+:root[data-retro="yahoo2005"] .news-card-age {
+  color: #666;
+  font-size: 11px;
+}
+:root[data-retro="yahoo2005"] .image-detail-panel {
+  --detail-bg: #eff3fa;
+  border-top: 1px solid #7f9db9;
+  border-bottom: 1px solid #7f9db9;
+  border-radius: 0;
+}
+:root[data-retro="yahoo2005"] .image-detail-panel::before,
+:root[data-retro="yahoo2005"] .image-detail-panel::after {
+  display: none;
+}
+:root[data-retro="yahoo2005"] .image-detail-panel :is(button, a, img, .image-detail-preview) {
+  border-radius: 0;
+  box-shadow: none;
+}
+:root[data-retro="yahoo2005"] .image-detail-actions a,
+:root[data-retro="yahoo2005"] .image-detail-header button {
+  background: #ece9d8;
+  color: #000;
+  border: 1px solid #7f9db9;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+}
+:root[data-retro="yahoo2005"] .result-skeleton .sk {
+  background: #ccc;
+  border-radius: 0;
+  animation: none;
+  height: 10px;
+}
+:root[data-retro="yahoo2005"] .result-skeleton .sk:first-child {
+  background: #e5ecf9;
+}
+
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup.visible {
+  scale: none;
+  translate: none;
+  filter: none;
+  transition: none;
+  border: 1px solid #5a5470;
+  border-radius: 0;
+  box-shadow: none;
+  background: #17151f;
+  padding: 6px 8px;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup .menu-row {
+  border-radius: 0;
+  padding: 3px 2px;
+  min-height: 0;
+  font-size: 12px;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup .menu-sep {
+  height: 0;
+  border-top: 1px solid #3a3550;
+  background: none;
+  margin: 4px 0;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup .menu-chevron {
+  display: none;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup .menu-value {
+  border: 1px solid #5a5470;
+  background: #0f0e15;
+  color: #e6e4ee;
+  padding: 0 18px 0 3px;
+  border-radius: 0;
+  position: relative;
+  font-size: 11px;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup .menu-value::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  margin-top: -2px;
+  border: 4px solid transparent;
+  border-top-color: #e6e4ee;
+  border-bottom: 0;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup .switch {
+  width: 13px;
+  height: 13px;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup .switch .slider {
+  border-radius: 0;
+  border: 1px solid #5a5470;
+  background: #0f0e15;
+  transition: none;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup .switch input:checked + .slider {
+  background: #0f0e15;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup .switch .slider::before {
+  display: none;
+  top: 1px;
+  left: 4px;
+  width: 3px;
+  height: 7px;
+  border: solid #e6e4ee;
+  border-width: 0 2px 2px 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  rotate: 45deg;
+  transition: none;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .options-popup .switch input:checked + .slider::before {
+  display: block;
+  translate: none;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-weather .wx-area {
+  fill: #262236;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-weather .wx-line {
+  stroke: #8ea6ff;
+  stroke-width: 1.5;
+  stroke-linecap: butt;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-weather .wx-chart.wind .wx-line {
+  stroke-dasharray: 3 3;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-weather .wx-tab,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-weather .wx-day {
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-weather .wx-tab-on .wx-tab-label {
+  font-weight: bold;
+  text-decoration: none;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-weather .wx-tab:not(.wx-tab-on) .wx-tab-label {
+  color: #8ea6ff;
+  text-decoration: underline;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-weather .wx-day-pill {
+  display: none;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-weather .wx-days {
+  border-top: 1px solid #3a3550;
+  border-bottom: 1px solid #3a3550;
+  background: #1f1c2b;
+  gap: 0;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .rich-weather .wx-day + .wx-day {
+  border-left: 1px solid #3a3550;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .news-gallery {
+  display: block;
+  overflow: visible;
+  margin: 0;
+  padding: 0;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .news-card,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .news-card:hover {
+  --card-bg: transparent;
+  display: block;
+  min-width: 0;
+  max-width: none;
+  background: none;
+  border-radius: 0;
+  margin: 0 0 8px;
+  padding: 0;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .news-card::after {
+  display: none;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .news-card-thumb,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .news-card-thumb-placeholder {
+  display: none;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .news-card-title {
+  color: #8ea6ff;
+  text-decoration: underline;
+  font-size: 13px;
+  -webkit-line-clamp: unset;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .news-card-header,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .news-card-age {
+  color: #9a96aa;
+  font-size: 11px;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .image-detail-panel {
+  --detail-bg: #1f1c2b;
+  border-top: 1px solid #5a5470;
+  border-bottom: 1px solid #5a5470;
+  border-radius: 0;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .image-detail-panel::before,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .image-detail-panel::after {
+  display: none;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .image-detail-panel :is(button, a, img, .image-detail-preview) {
+  border-radius: 0;
+  box-shadow: none;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .image-detail-actions a,
+:root[data-retro="yahoo2005"][data-scheme="dark"] .image-detail-header button {
+  background: #262236;
+  color: #e6e4ee;
+  border: 1px solid #5a5470;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .result-skeleton .sk {
+  background: #3a3550;
+  border-radius: 0;
+  animation: none;
+  height: 10px;
+}
+:root[data-retro="yahoo2005"][data-scheme="dark"] .result-skeleton .sk:first-child {
+  background: #262236;
+}
+
+@media (max-width: 600px) {
+  :root[data-retro="yahoo2005"][data-page="home"] .retro-logo img {
+    width: 100%;
+    max-width: 422px;
+    height: auto;
+  }
+
+  :root[data-retro="yahoo2005"][data-page="home"] header form {
+    width: auto;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0 8px;
+  }
+
+  :root[data-retro="yahoo2005"][data-page="home"] header,
+  :root[data-retro="yahoo2005"][data-page="home"] .search-container {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  :root[data-retro="yahoo2005"][data-page="home"] .y-tabs {
+    white-space: normal;
+    line-height: 1.6;
+  }
+
+  :root[data-retro="yahoo2005"] .y-try {
+    padding: 0 8px;
+  }
+
+  :root[data-retro="yahoo2005"][data-page="home"] .search-container {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  :root[data-retro="yahoo2005"][data-page="home"] .search-container .search-bar {
+    flex: 1 1 100%;
+    min-width: 0;
+    width: 100%;
+  }
+
+  :root[data-retro="yahoo2005"][data-page="home"] .search-container .search-bar input {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  :root[data-retro="yahoo2005"][data-page="home"] .y-side {
+    display: flex;
+    gap: 10px;
+    position: static;
+    margin: 4px 0 0;
+  }
+}
