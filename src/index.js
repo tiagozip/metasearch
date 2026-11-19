@@ -1576,14 +1576,49 @@ export default new Elysia({ adapter: CloudflareAdapter })
       return "rate limited";
     }
     const coin = /-[A-Z]{3,4}$/i.test(symbol);
-    const url = coin
-      ? `https://assets.coincap.io/assets/icons/${symbol.split("-")[0].toLowerCase()}@2x.png`
-      : `https://assets.parqet.com/logos/symbol/${encodeURIComponent(symbol.toUpperCase())}?format=png&size=128`;
-    const r = await fetch(url, {
-      cf: { cacheTtl: 604800, cacheEverything: true },
-    }).catch(() => null);
+    const grab = async (url) => {
+      const res = await fetch(url, {
+        headers: { "user-agent": "Mozilla/5.0" },
+        signal: AbortSignal.timeout(6000),
+        cf: { cacheTtl: 604800, cacheEverything: true },
+      }).catch(() => null);
+      return res?.ok && res.headers.get("content-type")?.startsWith("image/")
+        ? res
+        : null;
+    };
+    const domainOf = async () => {
+      const profile = await fetch(
+        `https://api.nasdaq.com/api/company/${encodeURIComponent(symbol.toUpperCase())}/company-profile`,
+        {
+          headers: { "user-agent": "Mozilla/5.0", accept: "application/json" },
+          signal: AbortSignal.timeout(6000),
+          cf: { cacheTtl: 604800, cacheEverything: true },
+        },
+      )
+        .then((x) => (x.ok ? x.json() : null))
+        .catch(() => null);
+      try {
+        return new URL(profile?.data?.CompanyUrl?.value).hostname;
+      } catch {
+        return null;
+      }
+    };
+    const r = coin
+      ? await grab(
+          `https://assets.coincap.io/assets/icons/${symbol.split("-")[0].toLowerCase()}@2x.png`,
+        )
+      : ((await grab(
+          `https://assets.parqet.com/logos/symbol/${encodeURIComponent(symbol.toUpperCase())}?format=png&size=128`,
+        )) ??
+        (await domainOf().then((domain) =>
+          domain
+            ? grab(
+                `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=128`,
+              )
+            : null,
+        )));
     const type = r?.headers.get("content-type") || "";
-    if (!r?.ok || !type.startsWith("image/")) {
+    if (!r) {
       set.status = 404;
       set.headers["cache-control"] = CACHE.day;
       return "no logo";
