@@ -98,12 +98,12 @@ export function fillQuote(section, today, { source, sourceLabel } = {}) {
   let pending = null;
 
   const logo = (() => {
-    const fallback = () =>
-      h(
-        "span",
-        { class: "qt-logo qt-mono", "aria-hidden": "true" },
-        (today.name.match(/[A-Za-z0-9]/)?.[0] || "?").toUpperCase(),
-      );
+    const fallback = () => {
+      const el = h("span", { class: "qt-logo qt-mono", "aria-hidden": "true" });
+      el.innerHTML =
+        '<svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 17l5-5 4 4 8-9M15 7h5v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      return el;
+    };
     if (isFx) return fallback();
     const img = h("img", {
       class: "qt-logo",
@@ -126,14 +126,11 @@ export function fillQuote(section, today, { source, sourceLabel } = {}) {
 
   const subEl = h("p", { class: "qt-sub" });
   const renderSub = () => {
-    const text = [
-      today.symbol.replace(/=X$/, ""),
-      isFx || isCoin ? null : today.exchange,
-      today.extra?.industry || today.extra?.sector,
-      isCoin && today.extra?.rank ? `#${today.extra.rank} by market cap` : null,
-    ]
-      .filter(Boolean)
-      .join(" · ");
+    const symbol = today.symbol.replace(/=X$/, "");
+    const text =
+      isFx || isCoin || !today.exchange
+        ? symbol
+        : `${today.exchange}: ${symbol}`;
     subEl.textContent = text;
     subEl.title = text;
   };
@@ -163,8 +160,8 @@ export function fillQuote(section, today, { source, sourceLabel } = {}) {
   const when = h("span", { class: "qt-when" });
   const change = h("p", { class: "qt-change" }, arrow, delta, when);
   const ext = h("p", { class: "qt-ext", hidden: true });
-  const priceMorph = morph(price);
-  const deltaMorph = morph(delta);
+  let priceMorph = null;
+  let deltaMorph = null;
   const reading = h(
     "div",
     { class: "qt-reading", "aria-live": "polite" },
@@ -332,12 +329,11 @@ export function fillQuote(section, today, { source, sourceLabel } = {}) {
     const last = today.points.at(-1)?.[0] ?? today.time;
     if (today.rolling)
       return now - last < 1800
-        ? ["live", isCoin ? "Live, trades 24/7" : "Market open"]
-        : ["closed", "Market closed"];
-    if (!s || now > s.end || now < s.start) return ["closed", "Market closed"];
+        ? ["live", isCoin ? "Live" : "Open"]
+        : ["closed", "Closed"];
+    if (!s || now > s.end || now < s.start) return ["closed", "Closed"];
     if (now < s.open) return ["ext", "Pre-market"];
-    if (now < s.close)
-      return ["live", `Market open, closes ${at(s.close, clockOpts)}`];
+    if (now < s.close) return ["live", "Open"];
     return ["ext", "After hours"];
   };
 
@@ -454,9 +450,9 @@ export function fillQuote(section, today, { source, sourceLabel } = {}) {
     const slot = s
       ? (W * (points[1]?.[0] - points[0]?.[0] || 300)) / (s.end - s.start)
       : W / Math.max(1, points.length);
-    const barW = Math.max(1, slot * 0.62);
+    const barW = Math.min(8, Math.max(1, slot * 0.62));
     const vol =
-      maxVol > 0 && range !== "5y" && range !== "max"
+      maxVol > 0 && points.length > 1 && range !== "5y" && range !== "max"
         ? points
             .map(([, , v], i) => {
               if (!v) return "";
@@ -492,8 +488,17 @@ export function fillQuote(section, today, { source, sourceLabel } = {}) {
     const diff = value - ref;
     const up = diff >= 0;
     const rel = pct.format(Math.abs(ref ? diff / ref : 0));
-    priceMorph.update(fmt(value));
-    deltaMorph.update(`${fmt(Math.abs(diff))} (${rel})`);
+    const priceText = fmt(value);
+    const deltaText = `${fmt(Math.abs(diff))} (${rel})`;
+    if (priceMorph) {
+      priceMorph.update(priceText);
+      deltaMorph.update(deltaText);
+    } else {
+      price.textContent = priceText;
+      delta.textContent = deltaText;
+      priceMorph = morph(price);
+      deltaMorph = morph(delta);
+    }
     when.textContent = label;
     change.dataset.dir = up ? "up" : "down";
     change.setAttribute(
