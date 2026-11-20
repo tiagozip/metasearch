@@ -30,3 +30,8 @@ simple = { limit = 60, period = 60 }
 name = "RIMG_LIMIT"
 namespace_id = "1103"
 simple = { limit = 30, period = 60 }
+
+[[ratelimits]]
+name = "THUMB_LIMIT"
+namespace_id = "1104"
+simple = { limit = 300, period = 60 }

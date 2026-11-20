@@ -704,7 +704,11 @@ export default new Elysia({ adapter: CloudflareAdapter })
       },
     });
   })
-  .get("/wx", async ({ set, query }) => {
+  .get("/wx", async ({ set, query, request }) => {
+    if (await limited(env.API_LIMIT, request)) {
+      set.status = 429;
+      return { error: "slow down" };
+    }
     const lat = Number(query?.lat);
     const lon = Number(query?.lon);
     if (
@@ -792,10 +796,31 @@ export default new Elysia({ adapter: CloudflareAdapter })
         set.status = 429;
         return { error: "slow down" };
       }
-      const bytes = await request.arrayBuffer();
-      if (!bytes.byteLength || bytes.byteLength > 8 * 1024 * 1024) {
+      const max = 8 * 1024 * 1024;
+      const declared = Number(request.headers.get("content-length"));
+      if (!(declared > 0) || declared > max || !request.body) {
         set.status = 413;
         return { error: "images can be up to 8 MB" };
+      }
+      const chunks = [];
+      let size = 0;
+      for await (const chunk of request.body) {
+        size += chunk.byteLength;
+        if (size > max) {
+          set.status = 413;
+          return { error: "images can be up to 8 MB" };
+        }
+        chunks.push(chunk);
+      }
+      if (!size) {
+        set.status = 413;
+        return { error: "images can be up to 8 MB" };
+      }
+      const bytes = new Uint8Array(size);
+      let at = 0;
+      for (const chunk of chunks) {
+        bytes.set(chunk, at);
+        at += chunk.byteLength;
       }
       const head = String.fromCharCode(...new Uint8Array(bytes.slice(0, 16)));
       const type = [
@@ -849,7 +874,11 @@ export default new Elysia({ adapter: CloudflareAdapter })
       },
     });
   })
-  .get("/rimg/t", async ({ query, set }) => {
+  .get("/rimg/t", async ({ query, set, request }) => {
+    if (await limited(env.THUMB_LIMIT, request)) {
+      set.status = 429;
+      return { error: "slow down" };
+    }
     let target;
     try {
       target = new URL(String(query?.u || ""));
@@ -869,13 +898,16 @@ export default new Elysia({ adapter: CloudflareAdapter })
           "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
       },
       cf: { cacheTtl: 86400, cacheEverything: true },
+      redirect: "manual",
       signal: AbortSignal.timeout(8000),
     }).catch(() => null);
     const type = res?.headers.get("content-type") || "";
+    const length = Number(res?.headers.get("content-length"));
     if (
-      !res?.ok ||
-      !type.startsWith("image/") ||
-      Number(res.headers.get("content-length") || 0) > 4 * 1024 * 1024
+      res?.status !== 200 ||
+      !/^image\/(?:png|jpeg|gif|webp|avif)(?:;|$)/i.test(type) ||
+      !(length > 0) ||
+      length > 4 * 1024 * 1024
     ) {
       set.status = 502;
       return { error: "thumbnail unavailable" };
@@ -885,6 +917,7 @@ export default new Elysia({ adapter: CloudflareAdapter })
         "content-type": type,
         "cache-control": "public, max-age=86400",
         "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'none'; sandbox",
       },
     });
   })
@@ -951,6 +984,10 @@ export default new Elysia({ adapter: CloudflareAdapter })
       };
     }
 
+    if (await limited(env.API_LIMIT, request)) {
+      set.status = 429;
+      return { error: "slow down" };
+    }
     const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
     url.search = new URLSearchParams({ name, count: "1", language: "en" });
     let place;
@@ -1582,7 +1619,10 @@ export default new Elysia({ adapter: CloudflareAdapter })
         signal: AbortSignal.timeout(6000),
         cf: { cacheTtl: 604800, cacheEverything: true },
       }).catch(() => null);
-      return res?.ok && res.headers.get("content-type")?.startsWith("image/")
+      return res?.ok &&
+        /^image\/(?:png|jpeg|gif|webp|avif|x-icon|vnd\.microsoft\.icon)(?:;|$)/i.test(
+          res.headers.get("content-type") || "",
+        )
         ? res
         : null;
     };
@@ -1624,7 +1664,11 @@ export default new Elysia({ adapter: CloudflareAdapter })
       return "no logo";
     }
     return new Response(r.body, {
-      headers: { "content-type": type, "cache-control": CACHE.forever },
+      headers: {
+        "content-type": type,
+        "cache-control": CACHE.forever,
+        "x-content-type-options": "nosniff",
+      },
     });
   })
   .get("/p/:q", async ({ set, params, headers, request }) => {

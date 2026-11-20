@@ -92,7 +92,8 @@ export function parseCfg(raw) {
   if (obj.d && typeof obj.d === "object") {
     for (const [pattern, rule] of Object.entries(obj.d).slice(0, 300)) {
       const p = rulePattern(pattern);
-      if (p && Object.hasOwn(RULES, rule)) domains[p] = RULES[rule];
+      if (p && !p.startsWith("/") && Object.hasOwn(RULES, rule))
+        domains[p] = RULES[rule];
     }
   }
 
@@ -121,5 +122,5 @@ export function parseCfg(raw) {
 
 export function cfgScript(cfg) {
   const json = JSON.stringify(cfg).replaceAll("<", "\\u003c");
-  return `<script>try{const c=${json},L=localStorage,s=(k,v)=>v?L.setItem(k,v):L.removeItem(k),y="; path=/; max-age=31536000; samesite=lax";s("ms-theme",c.theme);s("ms-retro",c.retro);s("ms-retro-scheme",c.retroScheme);s("ms-mascot",c.mascot);s("ms-accent",c.accent);s("ms-newtab",c.newTab?"1":"");s("ms-highlight",c.highlight?"":"0");s("ms-bold",c.bold?"":"0");s("ms-imgbtn",c.imageButton?"1":"");s("ms-wp-fx",c.wallpaperEffect);s("ms-domains",Object.keys(c.domains).length?JSON.stringify(c.domains):"");s("ms-lenses",c.lenses.length?JSON.stringify(c.lenses):"");document.cookie=\`links_only=\${c.linksOnly?1:0}\${y}\`;if(c.engine)document.cookie=\`engine=\${c.engine}\${y}\`;document.cookie=c.safe?\`safesearch=\${c.safe}\${y}\`:"safesearch=; path=/; max-age=0"}catch{}</script>`;
+  return `<script>try{if(confirm("apply the settings from this link? they replace your current settings")){const c=${json},L=localStorage,s=(k,v)=>v?L.setItem(k,v):L.removeItem(k),y="; path=/; max-age=31536000; samesite=lax";s("ms-theme",c.theme);s("ms-retro",c.retro);s("ms-retro-scheme",c.retroScheme);s("ms-mascot",c.mascot);s("ms-accent",c.accent);s("ms-newtab",c.newTab?"1":"");s("ms-highlight",c.highlight?"":"0");s("ms-bold",c.bold?"":"0");s("ms-imgbtn",c.imageButton?"1":"");s("ms-wp-fx",c.wallpaperEffect);s("ms-domains",Object.keys(c.domains).length?JSON.stringify(c.domains):"");s("ms-lenses",c.lenses.length?JSON.stringify(c.lenses):"");document.cookie=\`links_only=\${c.linksOnly?1:0}\${y}\`;if(c.engine)document.cookie=\`engine=\${c.engine}\${y}\`;document.cookie=c.safe?\`safesearch=\${c.safe}\${y}\`:"safesearch=; path=/; max-age=0"}}catch{}</script>`;
 }

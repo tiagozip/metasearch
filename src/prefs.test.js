@@ -51,7 +51,6 @@ test("parseCfg keeps valid settings and drops the rest", () => {
       "pinterest.com": "block",
       "github.com": "raise",
       "pinterest.*": "block",
-      "/reddit\\.com\\/r\\/funny/": "lower",
     },
     lenses: [{ n: "docs", i: ["mdn.dev"], x: [], k: "api", f: "" }],
   });
